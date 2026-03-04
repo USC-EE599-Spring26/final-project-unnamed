@@ -51,6 +51,22 @@ extension OCKPatient {
         }
     }
 
+    /**
+    The email address of this Patient.
+    */
+    var email: String? {
+        get {
+            return userInfo?["email"]
+        }
+        set {
+            if userInfo != nil {
+                userInfo?["email"] = newValue
+            } else {
+                userInfo = ["email": newValue ?? ""]
+            }
+        }
+    }
+
     /// Initialize a patient with an id, a first name, and a last name.
     ///
     /// - Parameters:
@@ -58,10 +74,11 @@ extension OCKPatient {
     ///   - id: A user-defined id unique to this patient.
     ///   - givenName: The patient's given name.
     ///   - familyName: The patient's family name.
-    init(remoteUUID: UUID, id: String, givenName: String, familyName: String) {
+    init(remoteUUID: UUID, id: String, givenName: String, familyName: String, email: String?) {
         self.init(id: id,
                   givenName: givenName,
                   familyName: familyName)
         remoteClockUUID = remoteUUID
+        self.email = email
     }
 }

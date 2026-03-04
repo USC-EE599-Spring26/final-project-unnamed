@@ -66,11 +66,6 @@ struct LoginView: View {
                     .background(.white)
                     .cornerRadius(20.0)
                     .shadow(radius: 10.0, x: 20, y: 10)
-                TextField("EMAIL", text: $email)
-                    .padding()
-                    .background(.white)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)
                 SecureField("PASSWORD", text: $password)
                     .padding()
                     .background(.white)
@@ -79,6 +74,11 @@ struct LoginView: View {
 
                 switch signupLoginSegmentValue {
                 case 1:
+                    TextField("EMAIL", text: $email)
+                        .padding()
+                        .background(.white)
+                        .cornerRadius(20.0)
+                        .shadow(radius: 10.0, x: 20, y: 10)
                     TextField("GIVEN_NAME", text: $firstName)
                         .padding()
                         .background(.white)

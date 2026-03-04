@@ -109,7 +109,7 @@ class LoginViewModel: ObservableObject {
     private func savePatientAfterSignUp(
 		_ type: UserType,
 		firstName: String,
-		lastName: String
+		lastName: String, email: String?
 	) async throws -> OCKPatient {
 
         let remoteUUID = UUID()
@@ -128,7 +128,8 @@ class LoginViewModel: ObservableObject {
 			remoteUUID: remoteUUID,
 			id: remoteUUID.uuidString,
 			givenName: firstName,
-			familyName: lastName
+			familyName: lastName,
+            email: email
 		)
         newPatient.userType = type
         let savedPatient = try await appDelegate.store.addPatient(newPatient)
@@ -181,6 +182,8 @@ class LoginViewModel: ObservableObject {
                 Logger.login.error("Server health is not \"ok\"")
                 return
             }
+            try? await User.logout()
+
             var newUser = User()
             // Set any properties you want saved on the user befor logging in.
             newUser.username = username.lowercased()
@@ -190,7 +193,8 @@ class LoginViewModel: ObservableObject {
             Logger.login.info("Parse signup successful: \(user)")
             let patient = try await savePatientAfterSignUp(type,
                                                            firstName: firstName,
-                                                           lastName: lastName)
+                                                           lastName: lastName,
+                                                           email: email)
             try? await finishCompletingSignIn(patient)
         } catch {
             Logger.login.error("Error details: \(error)")
@@ -230,7 +234,7 @@ class LoginViewModel: ObservableObject {
                 return
             }
             let user = try await User.login(username: username.lowercased(),
-                                            email: email.lowercased(),
+//                                            email: email.lowercased(),
                                             password: password)
             Logger.login.info("Parse login successful: \(user, privacy: .private)")
             AppDelegateKey.defaultValue?.setFirstTimeLogin(true)
@@ -266,7 +270,8 @@ class LoginViewModel: ObservableObject {
             // Only allow annonymous users to be patients.
             let patient = try await savePatientAfterSignUp(.patient,
                                                            firstName: "Anonymous",
-                                                           lastName: "Login")
+                                                           lastName: "Login",
+                                                           email: "Universal")
             try? await finishCompletingSignIn(patient)
         } catch {
             // swiftlint:disable:next line_length
