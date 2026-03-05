@@ -89,7 +89,7 @@ class CareKitTaskViewModel: ObservableObject {
             // Ask HealthKit store for permissions after each new task
             Utility.requestHealthKitPermissions()
         } catch {
-            self.error = AppError.errorString("Could not add task: \(error.localizedDescription)")
+            self.error = AppError.errorString("Could not add healthKitTask: \(error.localizedDescription)")
         }
     }
 }
