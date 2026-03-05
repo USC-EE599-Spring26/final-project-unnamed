@@ -166,8 +166,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         if isCurrentDay {
             if Calendar.current.isDate(date, inSameDayAs: Date()) {
                 // Add a non-CareKit view into the list
-                let tipTitle = "Benefits of exercising"
-                let tipText = "Learn how activity can promote a healthy pregnancy."
+                let tipTitle = "Stay Focused with Short Tasks"
+                let tipText = "Exercises promote your focus."
                 let tipView = TipView()
                 tipView.headerView.titleLabel.text = tipTitle
                 tipView.headerView.detailLabel.text = tipText
@@ -291,9 +291,9 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
             return [card]
 
-        case TaskID.kegels:
+        case TaskID.cardios:
             /*
-             Since the kegel task is only scheduled every other day, there will be cases
+             Since the cardio task is only scheduled every other day, there will be cases
              where it is not contained in the tasks array returned from the query.
              */
             let card = EventQueryView<SimpleTaskView>(
@@ -304,8 +304,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return [card]
 
         #if os(iOS)
-        // Create a card for the doxylamine task if there are events for it on this day.
-        case TaskID.doxylamine:
+        // Create a card for the methylphenidate task if there are events for it on this day.
+        case TaskID.methylphenidate:
 
             // This is a UIKit based card.
             let card = OCKChecklistTaskViewController(
@@ -316,7 +316,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return [card]
         #endif
 
-        case TaskID.nausea:
+        case TaskID.inattention:
 
             #if os(iOS)
             /*
@@ -324,12 +324,12 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
              The event query passed into the initializer specifies that only
              today's log entries should be displayed by this log task view controller.
              */
-            let nauseaCard = OCKButtonLogTaskViewController(
+            let inattentionCard = OCKButtonLogTaskViewController(
                 query: query,
                 store: self.store
             )
 
-            return [nauseaCard]
+            return [inattentionCard]
 
             #else
             return []

@@ -77,10 +77,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "OPEN_APP_IPHONE" = "Please open the app on your iPhone";
 
 // MARK: Care View
-"NAUSEA_DOXYLAMINE_INTAKE" = "Nausea & Doxylamine Intake";
+"INATTENTION_METHYLPHENIDATE_INTAKE" = "Inattention & METHYLPHENIDATE Intake";
 "THIS_WEEK" = "This Week";
-"NAUSEA" = "Nausea";
-"DOXYLAMINE" = "Doxylamine";
+"INATTENTION" = "Inattention";
+"METHYLPHENIDATE" = "Methylphenidate";
 
 // MARK: Profile
 "BIRTHDAY" = "Birthday";
@@ -88,13 +88,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "LOG_OUT" = "Log Out";
 
 // MARK: TASKS
-"TAKE_DOXYLAMINE" = "Take Doxylamine";
-"DOXYLAMINE_INSTRUCTIONS" = "Take 25mg of doxylamine when you experience nausea";
+"TAKE_METHYLPHENIDATE" = "Take Methylphenidate";
+"METHYLPHENIDATE_INSTRUCTIONS" = "Take 25mg of methylphenidate when you experience inattention";
 "ANYTIME_DURING_DAY" = "Anytime throughout the day";
-"TRACK_NAUSEA" = "Track your nausea";
-"NAUSEA_INSTRUCTIONS" = "Tap the button below anytime you experience nausea";
-"KEGEL_EXERCISES" = "Kegel Exercises";
-"KEGEL_INSTRUCTIONS" = "Perform kegel exercises";
+"TRACK_INATTENTION" = "Track your inattention";
+"INATTENTION_INSTRUCTIONS" = "Tap the button below anytime you experience inattention";
+"CARDIO_EXERCISES" = "Cardio Exercises";
+"CARDIO_INSTRUCTIONS" = "Perform cardio exercises";
 "STRETCH" = "Stretch";
 "STEPS" = "Steps";
 "OVULATION_TEST_RESULT" = "Ovulation Test Result";
