@@ -19,6 +19,7 @@ class CareKitTaskViewModel: ObservableObject {
     func addTask(
         _ title: String,
         instructions: String,
+        scheduleTime: Date,
         cardType: CareKitCard
     ) async {
         guard let appDelegate = AppDelegateKey.defaultValue else {
@@ -26,13 +27,18 @@ class CareKitTaskViewModel: ObservableObject {
             return
         }
         let uniqueId = UUID().uuidString // Create a unique id for each task
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: scheduleTime)
+        let endDate = calendar.date(byAdding: .day, value: 1, to: startDate)
+        let hour = calendar.component(.hour, from: scheduleTime)
+        let minute = calendar.component(.minute, from: scheduleTime)
         var task = OCKTask(id: uniqueId,
                            title: title,
                            carePlanUUID: nil,
-                           schedule: .dailyAtTime(hour: 0,
-                                                  minutes: 0,
-                                                  start: Date(),
-                                                  end: nil,
+                           schedule: .dailyAtTime(hour: hour,
+                                                  minutes: minute,
+                                                  start: startDate,
+                                                  end: endDate,
                                                   text: nil))
         task.instructions = instructions
         task.card = cardType
@@ -49,6 +55,7 @@ class CareKitTaskViewModel: ObservableObject {
     func addHealthKitTask(
         _ title: String,
         instructions: String,
+        scheduleTime: Date,
         cardType: CareKitCard
     ) async {
         guard let appDelegate = AppDelegateKey.defaultValue else {
@@ -56,13 +63,18 @@ class CareKitTaskViewModel: ObservableObject {
             return
         }
         let uniqueId = UUID().uuidString // Create a unique id for each task
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: scheduleTime)
+        let endDate = calendar.date(byAdding: .day, value: 1, to: startDate)
+        let hour = calendar.component(.hour, from: scheduleTime)
+        let minute = calendar.component(.minute, from: scheduleTime)
         var healthKitTask = OCKHealthKitTask(id: uniqueId,
                                              title: title,
                                              carePlanUUID: nil,
-                                             schedule: .dailyAtTime(hour: 0,
-                                                                    minutes: 0,
-                                                                    start: Date(),
-                                                                    end: nil,
+                                             schedule: .dailyAtTime(hour: hour,
+                                                                    minutes: minute,
+                                                                    start: startDate,
+                                                                    end: endDate,
                                                                     text: nil),
                                              healthKitLinkage: .init(quantityIdentifier: .electrodermalActivity,
                                                                      quantityType: .discrete,

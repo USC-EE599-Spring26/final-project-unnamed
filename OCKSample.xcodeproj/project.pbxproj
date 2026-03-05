@@ -174,6 +174,8 @@
 		BE4EAA962F57C62800CF7BF0 /* CardTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA952F57C61600CF7BF0 /* CardTask.swift */; };
 		BE4EAA972F57C62800CF7BF0 /* CardTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA952F57C61600CF7BF0 /* CardTask.swift */; };
 		BE4EAAEA2F59611700CF7BF0 /* OCKHealthKit+Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA882F5126B700CF7BF0 /* OCKHealthKit+Card.swift */; };
+		BE4EAB012F5962CE00CF7BF0 /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
+		BE4EAB022F5962E100CF7BF0 /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
 		E72B2C0A226939E3009A9438 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72B2C09226939E3009A9438 /* AppDelegate.swift */; };
 		E72B2C14226939E4009A9438 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E72B2C12226939E4009A9438 /* LaunchScreen.storyboard */; };
 		E7440E4F229477F7007AD30A /* CareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7440E4E229477F7007AD30A /* CareViewController.swift */; };
@@ -996,6 +998,7 @@
 				707D29472DCBE68500980253 /* User.swift in Sources */,
 				BE4EAA8B2F5126C100CF7BF0 /* OCKHealthKit+Card.swift in Sources */,
 				707D29482DCBE68500980253 /* FontColorKey.swift in Sources */,
+				BE4EAB022F5962E100CF7BF0 /* AppearanceStyler.swift in Sources */,
 				707D29492DCBE68500980253 /* MainView.swift in Sources */,
 				707D294A2DCBE68500980253 /* CustomStylerKey.swift in Sources */,
 				707D294B2DCBE68500980253 /* TipView.swift in Sources */,
@@ -1145,6 +1148,7 @@
 				7036E4D3256EBE35006E9A3C /* MainView.swift in Sources */,
 				918FDEC5271B4EA70045A0EF /* StoreCoordinatorKey.swift in Sources */,
 				91693822271B897200A634ED /* Utility.swift in Sources */,
+				BE4EAB012F5962CE00CF7BF0 /* AppearanceStyler.swift in Sources */,
 				707CC718254DA91900116728 /* OCKLocalization.swift in Sources */,
 				BE4EAA862F51214400CF7BF0 /* OCKTask+Card.swift in Sources */,
 				E7C37849228F887800E982D8 /* TipView.swift in Sources */,

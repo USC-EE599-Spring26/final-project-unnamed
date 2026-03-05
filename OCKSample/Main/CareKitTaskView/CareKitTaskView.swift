@@ -18,6 +18,7 @@ struct CareKitTaskView: View {
     @StateObject var viewModel = CareKitTaskViewModel()
     @State var title = ""
     @State var instructions = ""
+    @State var selectedTime = Date()
     @State var selectedCard: CareKitCard = .button
 
     var body: some View {
@@ -28,6 +29,9 @@ struct CareKitTaskView: View {
                           text: $title)
                 TextField("Instructions",
                           text: $instructions)
+                DatePicker("Scheduled",
+                           selection: $selectedTime,
+                           displayedComponents: [.date, .hourAndMinute])
                 Picker("Card View", selection: $selectedCard) {
                     ForEach(CareKitCard.allCases) { item in
                         Text(item.rawValue)
@@ -39,6 +43,7 @@ struct CareKitTaskView: View {
                             await viewModel.addTask(
                                 title,
                                 instructions: instructions,
+                                scheduleTime: selectedTime,
                                 cardType: selectedCard
                             )
                         }
@@ -57,6 +62,7 @@ struct CareKitTaskView: View {
                             await viewModel.addHealthKitTask(
                                 title,
                                 instructions: instructions,
+                                scheduleTime: selectedTime,
                                 cardType: selectedCard
                             )
                         }
