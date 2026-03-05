@@ -9,26 +9,26 @@
 import Foundation
 
 enum TaskID {
-    static let doxylamine = "doxylamine"
-    static let nausea = "nausea"
+    static let methylphenidate = "methylphenidate"
+    static let inattention = "inattention"
     static let stretch = "stretch"
-    static let kegels = "kegels"
+    static let cardios = "cardios"
     static let steps = "steps"
-    static let ovulationTestResult = "ovulationTestResult"
+//    static let ovulationTestResult = "ovulationTestResult"
 
     static var ordered: [String] {
         orderedObjective + orderedSubjective
     }
 
     static var orderedObjective: [String] {
-        [ Self.steps, Self.ovulationTestResult ]
+        [ Self.steps/*, Self.ovulationTestResult*/ ]
     }
 
     static var orderedSubjective: [String] {
-        [ Self.doxylamine, Self.kegels, Self.stretch, Self.nausea]
+        [ Self.methylphenidate, Self.cardios, Self.stretch, Self.inattention]
     }
 
     static var orderedWatchOS: [String] {
-        [ Self.doxylamine, Self.kegels, Self.stretch ]
+        [ Self.methylphenidate, Self.cardios, Self.stretch ]
     }
 }

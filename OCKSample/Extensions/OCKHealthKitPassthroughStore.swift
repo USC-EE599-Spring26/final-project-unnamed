@@ -46,26 +46,26 @@ extension OCKHealthKitPassthroughStore {
         )
         steps.asset = "figure.walk"
 
-        let ovulationTestResultSchedule = OCKSchedule.dailyAtTime(
-            hour: 8,
-            minutes: 0,
-            start: startDate,
-            end: nil,
-            text: nil,
-            duration: .allDay,
-            targetValues: []
-        )
-        var ovulationTestResult = OCKHealthKitTask(
-            id: TaskID.ovulationTestResult,
-            title: String(localized: "OVULATION_TEST_RESULT"),
-            carePlanUUID: nil,
-            schedule: ovulationTestResultSchedule,
-            healthKitLinkage: OCKHealthKitLinkage(
-                categoryIdentifier: .ovulationTestResult
-            )
-        )
-        ovulationTestResult.asset = "circle.dotted"
-        let tasks = [ steps, ovulationTestResult ]
+//        let ovulationTestResultSchedule = OCKSchedule.dailyAtTime(
+//            hour: 8,
+//            minutes: 0,
+//            start: startDate,
+//            end: nil,
+//            text: nil,
+//            duration: .allDay,
+//            targetValues: []
+//        )
+//        var ovulationTestResult = OCKHealthKitTask(
+//            id: TaskID.ovulationTestResult,
+//            title: String(localized: "OVULATION_TEST_RESULT"),
+//            carePlanUUID: nil,
+//            schedule: ovulationTestResultSchedule,
+//            healthKitLinkage: OCKHealthKitLinkage(
+//                categoryIdentifier: .ovulationTestResult
+//            )
+//        )
+//        ovulationTestResult.asset = "circle.dotted"
+        let tasks = [ steps/*, ovulationTestResult*/ ]
 
         _ = try await addTasksIfNotPresent(tasks)
 
