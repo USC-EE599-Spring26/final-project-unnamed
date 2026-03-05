@@ -12,7 +12,7 @@ import UIKit
 struct AppearanceStyler: OCKAppearanceStyler {
     // Make shadow darker
     var shadowOpacity1: Float { 0.3 }
-    
+
     // Increase corner radius (rounder)
     var cornerRadius1: CGFloat { 18 }
 

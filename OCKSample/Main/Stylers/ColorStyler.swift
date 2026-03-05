@@ -26,6 +26,6 @@ struct ColorStyler: OCKColorStyler {
     var tertiaryLabel: UIColor {
         .brown
     }
-    
+
     #endif
 }
