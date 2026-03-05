@@ -46,4 +46,5 @@ enum Constants {
     static let userLoggedIn = "userLoggedIn"
     static let userTypeKey = "userType"
     static let appName = "ParseCareKitSample"
+    static let card = "Card"
 }
