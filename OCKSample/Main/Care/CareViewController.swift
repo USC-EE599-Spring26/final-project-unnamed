@@ -239,7 +239,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         case .numericProgress:
             return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
 
-        case .labeledValue, .grid , .checklist:
+        case .labeledValue, .grid, .checklist:
             return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
 
         case .simple:
@@ -247,6 +247,10 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
         case .link, .instruction:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+
+        @unknown default:
+            return nil
+        }
     }
 
     private func taskViewControllers(
