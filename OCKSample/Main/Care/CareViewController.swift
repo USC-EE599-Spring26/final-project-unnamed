@@ -28,6 +28,7 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// swiftlint:disable type_body_length
 import CareKit
 import CareKitEssentials
 import CareKitStore
@@ -165,8 +166,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         if isCurrentDay {
             if Calendar.current.isDate(date, inSameDayAs: Date()) {
                 // Add a non-CareKit view into the list
-                let tipTitle = "Benefits of exercising"
-                let tipText = "Learn how activity can promote a healthy pregnancy."
+                let tipTitle = "Stay Focused with Short Tasks"
+                let tipText = "Exercises promote your focus."
                 let tipView = TipView()
                 tipView.headerView.titleLabel.text = tipTitle
                 tipView.headerView.detailLabel.text = tipText
@@ -212,13 +213,43 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         query.excludesTasksWithNoEvents = true
         do {
             let tasks = try await store.fetchAnyTasks(query: query)
-            let orderedTasks = TaskID.ordered.compactMap { orderedTaskID in
-                tasks.first(where: { $0.id == orderedTaskID })
+
+            guard let appDelegate = AppDelegateKey.defaultValue else {
+                Logger.feed.error("AppDelegate could not be unwrapped")
+                return []
             }
-            return orderedTasks
+            let healthKitTasks = try await appDelegate.healthKitStore?.fetchAnyTasks(query: query) ?? []
+            return healthKitTasks + tasks
         } catch {
             Logger.feed.error("Could not fetch tasks: \(error, privacy: .public)")
             return []
+        }
+    }
+
+    private func handleCustomTask(
+        card: CareKitCard,
+        query: OCKEventQuery,
+        task: any OCKAnyTask
+    ) -> [UIViewController]? {
+
+        switch card {
+        case .button, .featured:
+            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+
+        case .numericProgress:
+            return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
+
+        case .labeledValue, .grid, .checklist:
+            return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
+
+        case .simple:
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+
+        case .link, .instruction:
+            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+
+        @unknown default:
+            return nil
         }
     }
 
@@ -230,6 +261,11 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         var query = OCKEventQuery(for: date)
         query.taskIDs = [task.id]
 
+        let userInfo = (task as? OCKTask)?.userInfo ?? (task as? OCKHealthKitTask)?.userInfo
+        if let info = userInfo, let cardRaw = info["Card"], let cardType = CareKitCard(rawValue: cardRaw) {
+            return handleCustomTask(card: cardType, query: query, task: task)
+        }
+
         switch task.id {
         case TaskID.steps:
             let card = EventQueryView<NumericProgressTaskView>(
@@ -239,13 +275,13 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
             return [card]
 
-        case TaskID.ovulationTestResult:
-            let card = EventQueryView<LabeledValueTaskView>(
-                query: query
-            )
-            .formattedHostingController()
-
-            return [card]
+//        case TaskID.ovulationTestResult:
+//            let card = EventQueryView<LabeledValueTaskView>(
+//                query: query
+//            )
+//            .formattedHostingController()
+//
+//            return [card]
 
         case TaskID.stretch:
             let card = EventQueryView<InstructionsTaskView>(
@@ -255,9 +291,9 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
             return [card]
 
-        case TaskID.kegels:
+        case TaskID.cardios:
             /*
-             Since the kegel task is only scheduled every other day, there will be cases
+             Since the cardio task is only scheduled every other day, there will be cases
              where it is not contained in the tasks array returned from the query.
              */
             let card = EventQueryView<SimpleTaskView>(
@@ -268,8 +304,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return [card]
 
         #if os(iOS)
-        // Create a card for the doxylamine task if there are events for it on this day.
-        case TaskID.doxylamine:
+        // Create a card for the methylphenidate task if there are events for it on this day.
+        case TaskID.methylphenidate:
 
             // This is a UIKit based card.
             let card = OCKChecklistTaskViewController(
@@ -280,7 +316,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return [card]
         #endif
 
-        case TaskID.nausea:
+        case TaskID.inattention:
 
             #if os(iOS)
             /*
@@ -288,12 +324,12 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
              The event query passed into the initializer specifies that only
              today's log entries should be displayed by this log task view controller.
              */
-            let nauseaCard = OCKButtonLogTaskViewController(
+            let inattentionCard = OCKButtonLogTaskViewController(
                 query: query,
                 store: self.store
             )
 
-            return [nauseaCard]
+            return [inattentionCard]
 
             #else
             return []
@@ -330,6 +366,20 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             }
         }
 		self.isLoading = false
+    }
+    func deleteTask(_ task: any OCKAnyTask) async {
+        do {
+            try await store.deleteAnyTask(task)
+            Logger.feed.info("Successfully deleted task: \(task.id)")
+
+            // Trigger the existing notification to reload the View Controller
+            NotificationCenter.default.post(
+                name: Notification.Name(rawValue: Constants.shouldRefreshView),
+                object: nil
+            )
+        } catch {
+            Logger.feed.error("Failed to delete task: \(error, privacy: .public)")
+        }
     }
 }
 

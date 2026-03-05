@@ -128,6 +128,7 @@ class Utility {
 					value: -20,
 					to: Date()
 				)
+                patient.email = "preview@example.com"
                 _ = try? await store.addPatient(patient)
 				let startDate = Calendar.current.date(
 					byAdding: .day,

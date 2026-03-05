@@ -31,6 +31,9 @@ struct User: ParseUser {
 extension User {
     func merge(with object: Self) throws -> Self {
         var updated = try mergeParse(with: object)
+        if updated.shouldRestoreKey(\.email, original: object) {
+                updated.email = object.email
+        }
         if updated.shouldRestoreKey(\.lastTypeSelected,
                                      original: object) {
             updated.lastTypeSelected = object.lastTypeSelected

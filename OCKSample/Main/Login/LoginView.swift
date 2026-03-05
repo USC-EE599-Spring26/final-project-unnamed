@@ -28,6 +28,7 @@ struct LoginView: View {
     @State var firstName: String = ""
     @State var lastName: String = ""
     @State var signupLoginSegmentValue = 0
+    @State var email = ""
 
     var body: some View {
         VStack {
@@ -73,6 +74,11 @@ struct LoginView: View {
 
                 switch signupLoginSegmentValue {
                 case 1:
+                    TextField("EMAIL", text: $email)
+                        .padding()
+                        .background(.white)
+                        .cornerRadius(20.0)
+                        .shadow(radius: 10.0, x: 20, y: 10)
                     TextField("GIVEN_NAME", text: $firstName)
                         .padding()
                         .background(.white)
@@ -103,13 +109,15 @@ struct LoginView: View {
 							username: usersname,
 							password: password,
 							firstName: firstName,
-							lastName: lastName
+							lastName: lastName,
+                            email: email
 						)
                     }
                 default:
                     Task {
                         await viewModel.login(
 							username: usersname,
+                            email: email,
 							password: password
 						)
                     }
