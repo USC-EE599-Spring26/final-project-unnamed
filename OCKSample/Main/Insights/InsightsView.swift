@@ -209,7 +209,7 @@ struct InsightsView: View {
 
 	private func determineDataStrategy(for taskID: String) -> CKEDataSeriesConfiguration.DataStrategy {
 		switch taskID {
-		case TaskID.ovulationTestResult, TaskID.steps:
+		case /*TaskID.ovulationTestResult,*/ TaskID.steps:
 			return .max
 		default:
 			return .mean

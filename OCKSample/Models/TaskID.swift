@@ -14,14 +14,14 @@ enum TaskID {
     static let stretch = "stretch"
     static let cardios = "cardios"
     static let steps = "steps"
-    static let ovulationTestResult = "ovulationTestResult"
+//    static let ovulationTestResult = "ovulationTestResult"
 
     static var ordered: [String] {
         orderedObjective + orderedSubjective
     }
 
     static var orderedObjective: [String] {
-        [ Self.steps, Self.ovulationTestResult ]
+        [ Self.steps/*, Self.ovulationTestResult*/ ]
     }
 
     static var orderedSubjective: [String] {

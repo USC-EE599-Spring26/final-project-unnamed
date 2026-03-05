@@ -275,13 +275,13 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
             return [card]
 
-        case TaskID.ovulationTestResult:
-            let card = EventQueryView<LabeledValueTaskView>(
-                query: query
-            )
-            .formattedHostingController()
-
-            return [card]
+//        case TaskID.ovulationTestResult:
+//            let card = EventQueryView<LabeledValueTaskView>(
+//                query: query
+//            )
+//            .formattedHostingController()
+//
+//            return [card]
 
         case TaskID.stretch:
             let card = EventQueryView<InstructionsTaskView>(
