@@ -367,6 +367,20 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
 		self.isLoading = false
     }
+    func deleteTask(_ task: any OCKAnyTask) async {
+        do {
+            try await store.deleteAnyTask(task)
+            Logger.feed.info("Successfully deleted task: \(task.id)")
+
+            // Trigger the existing notification to reload the View Controller
+            NotificationCenter.default.post(
+                name: Notification.Name(rawValue: Constants.shouldRefreshView),
+                object: nil
+            )
+        } catch {
+            Logger.feed.error("Failed to delete task: \(error, privacy: .public)")
+        }
+    }
 }
 
 private extension View {
