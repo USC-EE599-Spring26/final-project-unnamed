@@ -13,6 +13,7 @@ struct CareKitTaskView: View {
     // MARK: Navigation
     @State var isShowingAlert = false
     @State var isAddingTask = false
+    @State var alertMessage = ""
 
     // MARK: View
     @StateObject var viewModel = CareKitTaskViewModel()
@@ -23,33 +24,35 @@ struct CareKitTaskView: View {
     @State var selectedAsset: CareKitAsset = .walk
 
     var body: some View {
-
         NavigationView {
             Form {
-                TextField("Title",
-                          text: $title)
-                TextField("Instructions",
-                          text: $instructions)
-                DatePicker("Scheduled",
-                           selection: $selectedTime,
-                           displayedComponents: [.date, .hourAndMinute])
-                Picker("Card View", selection: $selectedCard) {
-                    ForEach(CareKitCard.allCases) { item in
-                        Text(item.rawValue)
-                    }
+                Section("Task Details") {
+                    TextField("Title", text: $title)
+                    TextField("Instructions", text: $instructions)
+                    DatePicker("Scheduled", selection: $selectedTime, displayedComponents: [.date, .hourAndMinute])
                 }
-                Picker("Asset", selection: $selectedAsset) {
-                    ForEach(CareKitAsset.allCases) { asset in
-                        Label {
-                            Text(asset.displayName)
-                        } icon: {
-                            Image(systemName: asset.rawValue)
+
+                Section("Style & Icon") {
+                    Picker("Card View", selection: $selectedCard) {
+                        ForEach(CareKitCard.allCases) { item in
+                            Text(item.rawValue).tag(item)
                         }
-                        .tag(asset)
+                    }
+                    Picker("Asset", selection: $selectedAsset) {
+                        ForEach(CareKitAsset.allCases) { asset in
+                            Label {
+                                Text(asset.displayName)
+                            } icon: {
+                                Image(systemName: asset.rawValue)
+                            }
+                            .tag(asset)
+                        }
                     }
                 }
-                Section("Task") {
-                    Button("Add") {
+
+                Section("Add Task") {
+                    Button("Add Regular Task") {
+                        alertMessage = "Task has been added"
                         addTask {
                             await viewModel.addTask(
                                 title,
@@ -58,18 +61,12 @@ struct CareKitTaskView: View {
                                 cardType: selectedCard,
                                 asset: selectedAsset.rawValue
                             )
+                            title = ""
                         }
-                    }.alert(
-                        "Task has been added",
-                        isPresented: $isShowingAlert
-                    ) {
-                        Button("OK") {
-                            isShowingAlert = false
-                        }
-                    }.disabled(isAddingTask)
-                }
-                Section("HealthKitTask") {
-                    Button("Add") {
+                    }
+
+                    Button("Add HealthKit Task") {
+                        alertMessage = "HealthKitTask has been added"
                         addTask {
                             await viewModel.addHealthKitTask(
                                 title,
@@ -78,15 +75,16 @@ struct CareKitTaskView: View {
                                 cardType: selectedCard,
                                 asset: selectedAsset.rawValue
                             )
+                            title = ""
                         }
-                    }.alert(
-                        "HealthKitTask has been added",
-                        isPresented: $isShowingAlert
-                    ) {
-                        Button("OK") {
-                            isShowingAlert = false
-                        }
-                    }.disabled(isAddingTask)
+                    }
+                }
+                .disabled(isAddingTask || title.isEmpty)
+            }
+            .navigationTitle("New Task")
+            .alert(alertMessage, isPresented: $isShowingAlert) {
+                Button("OK") {
+                    isShowingAlert = false
                 }
             }
         }
@@ -101,9 +99,4 @@ struct CareKitTaskView: View {
             isShowingAlert = true
         }
     }
-
-}
-
-#Preview {
-    CareKitTaskView()
 }

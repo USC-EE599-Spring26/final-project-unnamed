@@ -76,6 +76,22 @@ struct ProfileView: View {
                 })
                 .background(Color(.red))
                 .cornerRadius(15)
+
+                // Add a List to display and swipe-delete tasks
+                List {
+                    Section(header: Text("My Tasks")) {
+                        // Read directly from the viewModel
+                        ForEach(viewModel.tasks, id: \.id) { task in
+                            Text(task.title ?? task.id)
+                        }
+                        .onDelete { offsets in
+                            Task {
+                                await viewModel.deleteTasks(at: offsets)
+                            }
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle())
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -90,6 +106,9 @@ struct ProfileView: View {
         }
         .onReceive(patients.publisher) { publishedPatient in
             viewModel.updatePatient(publishedPatient.result)
+        }
+        .task {
+            await viewModel.fetchTasks()
         }
     }
 }

@@ -233,22 +233,22 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     ) -> [UIViewController]? {
 
         switch card {
-        case .button:
+        case .button, .featured:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
 
         case .numericProgress:
             return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
 
-        case .labeledValue, .grid:
+        case .labeledValue, .grid, .checklist:
             return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
 
         case .simple:
             return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
 
-        case .instruction:
+        case .link, .instruction:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
 
-        default:
+        @unknown default:
             return nil
         }
     }
@@ -366,6 +366,20 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             }
         }
 		self.isLoading = false
+    }
+    func deleteTask(_ task: any OCKAnyTask) async {
+        do {
+            try await store.deleteAnyTask(task)
+            Logger.feed.info("Successfully deleted task: \(task.id)")
+
+            // Trigger the existing notification to reload the View Controller
+            NotificationCenter.default.post(
+                name: Notification.Name(rawValue: Constants.shouldRefreshView),
+                object: nil
+            )
+        } catch {
+            Logger.feed.error("Failed to delete task: \(error, privacy: .public)")
+        }
     }
 }
 
