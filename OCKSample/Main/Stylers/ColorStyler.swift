@@ -20,7 +20,7 @@ struct ColorStyler: OCKColorStyler {
     var secondaryLabel: UIColor { .darkGray }
 
     // Change separator color to indigo
-    var separator: UIColor { .systemIndigo}
+    var separator: UIColor { .systemIndigo }
 
     // Change tertiary label to brown
     var tertiaryLabel: UIColor {
