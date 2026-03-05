@@ -233,24 +233,20 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     ) -> [UIViewController]? {
 
         switch card {
-        case .button:
+        case .button, .featured:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
 
         case .numericProgress:
             return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
 
-        case .labeledValue, .grid:
+        case .labeledValue, .grid , .checklist:
             return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
 
         case .simple:
             return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
 
-        case .instruction:
+        case .link, .instruction:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
-
-        default:
-            return nil
-        }
     }
 
     private func taskViewControllers(
