@@ -25,7 +25,7 @@ struct ColorStyler: OCKColorStyler {
     // Change tertiary label to brown
     var tertiaryLabel: UIColor {
         .brown
-//		UIColor(Color.accentColor)
     }
+    
     #endif
 }
