@@ -77,7 +77,7 @@ struct InsightsView: View {
 							)
 
 						} else if eventResult.task.id == TaskID.methylphenidate {
-							// Example of showing inattention vs doxlymine
+							// Example of showing inattention vs methylphenidate intake
 
 							// dynamic gradient colors
 							let inattentionGradientStart = Color(TintColorFlipKey.defaultValue)
