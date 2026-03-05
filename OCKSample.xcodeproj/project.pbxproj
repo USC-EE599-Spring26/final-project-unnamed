@@ -171,8 +171,6 @@
 		BE4EAA902F51280300CF7BF0 /* CareKitTaskViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA8E2F5127F400CF7BF0 /* CareKitTaskViewModel.swift */; };
 		BE4EAA922F51281600CF7BF0 /* CareKitTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA912F51281600CF7BF0 /* CareKitTaskView.swift */; };
 		BE4EAA932F51281600CF7BF0 /* CareKitTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA912F51281600CF7BF0 /* CareKitTaskView.swift */; };
-		BE4EAA962F57C62800CF7BF0 /* CardTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA952F57C61600CF7BF0 /* CardTask.swift */; };
-		BE4EAA972F57C62800CF7BF0 /* CardTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA952F57C61600CF7BF0 /* CardTask.swift */; };
 		BE4EAAEA2F59611700CF7BF0 /* OCKHealthKit+Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA882F5126B700CF7BF0 /* OCKHealthKit+Card.swift */; };
 		BE4EAB012F5962CE00CF7BF0 /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
 		BE4EAB022F5962E100CF7BF0 /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
@@ -313,7 +311,6 @@
 		BE4EAA882F5126B700CF7BF0 /* OCKHealthKit+Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OCKHealthKit+Card.swift"; sourceTree = "<group>"; };
 		BE4EAA8E2F5127F400CF7BF0 /* CareKitTaskViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareKitTaskViewModel.swift; sourceTree = "<group>"; };
 		BE4EAA912F51281600CF7BF0 /* CareKitTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareKitTaskView.swift; sourceTree = "<group>"; };
-		BE4EAA952F57C61600CF7BF0 /* CardTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardTask.swift; sourceTree = "<group>"; };
 		E72B2C06226939E3009A9438 /* OCKSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OCKSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E72B2C09226939E3009A9438 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E72B2C13226939E4009A9438 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -679,14 +676,6 @@
 			path = CareKitTaskView;
 			sourceTree = "<group>";
 		};
-		BE4EAA942F57C5F600CF7BF0 /* Protocols */ = {
-			isa = PBXGroup;
-			children = (
-				BE4EAA952F57C61600CF7BF0 /* CardTask.swift */,
-			);
-			path = Protocols;
-			sourceTree = "<group>";
-		};
 		E72B2BFD226939E3009A9438 = {
 			isa = PBXGroup;
 			children = (
@@ -720,7 +709,6 @@
 		E72B2C08226939E3009A9438 /* OCKSample */ = {
 			isa = PBXGroup;
 			children = (
-				BE4EAA942F57C5F600CF7BF0 /* Protocols */,
 				03580E3E23CFA2E400A57818 /* OCKSample.entitlements */,
 				E72B2C09226939E3009A9438 /* AppDelegate.swift */,
 				7036E63F25717F85006E9A3C /* Constants.swift */,
@@ -1038,7 +1026,6 @@
 				3F0411FE2F58A76E00A9641E /* DimensionStyler.swift in Sources */,
 				707D29682DCBE68500980253 /* NoHighlightStyle.swift in Sources */,
 				BE4EAA922F51281600CF7BF0 /* CareKitTaskView.swift in Sources */,
-				BE4EAA962F57C62800CF7BF0 /* CardTask.swift in Sources */,
 				707D29692DCBE68500980253 /* LocalSyncSessionDelegate.swift in Sources */,
 				707D296A2DCBE68500980253 /* Constants.swift in Sources */,
 				707D296B2DCBE68500980253 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
@@ -1081,7 +1068,6 @@
 				70E342302DB062F8005124F9 /* NoHighlightStyle.swift in Sources */,
 				7094DCF32DC340E40039CA64 /* SplashScreenView.swift in Sources */,
 				70221F2F28D7CDE400971195 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
-				BE4EAA972F57C62800CF7BF0 /* CardTask.swift in Sources */,
 				7083A857279CA40F00B3832E /* PCKUtility.swift in Sources */,
 				3F0412032F58A7E200A9641E /* AnimationStyler.swift in Sources */,
 				705572402DC1EAEE008E5B0A /* InsightsView.swift in Sources */,
