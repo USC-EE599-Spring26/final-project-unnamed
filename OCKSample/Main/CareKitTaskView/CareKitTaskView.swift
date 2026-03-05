@@ -20,6 +20,7 @@ struct CareKitTaskView: View {
     @State var instructions = ""
     @State var selectedTime = Date()
     @State var selectedCard: CareKitCard = .button
+    @State var selectedAsset: CareKitAsset = .walk
 
     var body: some View {
 
@@ -37,6 +38,16 @@ struct CareKitTaskView: View {
                         Text(item.rawValue)
                     }
                 }
+                Picker("Asset", selection: $selectedAsset) {
+                    ForEach(CareKitAsset.allCases) { asset in
+                        Label {
+                            Text(asset.displayName)
+                        } icon: {
+                            Image(systemName: asset.rawValue)
+                        }
+                        .tag(asset)
+                    }
+                }
                 Section("Task") {
                     Button("Add") {
                         addTask {
@@ -44,7 +55,8 @@ struct CareKitTaskView: View {
                                 title,
                                 instructions: instructions,
                                 scheduleTime: selectedTime,
-                                cardType: selectedCard
+                                cardType: selectedCard,
+                                asset: selectedAsset.rawValue
                             )
                         }
                     }.alert(
@@ -63,7 +75,8 @@ struct CareKitTaskView: View {
                                 title,
                                 instructions: instructions,
                                 scheduleTime: selectedTime,
-                                cardType: selectedCard
+                                cardType: selectedCard,
+                                asset: selectedAsset.rawValue
                             )
                         }
                     }.alert(

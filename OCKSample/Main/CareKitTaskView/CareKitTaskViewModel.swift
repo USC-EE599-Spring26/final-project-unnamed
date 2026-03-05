@@ -20,7 +20,8 @@ class CareKitTaskViewModel: ObservableObject {
         _ title: String,
         instructions: String,
         scheduleTime: Date,
-        cardType: CareKitCard
+        cardType: CareKitCard,
+        asset: String? = nil
     ) async {
         guard let appDelegate = AppDelegateKey.defaultValue else {
             error = AppError.couldntBeUnwrapped
@@ -42,6 +43,7 @@ class CareKitTaskViewModel: ObservableObject {
                                                   text: nil))
         task.instructions = instructions
         task.card = cardType
+        task.asset = asset
         do {
             _ = try await appDelegate.store.addTasksIfNotPresent([task])
             Logger.careKitTask.info("Saved task: \(task.id, privacy: .private)")
@@ -56,7 +58,8 @@ class CareKitTaskViewModel: ObservableObject {
         _ title: String,
         instructions: String,
         scheduleTime: Date,
-        cardType: CareKitCard
+        cardType: CareKitCard,
+        asset: String? = nil
     ) async {
         guard let appDelegate = AppDelegateKey.defaultValue else {
             error = AppError.couldntBeUnwrapped
@@ -81,6 +84,7 @@ class CareKitTaskViewModel: ObservableObject {
                                                                      unit: .count()))
         healthKitTask.instructions = instructions
         healthKitTask.card = cardType
+        healthKitTask.asset = asset
         do {
             _ = try await appDelegate.healthKitStore.addTasksIfNotPresent([healthKitTask])
             Logger.careKitTask.info("Saved HealthKitTask: \(healthKitTask.id, privacy: .private)")
