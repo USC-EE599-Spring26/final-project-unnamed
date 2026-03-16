@@ -267,7 +267,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
             #endif
 
-        @unknown default:
+        default:
             return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
         }
     }
