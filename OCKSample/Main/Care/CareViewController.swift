@@ -42,6 +42,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
 	private var isSyncing = false
 	private var isLoading = false
+    private let swiftUIPadding: CGFloat = 15
     private var style: Styler {
         CustomStylerKey.defaultValue
     }
@@ -233,20 +234,34 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     ) -> [UIViewController]? {
 
         switch card {
-        case .button, .featured:
+        case .button:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
 
         case .numericProgress:
             return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
 
-        case .labeledValue, .grid, .checklist:
+        case .labeledValue:
             return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
 
         case .simple:
             return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
 
-        case .link, .instruction:
+        case .link:
             return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+
+        case .checklist:
+            return [OCKChecklistTaskViewController(query: query, store: self.store)]
+
+        case .grid:
+            print("In grid")
+            return [OCKGridTaskViewController(query: query, store: self.store)]
+
+        case .instruction:
+            let card = OCKInstructionsTaskViewController(
+                query: query,
+                store: store
+            )
+            return [card]
 
         @unknown default:
             return nil
