@@ -75,6 +75,8 @@ extension OCKStore {
         )
         methylphenidate.instructions = String(localized: "METHYLPHENIDATE_INSTRUCTIONS")
         methylphenidate.asset = "pills.fill"
+        methylphenidate.card = .checklist
+        methylphenidate.priority = 2
 
         let inattentionSchedule = OCKSchedule(
             composing: [
@@ -98,6 +100,8 @@ extension OCKStore {
         inattention.impactsAdherence = false
         inattention.instructions = String(localized: "INATTENTION_INSTRUCTIONS")
         inattention.asset = "bed.double"
+        inattention.card = .instruction
+        inattention.priority = 1
 
         let cardioElement = OCKScheduleElement(
             start: beforeBreakfast,
@@ -115,6 +119,8 @@ extension OCKStore {
         )
         cardios.impactsAdherence = true
         cardios.instructions = String(localized: "CARDIO_INSTRUCTIONS")
+        cardios.card = .simple
+        cardios.priority = 3
 
         let stretchElement = OCKScheduleElement(
             start: beforeBreakfast,
@@ -131,7 +137,9 @@ extension OCKStore {
             schedule: stretchSchedule
         )
         stretch.impactsAdherence = true
-        stretch.asset = "figure.walk"
+        stretch.asset = "figure.flexibility"
+        stretch.card = .simple
+        stretch.priority = 4
 
         _ = try await addTasksIfNotPresent(
             [

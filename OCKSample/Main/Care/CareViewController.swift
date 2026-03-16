@@ -37,11 +37,13 @@ import os.log
 import SwiftUI
 import UIKit
 
+// swiftlint:disable type_body_length
 @MainActor
 final class CareViewController: OCKDailyPageViewController, @unchecked Sendable {
 
 	private var isSyncing = false
 	private var isLoading = false
+    private let swiftUIPadding: CGFloat = 15
     private var style: Styler {
         CustomStylerKey.defaultValue
     }
@@ -214,12 +216,21 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         do {
             let tasks = try await store.fetchAnyTasks(query: query)
 
-            guard let appDelegate = AppDelegateKey.defaultValue else {
-                Logger.feed.error("AppDelegate could not be unwrapped")
-                return []
+            guard let tasksWithPriority = tasks as? [CareTask] else {
+                Logger.feed.warning("Could not cast all tasks to \"CareTask\"")
+                return tasks
             }
-            let healthKitTasks = try await appDelegate.healthKitStore?.fetchAnyTasks(query: query) ?? []
-            return healthKitTasks + tasks
+            let orderedPriorityTasks = tasksWithPriority.sortedByPriority()
+            let orderedTasks = orderedPriorityTasks.compactMap { orderedPriorityTask in
+                tasks.first(where: { $0.id == orderedPriorityTask.id })
+            }
+            return orderedTasks
+//            guard let appDelegate = AppDelegateKey.defaultValue else {
+//                Logger.feed.error("AppDelegate could not be unwrapped")
+//                return []
+//            }
+//            let healthKitTasks = try await appDelegate.healthKitStore?.fetchAnyTasks(query: query) ?? []
+//            return healthKitTasks + tasks
         } catch {
             Logger.feed.error("Could not fetch tasks: \(error, privacy: .public)")
             return []
@@ -253,6 +264,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func taskViewControllers(
         _ task: any OCKAnyTask,
         on date: Date
@@ -261,83 +273,90 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         var query = OCKEventQuery(for: date)
         query.taskIDs = [task.id]
 
-        let userInfo = (task as? OCKTask)?.userInfo ?? (task as? OCKHealthKitTask)?.userInfo
-        if let info = userInfo, let cardRaw = info["Card"], let cardType = CareKitCard(rawValue: cardRaw) {
-            return handleCustomTask(card: cardType, query: query, task: task)
-        }
+//        let userInfo = (task as? OCKTask)?.userInfo ?? (task as? OCKHealthKitTask)?.userInfo
+//        if let info = userInfo, let cardRaw = info["Card"], let cardType = CareKitCard(rawValue: cardRaw) {
+//            return handleCustomTask(card: cardType, query: query, task: task)
+//        }
 
-        switch task.id {
-        case TaskID.steps:
-            let card = EventQueryView<NumericProgressTaskView>(
-                query: query
-            )
-            .formattedHostingController()
+    if let standardTask = task as? OCKTask {
 
-            return [card]
+            switch standardTask.card {
 
-//        case TaskID.ovulationTestResult:
-//            let card = EventQueryView<LabeledValueTaskView>(
-//                query: query
-//            )
-//            .formattedHostingController()
-//
-//            return [card]
+            case .button:
+                // This is a UIKit based card.
+                let card = OCKButtonLogTaskViewController(
+                    query: query,
+                    store: self.store
+                )
 
-        case TaskID.stretch:
-            let card = EventQueryView<InstructionsTaskView>(
-                query: query
-            )
-            .formattedHostingController()
+                return [card]
 
-            return [card]
+            case .checklist:
+                // This is a UIKit based card.
+                let card = OCKChecklistTaskViewController(
+                    query: query,
+                    store: self.store
+                )
 
-        case TaskID.cardios:
-            /*
-             Since the cardio task is only scheduled every other day, there will be cases
-             where it is not contained in the tasks array returned from the query.
-             */
-            let card = EventQueryView<SimpleTaskView>(
-                query: query
-            )
-            .formattedHostingController()
+                return [card]
 
-            return [card]
+            case .featured:
+                // Can be implememented based off of midterm.
+                return nil
 
-        #if os(iOS)
-        // Create a card for the methylphenidate task if there are events for it on this day.
-        case TaskID.methylphenidate:
+            case .grid:
+                // Can be implememented based off of midterm.
+                return nil
 
-            // This is a UIKit based card.
-            let card = OCKChecklistTaskViewController(
-                query: query,
-                store: self.store
-            )
+            case .instruction:
+                let card = EventQueryView<InstructionsTaskView>(
+                    query: query
+                )
+                .padding(.vertical, swiftUIPadding)
+                .formattedHostingController()
 
-            return [card]
-        #endif
+                return [card]
 
-        case TaskID.inattention:
+            case .link:
+                // Can be implememented based off of midterm.
+                return nil
 
-            #if os(iOS)
-            /*
-             Also create a card (UIKit view) that displays a single event.
-             The event query passed into the initializer specifies that only
-             today's log entries should be displayed by this log task view controller.
-             */
-            let inattentionCard = OCKButtonLogTaskViewController(
-                query: query,
-                store: self.store
-            )
+            case .simple:
 
-            return [inattentionCard]
+                let card = EventQueryView<SimpleTaskView>(
+                    query: query
+                )
+                .padding(.vertical, swiftUIPadding)
+                .formattedHostingController()
 
-            #else
-            return []
-            #endif
+                return [card]
 
-        default:
+            default:
+                return nil
+            }
+
+        } else if let healthTask = task as? OCKHealthKitTask {
+            switch healthTask.card {
+
+            case .labeledValue:
+                // Can be implememented based off of midterm.
+                return nil
+
+            case .numericProgress:
+                let card = EventQueryView<NumericProgressTaskView>(
+                    query: query
+                )
+                .padding(.vertical, swiftUIPadding)
+                .formattedHostingController()
+
+                return [card]
+            default:
+                return nil
+            }
+        } else {
             return nil
         }
+
     }
 
     private func appendTasks(
@@ -391,3 +410,5 @@ private extension View {
         return viewController
     }
 }
+
+// swiftlint: enable type_body_length

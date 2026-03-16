@@ -20,6 +20,9 @@
 		3F5956A72F60F56C00B2BFFA /* ResearchKitActiveTask.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566E2F60F09A00B2BFFA /* ResearchKitActiveTask.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3F5956A82F60F56C00B2BFFA /* ResearchKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566C2F60F09A00B2BFFA /* ResearchKitUI.framework */; platformFilter = ios; };
 		3F5956A92F60F56C00B2BFFA /* ResearchKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566C2F60F09A00B2BFFA /* ResearchKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
+		3F6D2DFC2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
+		3F6D2DFD2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
 		3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8C22562F63888E00E02F4D /* MyCustomCardView.swift */; };
 		3F8C225D2F63889900E02F4D /* MyCustomCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8C22562F63888E00E02F4D /* MyCustomCardView.swift */; };
 		5173CB8A23C3A846007655A0 /* OCKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5173CB8923C3A846007655A0 /* OCKSampleUITests.swift */; };
@@ -291,6 +294,7 @@
 		3F0412052F58A81000A9641E /* AppearanceStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceStyler.swift; sourceTree = "<group>"; };
 		3F59564D2F60F09A00B2BFFA /* ResearchKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKit.xcodeproj; path = ResearchKit/ResearchKit.xcodeproj; sourceTree = "<group>"; };
 		3F6D2DEE2F66208D00560AD8 /* ResearchKitSwiftUI.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKitSwiftUI.xcodeproj; path = ResearchKit/ResearchKitSwiftUI/ResearchKitSwiftUI.xcodeproj; sourceTree = "<group>"; };
+		3F6D2DFA2F6627A400560AD8 /* CareTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareTask.swift; sourceTree = "<group>"; };
 		3F8C22562F63888E00E02F4D /* MyCustomCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCustomCardView.swift; sourceTree = "<group>"; };
 		5173CB8723C3A846007655A0 /* OCKSampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OCKSampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5173CB8923C3A846007655A0 /* OCKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCKSampleUITests.swift; sourceTree = "<group>"; };
@@ -458,6 +462,14 @@
 				3F6D2DF82F66208D00560AD8 /* ResearchKitSwiftUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3F6D2DF92F66279A00560AD8 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				3F6D2DFA2F6627A400560AD8 /* CareTask.swift */,
+			);
+			path = Protocols;
 			sourceTree = "<group>";
 		};
 		51431F9723D166AE006A7CFD /* Frameworks */ = {
@@ -688,16 +700,16 @@
 		918FDEBA271B4DF60045A0EF /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				BE4EAA882F5126B700CF7BF0 /* OCKHealthKit+Card.swift */,
-				BE4EAA842F51213900CF7BF0 /* OCKTask+Card.swift */,
 				70221F2928D7BE0600971195 /* AppDelegate+ParseRemoteDelegate.swift */,
 				70221F3328D8ABBE00971195 /* AppDelegate+UIApplicationDelegate.swift */,
 				918FDEB6271B41FF0045A0EF /* Logger.swift */,
 				70B8E0A42F0EC1CA00440FCA /* Mutex.swift */,
+				BE4EAA882F5126B700CF7BF0 /* OCKHealthKit+Card.swift */,
 				70F03A942786093B00E5AFB4 /* OCKHealthKitPassthroughStore.swift */,
 				70F03AA227860AFF00E5AFB4 /* OCKPatient+Parse.swift */,
 				70F03A962786098F00E5AFB4 /* OCKStore.swift */,
 				707D28CE2DCA8AA500980253 /* OCKStore+SampleData.swift */,
+				BE4EAA842F51213900CF7BF0 /* OCKTask+Card.swift */,
 				7083A855279CA40A00B3832E /* PCKUtility.swift */,
 			);
 			path = Extensions;
@@ -792,6 +804,7 @@
 		E72B2C08226939E3009A9438 /* OCKSample */ = {
 			isa = PBXGroup;
 			children = (
+				3F6D2DF92F66279A00560AD8 /* Protocols */,
 				03580E3E23CFA2E400A57818 /* OCKSample.entitlements */,
 				E72B2C09226939E3009A9438 /* AppDelegate.swift */,
 				7036E63F25717F85006E9A3C /* Constants.swift */,
@@ -1206,6 +1219,7 @@
 				3F0411FE2F58A76E00A9641E /* DimensionStyler.swift in Sources */,
 				707D29682DCBE68500980253 /* NoHighlightStyle.swift in Sources */,
 				BE4EAA922F51281600CF7BF0 /* CareKitTaskView.swift in Sources */,
+				3F6D2DFD2F6627A700560AD8 /* CareTask.swift in Sources */,
 				707D29692DCBE68500980253 /* LocalSyncSessionDelegate.swift in Sources */,
 				707D296A2DCBE68500980253 /* Constants.swift in Sources */,
 				3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
@@ -1236,6 +1250,7 @@
 				91AD923B24A4C42D00925D4D /* CareView.swift in Sources */,
 				70F921A927CA9A4000368CEC /* CustomStylerKey.swift in Sources */,
 				BE4EAA8A2F5126C100CF7BF0 /* OCKHealthKit+Card.swift in Sources */,
+				3F6D2DFC2F6627A700560AD8 /* CareTask.swift in Sources */,
 				7099D20629E98DFF0037CD8E /* TaskID.swift in Sources */,
 				7075151E28DE1A8300A57A0C /* MainView.swift in Sources */,
 				707D28D02DCA8AAB00980253 /* OCKStore+SampleData.swift in Sources */,
@@ -1319,6 +1334,7 @@
 				707CC718254DA91900116728 /* OCKLocalization.swift in Sources */,
 				BE4EAA862F51214400CF7BF0 /* OCKTask+Card.swift in Sources */,
 				E7C37849228F887800E982D8 /* TipView.swift in Sources */,
+				3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */,
 				3F0412022F58A7E200A9641E /* AnimationStyler.swift in Sources */,
 				70077597252228E900EC0EDA /* User.swift in Sources */,
 				7036E4C9256E1A6F006E9A3C /* ProfileView.swift in Sources */,
