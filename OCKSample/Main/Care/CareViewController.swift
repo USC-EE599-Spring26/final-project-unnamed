@@ -246,25 +246,29 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         case .simple:
             return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
 
-        case .link:
-            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
-
         case .checklist:
-            return [OCKChecklistTaskViewController(query: query, store: self.store)]
+            #if os(iOS)
+            return [OCKChecklistTaskViewController(query: query, store: store)]
+            #else
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+            #endif
 
         case .grid:
-            print("In grid")
-            return [OCKGridTaskViewController(query: query, store: self.store)]
+            #if os(iOS)
+            return [OCKGridTaskViewController(query: query, store: store)]
+            #else
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+            #endif
 
         case .instruction:
-            let card = OCKInstructionsTaskViewController(
-                query: query,
-                store: store
-            )
-            return [card]
+            #if os(iOS)
+            return [OCKInstructionsTaskViewController(query: query, store: store)]
+            #else
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+            #endif
 
         @unknown default:
-            return nil
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
         }
     }
 
