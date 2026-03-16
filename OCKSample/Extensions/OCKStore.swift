@@ -103,7 +103,7 @@ extension OCKStore {
         inattention.impactsAdherence = false
         inattention.instructions = String(localized: "INATTENTION_INSTRUCTIONS")
         inattention.asset = "bed.double"
-        inattention.card = .instruction
+        inattention.card = .button
         inattention.priority = 1
 
         let cardioElement = OCKScheduleElement(
@@ -122,7 +122,7 @@ extension OCKStore {
         )
         cardios.impactsAdherence = true
         cardios.instructions = String(localized: "CARDIO_INSTRUCTIONS")
-        cardios.card = .simple
+        cardios.card = .custom
         cardios.priority = 3
 
         let stretchElement = OCKScheduleElement(
