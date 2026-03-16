@@ -15,6 +15,7 @@ enum TaskID {
     static let cardios = "cardios"
     static let steps = "steps"
 //    static let ovulationTestResult = "ovulationTestResult"
+    static let qualityOfLife = "qualityOfLife"
 
     static var ordered: [String] {
         orderedObjective + orderedSubjective

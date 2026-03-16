@@ -34,6 +34,7 @@ import CareKitEssentials
 import CareKitStore
 import CareKitUI
 import os.log
+import ResearchKitSwiftUI
 import SwiftUI
 import UIKit
 
@@ -237,32 +238,32 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
     }
 
-    private func handleCustomTask(
-        card: CareKitCard,
-        query: OCKEventQuery,
-        task: any OCKAnyTask
-    ) -> [UIViewController]? {
-
-        switch card {
-        case .button, .featured:
-            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
-
-        case .numericProgress:
-            return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
-
-        case .labeledValue, .grid, .checklist:
-            return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
-
-        case .simple:
-            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
-
-        case .link, .instruction:
-            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
-
-        @unknown default:
-            return nil
-        }
-    }
+//    private func handleCustomTask(
+//        card: CareKitCard,
+//        query: OCKEventQuery,
+//        task: any OCKAnyTask
+//    ) -> [UIViewController]? {
+//
+//        switch card {
+//        case .button, .featured:
+//            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+//
+//        case .numericProgress:
+//            return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
+//
+//        case .labeledValue, .grid, .checklist:
+//            return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
+//
+//        case .simple:
+//            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+//
+//        case .link, .instruction:
+//            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+//
+//        @unknown default:
+//            return nil
+//        }
+//    }
 
     // swiftlint:disable:next cyclomatic_complexity
     private func taskViewControllers(
@@ -331,6 +332,19 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
                 return [card]
 
+            case .survey:
+                guard let card = researchSurveyViewController(
+                    query: query,
+                    task: standardTask
+                ) else {
+                    Logger.feed.warning(
+                        "Unable to create research survey view controller"
+                    )
+                    return nil
+                }
+
+                return [card]
+
             default:
                 return nil
             }
@@ -357,6 +371,39 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return nil
         }
 
+    }
+
+    private func researchSurveyViewController(
+        query: OCKEventQuery,
+        task: OCKTask
+    ) -> UIViewController? {
+
+        guard let steps = task.surveySteps else {
+            return nil
+        }
+
+        let surveyViewController = EventQueryContentView<ResearchSurveyView>(
+            query: query
+        ) {
+            EventQueryContentView<ResearchCareForm>(
+                query: query
+            ) {
+                ForEach(steps) { step in
+                    ResearchFormStep(
+                        title: task.title,
+                        subtitle: task.instructions
+                    ) {
+                        ForEach(step.questions) { question in
+                            question.view()
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.vertical, swiftUIPadding)
+        .formattedHostingController()
+
+        return surveyViewController
     }
 
     private func appendTasks(
