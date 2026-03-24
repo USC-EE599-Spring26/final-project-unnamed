@@ -238,32 +238,50 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
     }
 
-//    private func handleCustomTask(
-//        card: CareKitCard,
-//        query: OCKEventQuery,
-//        task: any OCKAnyTask
-//    ) -> [UIViewController]? {
-//
-//        switch card {
-//        case .button, .featured:
-//            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
-//
-//        case .numericProgress:
-//            return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
-//
-//        case .labeledValue, .grid, .checklist:
-//            return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
-//
-//        case .simple:
-//            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
-//
-//        case .link, .instruction:
-//            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
-//
-//        @unknown default:
-//            return nil
-//        }
-//    }
+    private func handleCustomTask(
+        card: CareKitCard,
+        query: OCKEventQuery,
+        task: any OCKAnyTask
+    ) -> [UIViewController]? {
+
+        switch card {
+        case .button:
+            return [EventQueryView<InstructionsTaskView>(query: query).formattedHostingController()]
+
+        case .numericProgress:
+            return [EventQueryView<NumericProgressTaskView>(query: query).formattedHostingController()]
+
+        case .labeledValue:
+            return [EventQueryView<LabeledValueTaskView>(query: query).formattedHostingController()]
+
+        case .simple:
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+
+        case .checklist:
+            #if os(iOS)
+            return [OCKChecklistTaskViewController(query: query, store: store)]
+            #else
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+            #endif
+
+        case .grid:
+            #if os(iOS)
+            return [OCKGridTaskViewController(query: query, store: store)]
+            #else
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+            #endif
+
+        case .instruction:
+            #if os(iOS)
+            return [OCKInstructionsTaskViewController(query: query, store: store)]
+            #else
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+            #endif
+
+        default:
+            return [EventQueryView<SimpleTaskView>(query: query).formattedHostingController()]
+        }
+    }
 
     // swiftlint:disable:next cyclomatic_complexity
     private func taskViewControllers(
@@ -292,7 +310,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 )
 
                 return [card]
-                
+
                 #else
                 return []
                 #endif
@@ -310,7 +328,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 #else
                 return []
                 #endif
-                
+
             case .featured:
                 // Can be implememented based off of midterm.
                 return nil
