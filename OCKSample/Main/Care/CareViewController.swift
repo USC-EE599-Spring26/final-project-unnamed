@@ -274,6 +274,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 //        
 //    }
 
+// swiftlint:disable cyclomatic_complexity
     private func taskViewControllers(
         _ task: any OCKAnyTask,
         on date: Date
