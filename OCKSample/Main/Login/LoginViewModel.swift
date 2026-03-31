@@ -97,10 +97,10 @@ class LoginViewModel: ObservableObject {
         // Notify the SwiftUI view that the user is correctly logged in and to transition screens
         await checkStatus()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
-            Utility.requestHealthKitPermissions()
-        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
+//            Utility.requestHealthKitPermissions()
+//        }
 
         // Setup installation to receive push notifications
         await Utility.updateInstallationWithDeviceToken()

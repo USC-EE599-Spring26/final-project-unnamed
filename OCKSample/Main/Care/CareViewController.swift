@@ -34,6 +34,10 @@ import CareKitEssentials
 import CareKitStore
 import CareKitUI
 import os.log
+#if canImport(ResearchKit) && canImport(ResearchKitUI)
+import ResearchKit
+import ResearchKitUI
+#endif
 import ResearchKitSwiftUI
 import SwiftUI
 import UIKit
@@ -159,29 +163,62 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     ) {
         self.isLoading = true
 
-        // Always call this method to ensure dates for
-        // queries are correct.
-        let date = modifyDateIfNeeded(date)
-        let isCurrentDay = isSameDay(as: date)
+        Task {
+            guard await Utility.checkIfOnboardingIsComplete() else {
 
-        #if os(iOS)
-        // Only show the tip view on the current date
-        if isCurrentDay {
-            if Calendar.current.isDate(date, inSameDayAs: Date()) {
-                // Add a non-CareKit view into the list
-                let tipTitle = "Stay Focused with Short Tasks"
-                let tipText = "Exercises promote your focus."
-                let tipView = TipView()
-                tipView.headerView.titleLabel.text = tipTitle
-                tipView.headerView.detailLabel.text = tipText
-                tipView.imageView.image = UIImage(named: "exercise.jpg")
-                tipView.customStyle = CustomStylerKey.defaultValue
-                listViewController.appendView(tipView, animated: false)
+                let onboardSurvey = Onboard()
+                var query = OCKEventQuery(for: Date())
+                query.taskIDs = [Onboard.identifier()]
+                let onboardCard = OCKSurveyTaskViewController(
+                    eventQuery: query,
+                    store: self.store,
+                    survey: onboardSurvey.createSurvey(),
+                    extractOutcome: { _ in
+                        // Need to call reload sometime in the future
+                        // since the OCKSurveyTaskViewControllerDelegate
+                        // is broken.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            self.reload()
+                        }
+                        return [OCKOutcomeValue(Date())]
+                    }
+                )
+                onboardCard.surveyDelegate = self
+
+                listViewController.clear()
+                listViewController.appendViewController(
+                    onboardCard,
+                    animated: false
+                )
+
+                self.isLoading = false
+                return
             }
-        }
-        #endif
 
-        fetchAndDisplayTasks(on: listViewController, for: date)
+            // Always call this method to ensure dates for
+            // queries are correct.
+            let date = modifyDateIfNeeded(date)
+            #if os(os)
+            let isCurrentDay = isSameDay(as: date)
+
+            // Only show the tip view on the current date
+            if isCurrentDay {
+                if Calendar.current.isDate(date, inSameDayAs: Date()) {
+                    // Add a non-CareKit view into the list
+                    let tipTitle = "Benefits of exercising"
+                    let tipText = "Learn how activity can promote a healthy pregnancy."
+                    let tipView = TipView()
+                    tipView.headerView.titleLabel.text = tipTitle
+                    tipView.headerView.detailLabel.text = tipText
+                    tipView.imageView.image = UIImage(named: "exercise.jpg")
+                    tipView.customStyle = CustomStylerKey.defaultValue
+                    listViewController.appendView(tipView, animated: false)
+                }
+            }
+            #endif
+
+            await fetchAndDisplayTasks(on: listViewController, for: date)
+        }
     }
 
     private func isSameDay(as date: Date) -> Bool {
@@ -204,11 +241,9 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     private func fetchAndDisplayTasks(
         on listViewController: OCKListViewController,
         for date: Date
-    ) {
-        Task {
-            let tasks = await self.fetchTasks(on: date)
-			appendTasks(tasks, to: listViewController, date: date)
-        }
+    ) async {
+        let tasks = await self.fetchTasks(on: date)
+        appendTasks(tasks, to: listViewController, date: date)
     }
 
     private func fetchTasks(on date: Date) async -> [any OCKAnyTask] {
@@ -221,6 +256,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 Logger.feed.warning("Could not cast all tasks to \"CareTask\"")
                 return tasks
             }
+            // TODOx: Modify array to remove the Onboarding task
+            // so it doesn't show after onboarding.
             let orderedPriorityTasks = tasksWithPriority.sortedByPriority()
             let orderedTasks = orderedPriorityTasks.compactMap { orderedPriorityTask in
                 tasks.first(where: { $0.id == orderedPriorityTask.id })
@@ -373,6 +410,25 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
                 return [card]
 
+            #if canImport(ResearchKit) && canImport(ResearchKitUI)
+            case .uiKitSurvey:
+                guard let surveyTask = task as? OCKTask,
+                      let survey = surveyTask.uiKitSurvey else {
+                    Logger.feed.error("Can only use a survey for an \"OCKTask\", not \(task.id)")
+                    return nil
+                }
+
+                let surveyCard = OCKSurveyTaskViewController(
+                    eventQuery: query,
+                    store: self.store,
+                    survey: survey.type().createSurvey(),
+                    viewSynchronizer: SurveyViewSynchronizer(),
+                    extractOutcome: survey.type().extractAnswers
+                )
+                surveyCard.surveyDelegate = self
+                return [surveyCard]
+            #endif
+
             case .custom:
                 let card = EventQueryView<MyCustomCardView>(
                     query: query
@@ -485,6 +541,22 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
     }
 }
+
+#if canImport(ResearchKit) && canImport(ResearchKitUI)
+extension CareViewController: OCKSurveyTaskViewControllerDelegate {
+
+    /*
+    func surveyTask(
+        viewController: OCKSurveyTaskViewController,
+        for task: OCKAnyTask,
+        didFinish result: Result<ORKTaskFinishReason, Error>
+    ) {
+        if case let .success(reason) = result, reason == .completed {
+            reload()
+        }
+    } */
+}
+#endif
 
 private extension View {
     /// Convert SwiftUI view to UIKit view.
