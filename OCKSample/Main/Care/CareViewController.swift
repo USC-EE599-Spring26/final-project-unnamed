@@ -162,14 +162,15 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         for date: Date
     ) {
         self.isLoading = true
+        let date = modifyDateIfNeeded(date)
 
         Task {
             #if os(iOS)
             guard await Utility.checkIfOnboardingIsComplete() else {
 
-            let onboardSurvey = Onboard()
-            var query = OCKEventQuery(for: Date())
-            query.taskIDs = [Onboard.identifier()]
+                let onboardSurvey = Onboard()
+                var query = OCKEventQuery(for: Date())
+                query.taskIDs = [Onboard.identifier()]
                 let onboardCard = OCKSurveyTaskViewController(
                     eventQuery: query,
                     store: self.store,
@@ -195,25 +196,18 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 self.isLoading = false
                 return
             }
-            #endif
 
-            // Always call this method to ensure dates for
-            // queries are correct.
-            let date = modifyDateIfNeeded(date)
-            #if os(os)
             let isCurrentDay = isSameDay(as: date)
-
-            // Only show the tip view on the current date
             if isCurrentDay {
-                if Calendar.current.isDate(date, inSameDayAs: Date()) {
-                    // Add a non-CareKit view into the list
-                    let tipTitle = "Benefits of exercising"
-                    let tipText = "Learn how activity can promote a healthy pregnancy."
+                await MainActor.run {
+                    let tipTitle = "Stay Focused with Short Tasks"
+                    let tipText = "Exercises promote your focus."
                     let tipView = TipView()
                     tipView.headerView.titleLabel.text = tipTitle
                     tipView.headerView.detailLabel.text = tipText
                     tipView.imageView.image = UIImage(named: "exercise.jpg")
                     tipView.customStyle = CustomStylerKey.defaultValue
+
                     listViewController.appendView(tipView, animated: false)
                 }
             }
@@ -253,13 +247,17 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         query.excludesTasksWithNoEvents = true
         do {
             let tasks = try await store.fetchAnyTasks(query: query)
+            let onboardingComplete = await Utility.checkIfOnboardingIsComplete()
 
-            guard let tasksWithPriority = tasks as? [CareTask] else {
+            let filteredTasks = onboardingComplete
+                ? tasks.filter { $0.id != Onboard.identifier() }
+                : tasks
+
+            guard let tasksWithPriority = filteredTasks as? [CareTask] else {
                 Logger.feed.warning("Could not cast all tasks to \"CareTask\"")
                 return tasks
             }
-            // TODOx: Modify array to remove the Onboarding task
-            // so it doesn't show after onboarding.
+
             let orderedPriorityTasks = tasksWithPriority.sortedByPriority()
             let orderedTasks = orderedPriorityTasks.compactMap { orderedPriorityTask in
                 tasks.first(where: { $0.id == orderedPriorityTask.id })
