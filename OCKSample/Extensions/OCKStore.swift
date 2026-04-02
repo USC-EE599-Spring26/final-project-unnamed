@@ -28,9 +28,7 @@ extension OCKStore {
         }
 
         var query = OCKCarePlanQuery(for: Date())
-        query.ids = [
-            CarePlanID.health.rawValue
-        ]
+        query.ids = CarePlanID.allCases.map(\.rawValue)
 
         let foundCarePlans = try await store.fetchCarePlans(query: query)
         // Populate the dictionary for all CarePlan's
@@ -41,7 +39,6 @@ extension OCKStore {
         return results
     }
 
-    // TODOx: Rewrite this method in a functional programming way.
     /**
      Adds an `OCKAnyCarePlan`*asynchronously*  to `OCKStore` if it has not been added already.
 
@@ -60,18 +57,21 @@ extension OCKStore {
         var query = OCKCarePlanQuery(for: Date())
         query.ids = carePlanIdsToAdd
         let foundCarePlans = try await self.fetchAnyCarePlans(query: query)
-        var carePlanNotInStore = [OCKAnyCarePlan]()
+        let foundCarePlanIDs = Set(foundCarePlans.compactMap { $0.id })
+
         // Check results to see if there's a missing Care Plan
-        carePlans.forEach { potentialCarePlan in
-            if foundCarePlans.first(where: { $0.id == potentialCarePlan.id }) == nil {
-                // Check if can be casted to OCKCarePlan to add patientUUID
-                guard var mutableCarePlan = potentialCarePlan as? OCKCarePlan else {
-                    carePlanNotInStore.append(potentialCarePlan)
-                    return
-                }
-                mutableCarePlan.patientUUID = patientUUID
-                carePlanNotInStore.append(mutableCarePlan)
+        let carePlanNotInStore: [OCKAnyCarePlan] = carePlans.compactMap { potentialCarePlan in
+            guard !foundCarePlanIDs.contains(potentialCarePlan.id) else {
+                return nil
             }
+
+            guard var mutableCarePlan = potentialCarePlan as? OCKCarePlan else {
+                return potentialCarePlan
+            }
+
+            mutableCarePlan.patientUUID = patientUUID
+            // TODOx: Add CarePlans specific to your app here.
+            return mutableCarePlan
         }
 
         // Only add if there's a new Care Plan
@@ -85,7 +85,6 @@ extension OCKStore {
         }
     }
 
-    // TODOx: Rewrite this method in a functional programming way.
     func addContactsIfNotPresent(_ contacts: [OCKContact]) async throws -> [OCKContact] {
         let contactIdsToAdd = contacts.compactMap { $0.id }
 
@@ -94,14 +93,10 @@ extension OCKStore {
         query.ids = contactIdsToAdd
 
         let foundContacts = try await fetchContacts(query: query)
+        let foundContactIDs = Set(foundContacts.map(\.id))
 
         // Find all missing tasks.
-        let contactsNotInStore = contacts.filter { potentialContact -> Bool in
-            guard foundContacts.first(where: { $0.id == potentialContact.id }) == nil else {
-                return false
-            }
-            return true
-        }
+        let contactsNotInStore = contacts.filter { !foundContactIDs.contains($0.id) }
 
         // Only add if there's a new task
         guard contactsNotInStore.count > 0 else {
@@ -113,14 +108,24 @@ extension OCKStore {
     }
 
     func populateCarePlans(patientUUID: UUID? = nil) async throws {
-        // TODOx: Add at least 2 more CarePlans.
         let healthCarePlan = OCKCarePlan(
             id: CarePlanID.health.rawValue,
             title: "Health Care Plan",
             patientUUID: patientUUID
         )
+        let behavioralCarePlan = OCKCarePlan(
+            id: CarePlanID.behavioralTracking.rawValue,
+            title: "Behavioral Tracking",
+            patientUUID: patientUUID
+        )
+
+        let feedbackCarePlan = OCKCarePlan(
+            id: CarePlanID.adaptiveFeedback.rawValue,
+            title: "Adaptive Feedback",
+            patientUUID: patientUUID
+        )
         try await addCarePlansIfNotPresent(
-            [healthCarePlan],
+            [healthCarePlan, behavioralCarePlan, feedbackCarePlan],
             patientUUID: patientUUID
         )
     }
@@ -133,7 +138,6 @@ extension OCKStore {
 
         try await populateCarePlans(patientUUID: patientUUID)
 
-        // TODOx: Relate all tasks to a respective CarePlan
         let carePlanUUIDs = try await Self.getCarePlanUUIDs()
 
         let thisMorning = Calendar.current.startOfDay(for: startDate)
@@ -159,13 +163,13 @@ extension OCKStore {
         var methylphenidate = OCKTask(
             id: TaskID.methylphenidate,
             title: String(localized: "TAKE_METHYLPHENIDATE"),
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUIDs[.health],
             schedule: schedule
         )
         methylphenidate.instructions = String(localized: "METHYLPHENIDATE_INSTRUCTIONS")
         methylphenidate.asset = "pills.fill"
         methylphenidate.card = .checklist
-        methylphenidate.priority = 2
+        methylphenidate.priority = 4
 
         let inattentionSchedule = OCKSchedule(
             composing: [
@@ -183,14 +187,14 @@ extension OCKStore {
         var inattention = OCKTask(
             id: TaskID.inattention,
             title: String(localized: "TRACK_INATTENTION"),
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUIDs[.behavioralTracking],
             schedule: inattentionSchedule
         )
         inattention.impactsAdherence = false
         inattention.instructions = String(localized: "INATTENTION_INSTRUCTIONS")
         inattention.asset = "bed.double"
         inattention.card = .button
-        inattention.priority = 1
+        inattention.priority = 2
 
         let cardioElement = OCKScheduleElement(
             start: beforeBreakfast,
@@ -203,13 +207,13 @@ extension OCKStore {
         var cardios = OCKTask(
             id: TaskID.cardios,
             title: String(localized: "CARDIO_EXERCISES"),
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUIDs[.wellness],
             schedule: cardioSchedule
         )
         cardios.impactsAdherence = true
         cardios.instructions = String(localized: "CARDIO_INSTRUCTIONS")
         cardios.card = .custom
-        cardios.priority = 3
+        cardios.priority = 5
 
         let stretchElement = OCKScheduleElement(
             start: beforeBreakfast,
@@ -222,7 +226,7 @@ extension OCKStore {
         var stretch = OCKTask(
             id: TaskID.stretch,
             title: String(localized: "STRETCH"),
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUIDs[.wellness],
             schedule: stretchSchedule
         )
         stretch.impactsAdherence = true
@@ -231,16 +235,19 @@ extension OCKStore {
         stretch.priority = 4
 
 #if os(iOS)
-        let qualityOfLife = createQualityOfLifeSurveyTask(carePlanUUID: nil)
+        let qualityOfLife = createQualityOfLifeSurveyTask(carePlanUUID: carePlanUUIDs[.clinicalAssessment])
 #endif
-        _ = try await addTasksIfNotPresent(
-            [
-                inattention,
-                methylphenidate,
-                cardios,
-                stretch
-            ]
-        )
+
+        var tasksToAdd: [OCKTask] = [
+            inattention,
+            methylphenidate,
+            cardios,
+            stretch
+        ]
+        #if os(iOS)
+        tasksToAdd.append(qualityOfLife)
+        #endif
+        _ = try await addTasksIfNotPresent(tasksToAdd)
 
         _ = try await addOnboardingTask(carePlanUUIDs[.health])
         _ = try await addUIKitSurveyTasks(carePlanUUIDs[.health])
@@ -429,7 +436,7 @@ extension OCKStore {
             carePlanUUID: carePlanUUID,
             schedule: rangeOfMotionCheckSchedule
         )
-        rangeOfMotionTask.priority = 2
+        rangeOfMotionTask.priority = 3
         rangeOfMotionTask.asset = "figure.walk.motion"
         rangeOfMotionTask.card = .uiKitSurvey
         rangeOfMotionTask.uiKitSurvey = .rangeOfMotion
