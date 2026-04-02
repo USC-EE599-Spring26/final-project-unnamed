@@ -164,11 +164,12 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         self.isLoading = true
 
         Task {
+            #if os(iOS)
             guard await Utility.checkIfOnboardingIsComplete() else {
 
-                let onboardSurvey = Onboard()
-                var query = OCKEventQuery(for: Date())
-                query.taskIDs = [Onboard.identifier()]
+            let onboardSurvey = Onboard()
+            var query = OCKEventQuery(for: Date())
+            query.taskIDs = [Onboard.identifier()]
                 let onboardCard = OCKSurveyTaskViewController(
                     eventQuery: query,
                     store: self.store,
@@ -194,6 +195,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 self.isLoading = false
                 return
             }
+            #endif
 
             // Always call this method to ensure dates for
             // queries are correct.

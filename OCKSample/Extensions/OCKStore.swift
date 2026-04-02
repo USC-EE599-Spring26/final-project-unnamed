@@ -241,7 +241,7 @@ extension OCKStore {
                 stretch
             ]
         )
-        
+
         _ = try await addOnboardingTask(carePlanUUIDs[.health])
         _ = try await addUIKitSurveyTasks(carePlanUUIDs[.health])
 
