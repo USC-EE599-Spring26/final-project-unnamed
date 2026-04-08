@@ -36,6 +36,11 @@
 		3F6697492F85DF7000D3E377 /* OCKTask+ResearchKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697482F85DF6C00D3E377 /* OCKTask+ResearchKit.swift */; };
 		3F66974A2F85DF7000D3E377 /* OCKTask+ResearchKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697482F85DF6C00D3E377 /* OCKTask+ResearchKit.swift */; };
 		3F66974B2F85DF7000D3E377 /* OCKTask+ResearchKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697482F85DF6C00D3E377 /* OCKTask+ResearchKit.swift */; };
+		3F66974D2F86181800D3E377 /* OCKAnyEvent+Custom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F66974C2F86180F00D3E377 /* OCKAnyEvent+Custom.swift */; };
+		3F66974E2F86181800D3E377 /* OCKAnyEvent+Custom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F66974C2F86180F00D3E377 /* OCKAnyEvent+Custom.swift */; };
+		3F66974F2F86181800D3E377 /* OCKAnyEvent+Custom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F66974C2F86180F00D3E377 /* OCKAnyEvent+Custom.swift */; };
+		3F6697522F86190D00D3E377 /* SurveyViewSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697512F86190C00D3E377 /* SurveyViewSynchronizer.swift */; };
+		3F6697532F86190D00D3E377 /* SurveyViewSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697512F86190C00D3E377 /* SurveyViewSynchronizer.swift */; };
 		3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
 		3F6D2DFC2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
 		3F6D2DFD2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
@@ -348,6 +353,8 @@
 		3F6696F82F85DB4F00D3E377 /* Surveyable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surveyable.swift; sourceTree = "<group>"; };
 		3F66973D2F85DF2800D3E377 /* CarePlanID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanID.swift; sourceTree = "<group>"; };
 		3F6697482F85DF6C00D3E377 /* OCKTask+ResearchKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OCKTask+ResearchKit.swift"; sourceTree = "<group>"; };
+		3F66974C2F86180F00D3E377 /* OCKAnyEvent+Custom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OCKAnyEvent+Custom.swift"; sourceTree = "<group>"; };
+		3F6697512F86190C00D3E377 /* SurveyViewSynchronizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurveyViewSynchronizer.swift; sourceTree = "<group>"; };
 		3F6D2DEE2F66208D00560AD8 /* ResearchKitSwiftUI.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKitSwiftUI.xcodeproj; path = ResearchKit/ResearchKitSwiftUI/ResearchKitSwiftUI.xcodeproj; sourceTree = "<group>"; };
 		3F6D2DFA2F6627A400560AD8 /* CareTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareTask.swift; sourceTree = "<group>"; };
 		3F8C22562F63888E00E02F4D /* MyCustomCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCustomCardView.swift; sourceTree = "<group>"; };
@@ -534,6 +541,15 @@
 			path = Onboard;
 			sourceTree = "<group>";
 		};
+		3F6697502F8618FB00D3E377 /* UIkit */ = {
+			isa = PBXGroup;
+			children = (
+				3F6697512F86190C00D3E377 /* SurveyViewSynchronizer.swift */,
+				E7C37848228F887800E982D8 /* TipView.swift */,
+			);
+			path = UIkit;
+			sourceTree = "<group>";
+		};
 		3F6D2DEF2F66208D00560AD8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -715,7 +731,7 @@
 		70E3422C2DB058A7005124F9 /* Cards */ = {
 			isa = PBXGroup;
 			children = (
-				E7C37848228F887800E982D8 /* TipView.swift */,
+				3F6697502F8618FB00D3E377 /* UIkit */,
 				3F8C22562F63888E00E02F4D /* MyCustomCardView.swift */,
 				70E3422D2DB0626A005124F9 /* Modifiers */,
 			);
@@ -781,6 +797,7 @@
 		918FDEBA271B4DF60045A0EF /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				3F66974C2F86180F00D3E377 /* OCKAnyEvent+Custom.swift */,
 				3F6697482F85DF6C00D3E377 /* OCKTask+ResearchKit.swift */,
 				70221F2928D7BE0600971195 /* AppDelegate+ParseRemoteDelegate.swift */,
 				70221F3328D8ABBE00971195 /* AppDelegate+UIApplicationDelegate.swift */,
@@ -1291,6 +1308,7 @@
 				707D295C2DCBE68500980253 /* AppDelegate.swift in Sources */,
 				3F6697462F85DF2B00D3E377 /* CarePlanID.swift in Sources */,
 				707D295D2DCBE68500980253 /* LoginViewModel.swift in Sources */,
+				3F66974E2F86181800D3E377 /* OCKAnyEvent+Custom.swift in Sources */,
 				BE4EAA822F511D2600CF7BF0 /* CareKitCard.swift in Sources */,
 				70B8E0A62F0EC1CA00440FCA /* Mutex.swift in Sources */,
 				707D295E2DCBE68500980253 /* Utility.swift in Sources */,
@@ -1315,6 +1333,7 @@
 				707D29692DCBE68500980253 /* LocalSyncSessionDelegate.swift in Sources */,
 				707D296A2DCBE68500980253 /* Constants.swift in Sources */,
 				3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
+				3F6697522F86190D00D3E377 /* SurveyViewSynchronizer.swift in Sources */,
 				707D296B2DCBE68500980253 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
 				707D296C2DCBE68500980253 /* RemoteSessionDelegate.swift in Sources */,
 				3F6696F62F85DAEE00D3E377 /* Survey.swift in Sources */,
@@ -1374,6 +1393,7 @@
 				918FDEB9271B493A0045A0EF /* Installation.swift in Sources */,
 				91AD923F24A4C42D00925D4D /* NotificationController.swift in Sources */,
 				70CF66E528E1E74C00FAE977 /* TintColorFlipKey.swift in Sources */,
+				3F66974D2F86181800D3E377 /* OCKAnyEvent+Custom.swift in Sources */,
 				70F03A9C27860A2000E5AFB4 /* OCKStore.swift in Sources */,
 				70C0D474279BA492003DA141 /* Utility.swift in Sources */,
 				3F0412062F58A81600A9641E /* AppearanceStyler.swift in Sources */,
@@ -1392,6 +1412,7 @@
 			files = (
 				3F6697492F85DF7000D3E377 /* OCKTask+ResearchKit.swift in Sources */,
 				3F6696FA2F85DB5B00D3E377 /* Surveyable.swift in Sources */,
+				3F66974F2F86181800D3E377 /* OCKAnyEvent+Custom.swift in Sources */,
 				E7440E4F229477F7007AD30A /* CareViewController.swift in Sources */,
 				3F6696F32F85DAB900D3E377 /* RangeOfMotion.swift in Sources */,
 				BE4EAA932F51281600CF7BF0 /* CareKitTaskView.swift in Sources */,
@@ -1442,6 +1463,7 @@
 				7036E4C9256E1A6F006E9A3C /* ProfileView.swift in Sources */,
 				7083A856279CA40A00B3832E /* PCKUtility.swift in Sources */,
 				70B8E0A52F0EC1CA00440FCA /* Mutex.swift in Sources */,
+				3F6697532F86190D00D3E377 /* SurveyViewSynchronizer.swift in Sources */,
 				70F921AE27CABE7700368CEC /* RemoteSessionDelegate.swift in Sources */,
 				3F6696ED2F85DA8900D3E377 /* Consent.swift in Sources */,
 				70F03A952786093B00E5AFB4 /* OCKHealthKitPassthroughStore.swift in Sources */,

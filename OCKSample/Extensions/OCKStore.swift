@@ -114,11 +114,30 @@ extension OCKStore {
         return addedContacts
     }
 
+    func populateCarePlans(patientUUID: UUID? = nil) async throws {
+        // TODOx: Add at least 2 more CarePlans.
+        let healthCarePlan = OCKCarePlan(
+            id: CarePlanID.health.rawValue,
+            title: "Health Care Plan",
+            patientUUID: patientUUID
+        )
+        try await addCarePlansIfNotPresent(
+            [healthCarePlan],
+            patientUUID: patientUUID
+        )
+    }
+    
     // Adds tasks and contacts into the store
     func populateDefaultCarePlansTasksContacts(
+        _ patientUUID: UUID? = nil,
 		startDate: Date = Date()
 	) async throws {
+        
+        try await populateCarePlans(patientUUID: patientUUID)
 
+        // TODO: Relate all tasks to a respective CarePlan
+        let carePlanUUIDs = try await Self.getCarePlanUUIDs()
+        
         let thisMorning = Calendar.current.startOfDay(for: startDate)
         let aFewDaysAgo = Calendar.current.date(byAdding: .day, value: -4, to: thisMorning)!
         let beforeBreakfast = Calendar.current.date(byAdding: .hour, value: 8, to: aFewDaysAgo)!
@@ -216,24 +235,16 @@ extension OCKStore {
 #if os(iOS)
         let qualityOfLife = createQualityOfLifeSurveyTask(carePlanUUID: nil)
 #endif
-//        _ = try await addTasksIfNotPresent(
-//            [
-//                inattention,
-//                methylphenidate,
-//                cardios,
-//                stretch
-//            ]
-//        )
-        var tasksToAdd: [OCKTask] = [
-            inattention,
-            methylphenidate,
-            cardios,
-            stretch
-        ]
-        #if os(iOS)
-        tasksToAdd.append(qualityOfLife)
-        #endif
-        _ = try await addTasksIfNotPresent(tasksToAdd)
+        _ = try await addTasksIfNotPresent(
+            [
+                inattention,
+                methylphenidate,
+                cardios,
+                stretch
+            ]
+        )
+        _ = try await addOnboardingTask(carePlanUUIDs[.health])
+        _ = try await addUIKitSurveyTasks(carePlanUUIDs[.health])
 
         var contact1 = OCKContact(
             id: "jane",
@@ -353,4 +364,77 @@ extension OCKStore {
             return qualityOfLife
         }
 #endif
+    func addOnboardingTask(_ carePlanUUID: UUID? = nil) async throws -> [OCKTask] {
+
+         let onboardSchedule = OCKSchedule.dailyAtTime(
+             hour: 0, minutes: 0,
+             start: Date(), end: nil,
+             text: "Task Due!",
+             duration: .allDay
+         )
+
+         var onboardTask = OCKTask(
+             id: Onboard.identifier(),
+             title: "Onboard",
+             carePlanUUID: carePlanUUID,
+             schedule: onboardSchedule
+         )
+         onboardTask.instructions = "You'll need to agree to some terms and conditions before we get started!"
+         onboardTask.impactsAdherence = false
+         onboardTask.card = .uiKitSurvey
+         onboardTask.uiKitSurvey = .onboard
+
+         return try await addTasksIfNotPresent([onboardTask])
+     }
+
+     func addUIKitSurveyTasks(_ carePlanUUID: UUID? = nil) async throws -> [OCKTask] {
+         let thisMorning = Calendar.current.startOfDay(for: Date())
+
+         let nextWeek = Calendar.current.date(
+             byAdding: .weekOfYear,
+             value: 1,
+             to: Date()
+         )!
+
+         let nextMonth = Calendar.current.date(
+             byAdding: .month,
+             value: 1,
+             to: thisMorning
+         )
+
+         let dailyElement = OCKScheduleElement(
+             start: thisMorning,
+             end: nextWeek,
+             interval: DateComponents(day: 1),
+             text: nil,
+             targetValues: [],
+             duration: .allDay
+         )
+
+         let weeklyElement = OCKScheduleElement(
+             start: nextWeek,
+             end: nextMonth,
+             interval: DateComponents(weekOfYear: 1),
+             text: nil,
+             targetValues: [],
+             duration: .allDay
+         )
+
+         let rangeOfMotionCheckSchedule = OCKSchedule(
+             composing: [dailyElement, weeklyElement]
+         )
+
+         var rangeOfMotionTask = OCKTask(
+             id: RangeOfMotion.identifier(),
+             title: "Range Of Motion",
+             carePlanUUID: carePlanUUID,
+             schedule: rangeOfMotionCheckSchedule
+         )
+         rangeOfMotionTask.priority = 2
+         rangeOfMotionTask.asset = "figure.walk.motion"
+         rangeOfMotionTask.card = .uiKitSurvey
+         rangeOfMotionTask.uiKitSurvey = .rangeOfMotion
+
+         return try await addTasksIfNotPresent([rangeOfMotionTask])
+     }
 }
