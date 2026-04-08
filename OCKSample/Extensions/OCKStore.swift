@@ -41,7 +41,7 @@ extension OCKStore {
          return results
      }
 
-     // TODO: Rewrite this method in a functional programming way.
+     // TODOx: Rewrite this method in a functional programming way.
      /**
       Adds an `OCKAnyCarePlan`*asynchronously*  to `OCKStore` if it has not been added already.
 
@@ -86,8 +86,8 @@ extension OCKStore {
          }
      }
 
-     // TODO: Rewrite this method in a functional programming way.
-    
+     // TODOx: Rewrite this method in a functional programming way.
+
     func addContactsIfNotPresent(_ contacts: [OCKContact]) async throws -> [OCKContact] {
         let contactIdsToAdd = contacts.compactMap { $0.id }
 
@@ -126,18 +126,17 @@ extension OCKStore {
             patientUUID: patientUUID
         )
     }
-    
+
     // Adds tasks and contacts into the store
     func populateDefaultCarePlansTasksContacts(
-        _ patientUUID: UUID? = nil,
-		startDate: Date = Date()
+        _ patientUUID: UUID? = nil, startDate: Date = Date()
 	) async throws {
-        
+
         try await populateCarePlans(patientUUID: patientUUID)
 
-        // TODO: Relate all tasks to a respective CarePlan
+        // TODOx: Relate all tasks to a respective CarePlan
         let carePlanUUIDs = try await Self.getCarePlanUUIDs()
-        
+
         let thisMorning = Calendar.current.startOfDay(for: startDate)
         let aFewDaysAgo = Calendar.current.date(byAdding: .day, value: -4, to: thisMorning)!
         let beforeBreakfast = Calendar.current.date(byAdding: .hour, value: 8, to: aFewDaysAgo)!

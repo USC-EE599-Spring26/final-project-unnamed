@@ -165,7 +165,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
         Task {
             guard await Utility.checkIfOnboardingIsComplete() else {
-            
+
             #if canImport(ResearchKit) && canImport(ResearchKitUI)
             let onboardSurvey = Onboard()
             var query = OCKEventQuery(for: Date())

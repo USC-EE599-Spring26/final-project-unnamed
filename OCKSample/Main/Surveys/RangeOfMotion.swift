@@ -6,7 +6,6 @@
 //  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
 //
 
-
 import CareKitStore
 #if canImport(ResearchKit) && canImport(ResearchKitActiveTask)
 import ResearchKit

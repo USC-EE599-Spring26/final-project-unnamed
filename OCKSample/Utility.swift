@@ -207,7 +207,7 @@ class Utility {
 		AppDelegateKey.defaultValue?.resetAppToInitialState()
 		PCKUtility.removeCache()
 	}
-    
+
     @MainActor
      class func checkIfOnboardingIsComplete() async -> Bool {
          var query = OCKOutcomeQuery()
