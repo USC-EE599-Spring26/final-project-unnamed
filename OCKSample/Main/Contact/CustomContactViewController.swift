@@ -113,7 +113,7 @@ class CustomContactViewController: OCKListViewController, @unchecked Sendable {
             return
         }
 
-        // TODO: Modify this filter to not show the contact info for this user
+        // TODOx: Modify this filter to not show the contact info for this user
         let filterdContacts = contacts.filter { convertedContact in
             Logger.contact.info("Contact filtered: \(convertedContact.id)")
             return true

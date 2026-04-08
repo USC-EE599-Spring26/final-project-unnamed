@@ -19,7 +19,7 @@ struct ContactView: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> some UIViewController {
         let viewController = createViewController()
-        
+
         let navigationController = UINavigationController(
             rootViewController: viewController
         )
@@ -36,7 +36,7 @@ struct ContactView: UIViewControllerRepresentable {
     }
 
     func createViewController() -> UIViewController {
-        
+
         let currentContacts = contacts.latest
         let viewController = CustomContactViewController(
             store: careStore,
