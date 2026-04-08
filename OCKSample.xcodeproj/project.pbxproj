@@ -20,6 +20,16 @@
 		3F5956A72F60F56C00B2BFFA /* ResearchKitActiveTask.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566E2F60F09A00B2BFFA /* ResearchKitActiveTask.framework */; platformFilter = ios; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3F5956A82F60F56C00B2BFFA /* ResearchKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566C2F60F09A00B2BFFA /* ResearchKitUI.framework */; platformFilter = ios; };
 		3F5956A92F60F56C00B2BFFA /* ResearchKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566C2F60F09A00B2BFFA /* ResearchKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3F6696ED2F85DA8900D3E377 /* Consent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696EC2F85DA8600D3E377 /* Consent.swift */; };
+		3F6696EE2F85DA8900D3E377 /* Consent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696EC2F85DA8600D3E377 /* Consent.swift */; };
+		3F6696F02F85DA9F00D3E377 /* Onboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696EF2F85DA9D00D3E377 /* Onboard.swift */; };
+		3F6696F12F85DA9F00D3E377 /* Onboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696EF2F85DA9D00D3E377 /* Onboard.swift */; };
+		3F6696F32F85DAB900D3E377 /* RangeOfMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696F22F85DAB200D3E377 /* RangeOfMotion.swift */; };
+		3F6696F42F85DAB900D3E377 /* RangeOfMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696F22F85DAB200D3E377 /* RangeOfMotion.swift */; };
+		3F6696F62F85DAEE00D3E377 /* Survey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696F52F85DAE000D3E377 /* Survey.swift */; };
+		3F6696F72F85DAEE00D3E377 /* Survey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696F52F85DAE000D3E377 /* Survey.swift */; };
+		3F6696F92F85DB5B00D3E377 /* Surveyable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696F82F85DB4F00D3E377 /* Surveyable.swift */; };
+		3F6696FA2F85DB5B00D3E377 /* Surveyable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696F82F85DB4F00D3E377 /* Surveyable.swift */; };
 		3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
 		3F6D2DFC2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
 		3F6D2DFD2F6627A700560AD8 /* CareTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D2DFA2F6627A400560AD8 /* CareTask.swift */; };
@@ -325,6 +335,11 @@
 		3F0412012F58A7DE00A9641E /* AnimationStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationStyler.swift; sourceTree = "<group>"; };
 		3F0412052F58A81000A9641E /* AppearanceStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceStyler.swift; sourceTree = "<group>"; };
 		3F59564D2F60F09A00B2BFFA /* ResearchKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKit.xcodeproj; path = ResearchKit/ResearchKit.xcodeproj; sourceTree = "<group>"; };
+		3F6696EC2F85DA8600D3E377 /* Consent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Consent.swift; sourceTree = "<group>"; };
+		3F6696EF2F85DA9D00D3E377 /* Onboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboard.swift; sourceTree = "<group>"; };
+		3F6696F22F85DAB200D3E377 /* RangeOfMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeOfMotion.swift; sourceTree = "<group>"; };
+		3F6696F52F85DAE000D3E377 /* Survey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Survey.swift; sourceTree = "<group>"; };
+		3F6696F82F85DB4F00D3E377 /* Surveyable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surveyable.swift; sourceTree = "<group>"; };
 		3F6D2DEE2F66208D00560AD8 /* ResearchKitSwiftUI.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKitSwiftUI.xcodeproj; path = ResearchKit/ResearchKitSwiftUI/ResearchKitSwiftUI.xcodeproj; sourceTree = "<group>"; };
 		3F6D2DFA2F6627A400560AD8 /* CareTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareTask.swift; sourceTree = "<group>"; };
 		3F8C22562F63888E00E02F4D /* MyCustomCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCustomCardView.swift; sourceTree = "<group>"; };
@@ -491,6 +506,26 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		3F6696E32F85DA7700D3E377 /* Surveys */ = {
+			isa = PBXGroup;
+			children = (
+				3F6696F82F85DB4F00D3E377 /* Surveyable.swift */,
+				3F6696F52F85DAE000D3E377 /* Survey.swift */,
+				3F6696F22F85DAB200D3E377 /* RangeOfMotion.swift */,
+				3F6696EB2F85DA7D00D3E377 /* Onboard */,
+			);
+			path = Surveys;
+			sourceTree = "<group>";
+		};
+		3F6696EB2F85DA7D00D3E377 /* Onboard */ = {
+			isa = PBXGroup;
+			children = (
+				3F6696EF2F85DA9D00D3E377 /* Onboard.swift */,
+				3F6696EC2F85DA8600D3E377 /* Consent.swift */,
+			);
+			path = Onboard;
+			sourceTree = "<group>";
+		};
 		3F6D2DEF2F66208D00560AD8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -546,6 +581,7 @@
 		703088772582727500FFABB6 /* Main */ = {
 			isa = PBXGroup;
 			children = (
+				3F6696E32F85DA7700D3E377 /* Surveys */,
 				BE4EAA8D2F5127C600CF7BF0 /* CareKitTaskView */,
 				70221F2728D7809800971195 /* MainTabView.swift */,
 				7036E4D2256EBE35006E9A3C /* MainView.swift */,
@@ -1213,6 +1249,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F6696EE2F85DA8900D3E377 /* Consent.swift in Sources */,
 				707D29462DCBE68500980253 /* MainTabView.swift in Sources */,
 				707D29472DCBE68500980253 /* User.swift in Sources */,
 				BE4EAA8B2F5126C100CF7BF0 /* OCKHealthKit+Card.swift in Sources */,
@@ -1222,6 +1259,7 @@
 				707D294A2DCBE68500980253 /* CustomStylerKey.swift in Sources */,
 				707D294B2DCBE68500980253 /* TipView.swift in Sources */,
 				707D29712DCBE6A000980253 /* OCKLocalization.swift in Sources */,
+				3F6696F92F85DB5B00D3E377 /* Surveyable.swift in Sources */,
 				707D294C2DCBE68500980253 /* StoreCoordinatorKey.swift in Sources */,
 				707D294D2DCBE68500980253 /* InsightsView.swift in Sources */,
 				707D294E2DCBE68500980253 /* OCKHealthKitPassthroughStore.swift in Sources */,
@@ -1231,6 +1269,7 @@
 				707D29522DCBE68500980253 /* AppDelegateKey.swift in Sources */,
 				707D29532DCBE68500980253 /* Logger.swift in Sources */,
 				707D29542DCBE68500980253 /* TintColorFlipKey.swift in Sources */,
+				3F6696F02F85DA9F00D3E377 /* Onboard.swift in Sources */,
 				BE4EAA852F51214400CF7BF0 /* OCKTask+Card.swift in Sources */,
 				707D29552DCBE68500980253 /* Installation.swift in Sources */,
 				707D29562DCBE68500980253 /* SplashScreenView.swift in Sources */,
@@ -1244,6 +1283,7 @@
 				BE4EAA822F511D2600CF7BF0 /* CareKitCard.swift in Sources */,
 				70B8E0A62F0EC1CA00440FCA /* Mutex.swift in Sources */,
 				707D295E2DCBE68500980253 /* Utility.swift in Sources */,
+				3F6696F42F85DAB900D3E377 /* RangeOfMotion.swift in Sources */,
 				707D295F2DCBE68500980253 /* OCKSampleApp.swift in Sources */,
 				707D29602DCBE68500980253 /* SessionDelegate.swift in Sources */,
 				3F0412042F58A7E200A9641E /* AnimationStyler.swift in Sources */,
@@ -1265,6 +1305,7 @@
 				3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
 				707D296B2DCBE68500980253 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
 				707D296C2DCBE68500980253 /* RemoteSessionDelegate.swift in Sources */,
+				3F6696F62F85DAEE00D3E377 /* Survey.swift in Sources */,
 				707D296D2DCBE68500980253 /* OCKPatient+Parse.swift in Sources */,
 				707D296E2DCBE68500980253 /* ColorStyler.swift in Sources */,
 			);
@@ -1335,7 +1376,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F6696FA2F85DB5B00D3E377 /* Surveyable.swift in Sources */,
 				E7440E4F229477F7007AD30A /* CareViewController.swift in Sources */,
+				3F6696F32F85DAB900D3E377 /* RangeOfMotion.swift in Sources */,
 				BE4EAA932F51281600CF7BF0 /* CareKitTaskView.swift in Sources */,
 				918FDEB5271B40590045A0EF /* Installation.swift in Sources */,
 				7099D20829E98E200037CD8E /* UserType.swift in Sources */,
@@ -1356,6 +1399,7 @@
 				70F921A827CA9A3A00368CEC /* CustomStylerKey.swift in Sources */,
 				70221F3428D8ABBE00971195 /* AppDelegate+UIApplicationDelegate.swift in Sources */,
 				9169381D271B650700A634ED /* ColorStyler.swift in Sources */,
+				3F6696F12F85DA9F00D3E377 /* Onboard.swift in Sources */,
 				3F9D8BB52F67CC5300DED222 /* CardEnabledEnvironmentKey.swift in Sources */,
 				3F0411FF2F58A76E00A9641E /* DimensionStyler.swift in Sources */,
 				E72B2C0A226939E3009A9438 /* AppDelegate.swift in Sources */,
@@ -1376,6 +1420,7 @@
 				707CC718254DA91900116728 /* OCKLocalization.swift in Sources */,
 				BE4EAA862F51214400CF7BF0 /* OCKTask+Card.swift in Sources */,
 				E7C37849228F887800E982D8 /* TipView.swift in Sources */,
+				3F6696F72F85DAEE00D3E377 /* Survey.swift in Sources */,
 				3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */,
 				3F0412022F58A7E200A9641E /* AnimationStyler.swift in Sources */,
 				70077597252228E900EC0EDA /* User.swift in Sources */,
@@ -1383,6 +1428,7 @@
 				7083A856279CA40A00B3832E /* PCKUtility.swift in Sources */,
 				70B8E0A52F0EC1CA00440FCA /* Mutex.swift in Sources */,
 				70F921AE27CABE7700368CEC /* RemoteSessionDelegate.swift in Sources */,
+				3F6696ED2F85DA8900D3E377 /* Consent.swift in Sources */,
 				70F03A952786093B00E5AFB4 /* OCKHealthKitPassthroughStore.swift in Sources */,
 				3F8C225D2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
 				7036E4BF256DA089006E9A3C /* LoginViewModel.swift in Sources */,
