@@ -33,6 +33,7 @@ extension OCKHealthKitPassthroughStore {
             duration: .allDay,
             targetValues: stepTargetValues
         )
+        let carePlanUUIDs = try await OCKStore.getCarePlanUUIDs()
         var steps = OCKHealthKitTask(
             id: TaskID.steps,
             title: String(localized: "STEPS"),
@@ -47,6 +48,7 @@ extension OCKHealthKitPassthroughStore {
         steps.asset = "figure.walk"
         steps.card = .numericProgress
         steps.priority = 0
+        steps.carePlanUUID = carePlanUUIDs[.health]
 
 //        let ovulationTestResultSchedule = OCKSchedule.dailyAtTime(
 //            hour: 8,
