@@ -63,7 +63,42 @@ class ProfileViewModel: ObservableObject {
     }
     @Published private(set) var error: Error?
     private(set) var alertMessage = "All changs saved successfully!"
-    private var contact: OCKContact? // TODOx: need to publish contact updates like patient
+    // TODOx: need to publish contact updates like patient
+    @Published var contact: OCKContact? {
+        willSet {
+            if let givenName = newValue?.name.givenName {
+                firstName = givenName
+            } else {
+                firstName = ""
+            }
+
+            if let familyName = newValue?.name.familyName {
+                lastName = familyName
+            } else {
+                lastName = ""
+            }
+
+            if let address = newValue?.address {
+                street = address.street
+                city = address.city
+                state = address.state
+                zipcode = address.postalCode
+                country = address.country
+            } else {
+                street = ""
+                city = ""
+                state = ""
+                zipcode = ""
+                country = ""
+            }
+
+            if let role = newValue?.role {
+                note = role
+            } else {
+                note = ""
+            }
+        }
+    }
 
     // MARK: Private read/write properties
     private var isSettingProfilePictureForFirstTime = true
