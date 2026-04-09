@@ -118,14 +118,33 @@ extension OCKStore {
             title: "Behavioral Tracking",
             patientUUID: patientUUID
         )
-
         let feedbackCarePlan = OCKCarePlan(
             id: CarePlanID.adaptiveFeedback.rawValue,
             title: "Adaptive Feedback",
             patientUUID: patientUUID
         )
+        let wellnessCarePlan = OCKCarePlan(
+            id: CarePlanID.wellness.rawValue,
+            title: "Wellness",
+            patientUUID: patientUUID
+        )
+        let nutritionCarePlan = OCKCarePlan(
+            id: CarePlanID.nutrition.rawValue,
+            title: "Nutrition",
+            patientUUID: patientUUID
+        )
+        let clinicalAssessmentCarePlan = OCKCarePlan(
+            id: CarePlanID.clinicalAssessment.rawValue,
+            title: "Clinical Assessment",
+            patientUUID: patientUUID
+        )
         try await addCarePlansIfNotPresent(
-            [healthCarePlan, behavioralCarePlan, feedbackCarePlan],
+            [healthCarePlan,
+             behavioralCarePlan,
+             feedbackCarePlan,
+             wellnessCarePlan,
+             nutritionCarePlan,
+             clinicalAssessmentCarePlan],
             patientUUID: patientUUID
         )
     }

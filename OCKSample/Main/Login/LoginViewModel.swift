@@ -124,29 +124,35 @@ class LoginViewModel: ObservableObject {
         }
         try await appDelegate.setupRemotes(uuid: remoteUUID)
 
-        var newPatient = OCKPatient(
-			remoteUUID: remoteUUID,
-			id: remoteUUID.uuidString,
-			givenName: firstName,
-			familyName: lastName,
-            email: email
-		)
-        newPatient.userType = type
-        let savedPatient = try await appDelegate.store.addPatient(newPatient)
+        // Check if a patient already exists in this store (OCKStore only allows one per store).
+        // This happens when the app is launched again after a previous anonymous/signup session.
+        let existingPatients = (try? await appDelegate.store.fetchAnyPatients(
+            query: OCKPatientQuery(for: Date())
+        )) ?? []
 
-        // Added code to create a contact for the respective signed up user
+        let savedPatient: OCKPatient
+        if let existingPatient = existingPatients.first as? OCKPatient {
+            Logger.login.info("Patient already exists in store, reusing existing patient")
+            savedPatient = existingPatient
+        } else {
+            var newPatient = OCKPatient(
+                remoteUUID: remoteUUID,
+                id: remoteUUID.uuidString,
+                givenName: firstName,
+                familyName: lastName,
+                email: email
+            )
+            newPatient.userType = type
+            savedPatient = try await appDelegate.store.addPatient(newPatient)
+        }
+
+        // Use addContactsIfNotPresent so this is safe on retry/re-login (addAnyContact throws on duplicate)
         let newContact = OCKContact(
-            id: remoteUUID.uuidString,
-            name: newPatient.name,
+            id: savedPatient.id,
+            name: savedPatient.name,
             carePlanUUID: nil
         )
-
-        // This is new contact that has never been saved before
-        _ = try await appDelegate.store.addAnyContact(newContact)
-
-        // TODOx: You need to handle tying a patient to all of your
-        // CarePlans, how would you do it here since you have a
-        // a saved patient uuid?
+        _ = try await appDelegate.store.addContactsIfNotPresent([newContact])
 
         let currentDate = Date()
 		let startDate = daysInThePastToGenerateSampleData < 0 ? Calendar.current.date(
@@ -154,7 +160,9 @@ class LoginViewModel: ObservableObject {
 			value: daysInThePastToGenerateSampleData,
 			to: currentDate
 		)! : currentDate
+        // Pass savedPatient.uuid so care plans are tied to this patient
         try await appDelegate.store.populateDefaultCarePlansTasksContacts(
+            savedPatient.uuid,
 			startDate: startDate
 		)
         try await appDelegate.healthKitStore.populateDefaultHealthKitTasks(

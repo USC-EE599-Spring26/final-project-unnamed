@@ -317,18 +317,19 @@ class ProfileViewModel: ObservableObject {
                 } else {
                     try await appDelegate.store.deleteAnyTask(taskToDelete)
                 }
-
                 Logger.profile.info("Successfully deleted task: \(taskToDelete.id)")
-
-                // Notify CareViewController to update
-                NotificationCenter.default.post(
-                    name: Notification.Name(rawValue: Constants.shouldRefreshView),
-                    object: nil
-                )
             } catch {
                 Logger.profile.error("Failed to delete task: \(error.localizedDescription)")
             }
         }
+
+        // Notify CareViewController once after all deletions are done, not once per deletion.
+        // Posting inside the loop caused CareViewController to reload mid-deletion, creating
+        // task controllers for tasks that were then deleted → "Task Controller is missing task".
+        NotificationCenter.default.post(
+            name: Notification.Name(rawValue: Constants.shouldRefreshView),
+            object: nil
+        )
 
         // Refresh local list so UI updates instantly
         await fetchTasks()
