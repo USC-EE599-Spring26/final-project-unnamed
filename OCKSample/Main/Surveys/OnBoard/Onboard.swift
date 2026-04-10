@@ -156,5 +156,10 @@ extension Onboard {
         }
         return [OCKOutcomeValue(Date())]
     }
+
+    func displayText(for event: OCKAnyEvent) -> String {
+        let instruction  = event.answer(kind: Onboard.identifier())
+        return "\(instruction)"
+    }
 }
 #endif

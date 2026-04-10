@@ -72,7 +72,7 @@ class MyContactViewController: OCKListViewController {
         }
 
         /*
-         TODOx: How would you modify this query to only fetch the contact that belongs to this device?
+         TODOxOK: How would you modify this query to only fetch the contact that belongs to this device?
 
          Hint 1: There are multiple ways to do this. You can modify the query
          below which can work.
@@ -84,6 +84,7 @@ class MyContactViewController: OCKListViewController {
          get rid of the warning without changing the line the warning is on.
          */
         var query = OCKContactQuery(for: Date())
+        query.ids = [personUUIDString]
         query.sortDescriptors.append(.familyName(ascending: true))
         query.sortDescriptors.append(.givenName(ascending: true))
 

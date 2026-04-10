@@ -42,6 +42,18 @@ final class SurveyViewSynchronizer: OCKSurveyTaskViewSynchronizer {
                 Sleep: \(Int(sleep)) hours
                 """
              */
+            guard
+                let task = event.task as? OCKTask,
+                let survey = task.uiKitSurvey
+            else {
+                view.instructionsLabel.text = "Completed"
+                return
+            }
+            // Each uiKitSurvey type knows its own answer identifiers.
+            // Delegate display logic back to the survey type itself.
+            let surveyType = survey.type()
+            view.instructionsLabel.text = surveyType.displayText(for: event)
+
         } else {
             view.instructionsLabel.isHidden = true
         }

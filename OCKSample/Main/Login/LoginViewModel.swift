@@ -166,6 +166,7 @@ class LoginViewModel: ObservableObject {
 			startDate: startDate
 		)
         try await appDelegate.healthKitStore.populateDefaultHealthKitTasks(
+            savedPatient.uuid,
 			startDate: startDate
 		)
 		if startDate < currentDate {
