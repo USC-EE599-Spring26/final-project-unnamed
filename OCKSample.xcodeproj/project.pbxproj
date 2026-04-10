@@ -14,6 +14,12 @@
 		3F0412032F58A7E200A9641E /* AnimationStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412012F58A7DE00A9641E /* AnimationStyler.swift */; };
 		3F0412042F58A7E200A9641E /* AnimationStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412012F58A7DE00A9641E /* AnimationStyler.swift */; };
 		3F0412062F58A81600A9641E /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
+		3F32CD482F88D222004E8194 /* ContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7036E4CD256E9A0C006E9A3C /* ContactView.swift */; };
+		3F32CD492F88D227004E8194 /* CustomContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696B82F85D74600D3E377 /* CustomContactViewController.swift */; };
+		3F32CD4A2F88D22D004E8194 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697892F86D15200D3E377 /* ImagePicker.swift */; };
+		3F32CD4B2F88D232004E8194 /* MyContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697832F86D13C00D3E377 /* MyContactView.swift */; };
+		3F32CD4C2F88D237004E8194 /* MyContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697862F86D14400D3E377 /* MyContactViewController.swift */; };
+		3F32CD4D2F88D23B004E8194 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7036E4C8256E1A6F006E9A3C /* ProfileView.swift */; };
 		3F5956A42F60F56C00B2BFFA /* ResearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F5956682F60F09A00B2BFFA /* ResearchKit.framework */; platformFilter = ios; };
 		3F5956A52F60F56C00B2BFFA /* ResearchKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F5956682F60F09A00B2BFFA /* ResearchKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3F5956A62F60F56C00B2BFFA /* ResearchKitActiveTask.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566E2F60F09A00B2BFFA /* ResearchKitActiveTask.framework */; platformFilter = ios; };
@@ -1303,6 +1309,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BE24ACA02F73555000611424 /* Consent.swift in Sources */,
+				3F32CD4C2F88D237004E8194 /* MyContactViewController.swift in Sources */,
 				707D29462DCBE68500980253 /* MainTabView.swift in Sources */,
 				707D29472DCBE68500980253 /* User.swift in Sources */,
 				BE4EAA8B2F5126C100CF7BF0 /* OCKHealthKitTask+CardTask.swift in Sources */,
@@ -1319,6 +1326,7 @@
 				707D294E2DCBE68500980253 /* OCKHealthKitPassthroughStore.swift in Sources */,
 				707D294F2DCBE68500980253 /* OCKStore+SampleData.swift in Sources */,
 				707D29502DCBE68500980253 /* TaskID.swift in Sources */,
+				3F32CD482F88D222004E8194 /* ContactView.swift in Sources */,
 				707D29512DCBE68500980253 /* CareView.swift in Sources */,
 				707D29522DCBE68500980253 /* AppDelegateKey.swift in Sources */,
 				707D29532DCBE68500980253 /* Logger.swift in Sources */,
@@ -1327,6 +1335,7 @@
 				BE4EAA852F51214400CF7BF0 /* OCKTask+CardTask.swift in Sources */,
 				707D29552DCBE68500980253 /* Installation.swift in Sources */,
 				707D29562DCBE68500980253 /* SplashScreenView.swift in Sources */,
+				3F32CD4B2F88D232004E8194 /* MyContactView.swift in Sources */,
 				707D29572DCBE68500980253 /* OCKStore.swift in Sources */,
 				707D29592DCBE68500980253 /* AppError.swift in Sources */,
 				707D295A2DCBE68500980253 /* InstallationChannel.swift in Sources */,
@@ -1337,6 +1346,8 @@
 				707D295D2DCBE68500980253 /* LoginViewModel.swift in Sources */,
 				BE4EAA822F511D2600CF7BF0 /* CareKitCard.swift in Sources */,
 				70B8E0A62F0EC1CA00440FCA /* Mutex.swift in Sources */,
+				3F32CD4D2F88D23B004E8194 /* ProfileView.swift in Sources */,
+				3F32CD492F88D227004E8194 /* CustomContactViewController.swift in Sources */,
 				707D295E2DCBE68500980253 /* Utility.swift in Sources */,
 				BE24ACA52F7355C300611424 /* RangeOfMotion.swift in Sources */,
 				707D295F2DCBE68500980253 /* OCKSampleApp.swift in Sources */,
@@ -1349,6 +1360,7 @@
 				707D29632DCBE68500980253 /* AppDelegate+UIApplicationDelegate.swift in Sources */,
 				707D29652DCBE68500980253 /* PCKUtility.swift in Sources */,
 				707D29662DCBE68500980253 /* UserType.swift in Sources */,
+				3F32CD4A2F88D22D004E8194 /* ImagePicker.swift in Sources */,
 				3F0411FE2F58A76E00A9641E /* DimensionStyler.swift in Sources */,
 				3F9D8BB42F67CC5300DED222 /* CardEnabledEnvironmentKey.swift in Sources */,
 				707D29682DCBE68500980253 /* NoHighlightStyle.swift in Sources */,

@@ -28,7 +28,9 @@ struct ProfileView: View {
         NavigationView {
             VStack {
                 VStack {
+                    #if os(iOS)
                     ProfileImageView(viewModel: viewModel)
+                    #endif
                     Form {
                         Section(header: Text("About")) {
                             TextField("First Name",
@@ -107,6 +109,7 @@ struct ProfileView: View {
                 .listStyle(PlainListStyle())
             }
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("My Contact") {
                         viewModel.isPresentingContact = true
@@ -115,6 +118,7 @@ struct ProfileView: View {
                         MyContactView()
                     }
                 }
+                #endif
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Add Task") {
                         isPresentingAddTask = true
@@ -125,9 +129,11 @@ struct ProfileView: View {
                 }
             }
 
+            #if os(iOS)
             .sheet(isPresented: $viewModel.isPresentingImagePicker) {
                 ImagePicker(image: $viewModel.profileUIImage)
             }
+            #endif
             .alert(isPresented: $viewModel.isShowingSaveAlert) {
                 return Alert(title: Text("Update"),
                              message: Text(viewModel.alertMessage),

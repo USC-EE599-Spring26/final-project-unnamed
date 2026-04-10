@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+#if os(iOS)
 import UIKit
 import CareKit
 import CareKitStore
@@ -43,3 +44,4 @@ struct MyContactView_Previews: PreviewProvider {
             .accentColor(Color.accentColor)
     }
 }
+#endif

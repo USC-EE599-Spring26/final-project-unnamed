@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+#if os(iOS)
 import UIKit
 
 struct ImagePicker: UIViewControllerRepresentable {
@@ -49,3 +50,4 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
+#endif

@@ -6,6 +6,7 @@
 //  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
 //
 
+#if os(iOS)
 import UIKit
 import CareKitStore
 import CareKitUI
@@ -105,3 +106,4 @@ class MyContactViewController: OCKListViewController {
         }
     }
 }
+#endif
