@@ -113,16 +113,6 @@ extension OCKStore {
             title: "Health Care Plan",
             patientUUID: patientUUID
         )
-        let behavioralCarePlan = OCKCarePlan(
-            id: CarePlanID.behavioralTracking.rawValue,
-            title: "Behavioral Tracking",
-            patientUUID: patientUUID
-        )
-        let feedbackCarePlan = OCKCarePlan(
-            id: CarePlanID.adaptiveFeedback.rawValue,
-            title: "Adaptive Feedback",
-            patientUUID: patientUUID
-        )
         let wellnessCarePlan = OCKCarePlan(
             id: CarePlanID.wellness.rawValue,
             title: "Wellness",
@@ -133,18 +123,30 @@ extension OCKStore {
             title: "Nutrition",
             patientUUID: patientUUID
         )
+        let behavioralCarePlan = OCKCarePlan(
+            id: CarePlanID.behavioralTracking.rawValue,
+            title: "Behavioral Tracking",
+            patientUUID: patientUUID
+        )
+        let feedbackCarePlan = OCKCarePlan(
+            id: CarePlanID.adaptiveFeedback.rawValue,
+            title: "Adaptive Feedback",
+            patientUUID: patientUUID
+        )
         let clinicalAssessmentCarePlan = OCKCarePlan(
             id: CarePlanID.clinicalAssessment.rawValue,
             title: "Clinical Assessment",
             patientUUID: patientUUID
         )
         try await addCarePlansIfNotPresent(
-            [healthCarePlan,
-             behavioralCarePlan,
-             feedbackCarePlan,
-             wellnessCarePlan,
-             nutritionCarePlan,
-             clinicalAssessmentCarePlan],
+            [
+                healthCarePlan,
+                wellnessCarePlan,
+                nutritionCarePlan,
+                behavioralCarePlan,
+                feedbackCarePlan,
+                clinicalAssessmentCarePlan
+            ],
             patientUUID: patientUUID
         )
     }
@@ -158,6 +160,7 @@ extension OCKStore {
         try await populateCarePlans(patientUUID: patientUUID)
 
         let carePlanUUIDs = try await Self.getCarePlanUUIDs()
+        print("carePlanUUIDs", carePlanUUIDs)
 
         let thisMorning = Calendar.current.startOfDay(for: startDate)
         let aFewDaysAgo = Calendar.current.date(byAdding: .day, value: -4, to: thisMorning)!
@@ -189,6 +192,7 @@ extension OCKStore {
         methylphenidate.asset = "pills.fill"
         methylphenidate.card = .checklist
         methylphenidate.priority = 4
+        methylphenidate.carePlanUUID = carePlanUUIDs[.health]
 
         let inattentionSchedule = OCKSchedule(
             composing: [
@@ -214,6 +218,7 @@ extension OCKStore {
         inattention.asset = "bed.double"
         inattention.card = .button
         inattention.priority = 2
+        inattention.carePlanUUID = carePlanUUIDs[.behavioralTracking]
 
         let cardioElement = OCKScheduleElement(
             start: beforeBreakfast,
@@ -233,6 +238,7 @@ extension OCKStore {
         cardios.instructions = String(localized: "CARDIO_INSTRUCTIONS")
         cardios.card = .custom
         cardios.priority = 5
+        cardios.carePlanUUID = carePlanUUIDs[.wellness]
 
         let stretchElement = OCKScheduleElement(
             start: beforeBreakfast,
@@ -252,6 +258,7 @@ extension OCKStore {
         stretch.asset = "figure.flexibility"
         stretch.card = .simple
         stretch.priority = 4
+        stretch.carePlanUUID = carePlanUUIDs[.wellness]
 
 #if os(iOS)
         let qualityOfLife = createQualityOfLifeSurveyTask(carePlanUUID: carePlanUUIDs[.clinicalAssessment])
@@ -390,6 +397,7 @@ extension OCKStore {
             qualityOfLife.card = .survey
             qualityOfLife.surveySteps = [stepOne]
             qualityOfLife.priority = 1
+            qualityOfLife.carePlanUUID = carePlanUUID
 
             return qualityOfLife
         }
