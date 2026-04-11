@@ -25,6 +25,7 @@ protocol Surveyable {
     func createSurvey() -> ORKTask
     /// Extracts the answers from the survey.
     func extractAnswers(_ result: ORKTaskResult) -> [OCKOutcomeValue]?
+    func displayText(for event: OCKAnyEvent) -> String
     #endif
 }
 

@@ -55,5 +55,10 @@ extension RangeOfMotion {
 
         return [range]
     }
+
+    func displayText(for event: OCKAnyEvent) -> String {
+        let degrees = event.answer(kind: RangeOfMotion.identifier())
+        return "Range of motion: \(Int(degrees))°"
+    }
 }
 #endif

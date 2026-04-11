@@ -9,28 +9,117 @@
 import CareKit
 import CareKitStore
 import CareKitEssentials
+import ParseSwift
 import SwiftUI
 import os.log
 
+// swiftlint:disable type_body_length
 @MainActor
 class ProfileViewModel: ObservableObject {
 
     // MARK: Public read/write properties
 
-    var firstName = ""
-    var lastName = ""
-    var birthday = Date()
+    @Published var firstName = ""
+    @Published var lastName = ""
+    @Published var birthday = Date()
+    @Published var sex: OCKBiologicalSex = .other("other")
+    @Published var sexOtherField = "other"
+    @Published var note = ""
+    @Published var street = ""
+    @Published var city = ""
+    @Published var state = ""
+    @Published var zipcode = ""
+    @Published var country = ""
+    @Published var isShowingSaveAlert = false
+    @Published var isPresentingAddTask = false
+    @Published var isPresentingContact = false
+    @Published var isPresentingImagePicker = false
+    @Published var profileUIImage = UIImage(systemName: "person.fill") {
+        willSet {
+            guard self.profileUIImage != newValue,
+                let inputImage = newValue else {
+                return
+            }
+
+            if !isSettingProfilePictureForFirstTime {
+                Task {
+                    guard var currentUser = (try? await User.current()),
+                          let image = inputImage.jpegData(compressionQuality: 0.25) else {
+                        Logger.profile.error("User is not logged in or could not compress image")
+                        return
+                    }
+
+                    let newProfilePicture = ParseFile(name: "profile.jpg", data: image)
+                    // Use `.set()` to update ParseObject's that have already been saved before.
+                    currentUser = currentUser.set(\.profilePicture, to: newProfilePicture)
+                    do {
+                        _ = try await currentUser.save()
+                        Logger.profile.info("Saved updated profile picture successfully.")
+                    } catch {
+                        Logger.profile.error("Could not save profile picture: \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
+    }
+    @Published private(set) var error: Error?
+    private(set) var alertMessage = "All changs saved successfully!"
+//    private var contact: OCKContact? // TODOxOK: need to publish contact updates like patient
+    @Published var contact: OCKContact? {
+        willSet {
+            if let givenName = newValue?.name.givenName {
+                firstName = givenName
+            } else {
+                firstName = ""
+            }
+
+            if let familyName = newValue?.name.familyName {
+                lastName = familyName
+            } else {
+                lastName = ""
+            }
+
+            if let address = newValue?.address {
+                street = address.street
+                city = address.city
+                state = address.state
+                zipcode = address.postalCode
+                country = address.country
+            } else {
+                street = ""
+                city = ""
+                state = ""
+                zipcode = ""
+                country = ""
+            }
+
+            if let role = newValue?.role {
+                note = role
+            } else {
+                note = ""
+            }
+        }
+    }
+
+    // MARK: Private read/write properties
+    private var isSettingProfilePictureForFirstTime = true
 
     var patient: OCKPatient? {
         willSet {
             if let currentFirstName = newValue?.name.givenName {
                 firstName = currentFirstName
+            } else {
+                firstName = ""
             }
             if let currentLastName = newValue?.name.familyName {
                 lastName = currentLastName
+            } else {
+                lastName = ""
             }
             if let currentBirthday = newValue?.birthday {
                 birthday = currentBirthday
+            } else {
+                birthday = Date()
             }
         }
     }
@@ -38,47 +127,194 @@ class ProfileViewModel: ObservableObject {
     // MARK: Helpers (public)
 
     func updatePatient(_ patient: OCKAnyPatient) {
-        guard let patient = patient as? OCKPatient else {
+        guard let patient = patient as? OCKPatient,
+              // Only update if we have a newer version.
+              patient.uuid != self.patient?.uuid else {
             return
         }
         self.patient = patient
+
+        // Fetch the profile picture if we have a patient.
+        Task {
+            do {
+                try await fetchProfilePicture()
+            } catch {
+                Logger.profile.error("Failed to fetch profile picture: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func updateContact(_ contact: OCKAnyContact) {
+        guard let currentPatient = self.patient,
+              let contact = contact as? OCKContact,
+              // Has to be my contact.
+              contact.id == currentPatient.id,
+              // Only update if we have a newer version.
+              contact.uuid != self.contact?.uuid else {
+            return
+        }
+        self.contact = contact
+    }
+
+    @MainActor
+    private func fetchProfilePicture() async throws {
+
+         // Profile pics are stored in Parse User.
+        guard let currentUser = (try? await User.current().fetch()) else {
+            Logger.profile.error("User is not logged in")
+            return
+        }
+
+        if let pictureFile = currentUser.profilePicture {
+
+            // Download picture from server if needed
+            do {
+                let profilePicture = try await pictureFile.fetch()
+                guard let path = profilePicture.localURL?.relativePath else {
+                    Logger.profile.error("Could not find relative path for profile picture.")
+                    return
+                }
+                self.profileUIImage = UIImage(contentsOfFile: path)
+            } catch {
+                Logger.profile.error("Could not fetch profile picture: \(error.localizedDescription).")
+            }
+        }
+        self.isSettingProfilePictureForFirstTime = false
     }
 
     // MARK: User intentional behavior
 
-    func saveProfile() async throws {
-
-        guard var patientToUpdate = patient else {
-            throw AppError.errorString("The profile is missing the Patient")
+    @MainActor
+    func saveProfile() async {
+        alertMessage = "All changs saved successfully!"
+        do {
+            try await savePatient()
+            try await saveContact()
+        } catch {
+            alertMessage = "Could not save profile: \(error)"
         }
+        isShowingSaveAlert = true // Make alert pop up for user.
+    }
 
-        // If there is a currentPatient that was fetched, check to see if any of the fields changed
-        var patientHasBeenUpdated = false
+    @MainActor
+    func savePatient() async throws {
+        if var patientToUpdate = patient {
+            // If there is a currentPatient that was fetched, check to see if any of the fields changed
+            var patientHasBeenUpdated = false
 
-        if patient?.name.givenName != firstName {
-            patientHasBeenUpdated = true
-            patientToUpdate.name.givenName = firstName
-        }
-
-        if patient?.name.familyName != lastName {
-            patientHasBeenUpdated = true
-            patientToUpdate.name.familyName = lastName
-        }
-
-        if patient?.birthday != birthday {
-            patientHasBeenUpdated = true
-            patientToUpdate.birthday = birthday
-        }
-
-        if patientHasBeenUpdated {
-            if let anyPatient = try await AppDelegateKey.defaultValue?.store.updateAnyPatient(patientToUpdate),
-               let updatedPatient = anyPatient as? OCKPatient {
-                self.patient = updatedPatient
-                Logger.profile.info("Successfully updated patient and synced local state.")
-            } else {
-                Logger.profile.error("Patient was updated in store but could not be cast to OCKPatient.")
+            if patient?.name.givenName != firstName {
+                patientHasBeenUpdated = true
+                patientToUpdate.name.givenName = firstName
             }
+
+            if patient?.name.familyName != lastName {
+                patientHasBeenUpdated = true
+                patientToUpdate.name.familyName = lastName
+            }
+
+            if patient?.birthday != birthday {
+                patientHasBeenUpdated = true
+                patientToUpdate.birthday = birthday
+            }
+
+            if patient?.sex != sex {
+                patientHasBeenUpdated = true
+                patientToUpdate.sex = sex
+            }
+
+            let notes = [OCKNote(author: firstName,
+                                 title: "New Note",
+                                 content: note)]
+            if patient?.notes != notes {
+                patientHasBeenUpdated = true
+                patientToUpdate.notes = notes
+            }
+
+            if patientHasBeenUpdated {
+                _ = try await AppDelegateKey.defaultValue?.store.updateAnyPatient(patientToUpdate)
+                Logger.profile.info("Successfully updated patient")
+            }
+
+        } else {
+            guard let remoteUUID = (try? await Utility.getRemoteClockUUID())?.uuidString else {
+                Logger.profile.error("The user currently is not logged in")
+                return
+            }
+
+            var newPatient = OCKPatient(id: remoteUUID,
+                                        givenName: firstName,
+                                        familyName: lastName)
+            newPatient.birthday = birthday
+
+            // This is new patient that has never been saved before
+            _ = try await AppDelegateKey.defaultValue?.store.addAnyPatient(newPatient)
+            Logger.profile.info("Succesffully saved new patient")
         }
+    }
+
+    @MainActor
+    func saveContact() async throws {
+
+        if var contactToUpdate = contact {
+            // If a current contact was fetched, check to see if any of the fields have changed
+
+            var contactHasBeenUpdated = false
+
+            // Since OCKPatient was updated earlier, we should compare against this name
+            if let patientName = patient?.name,
+                contact?.name != patient?.name {
+                contactHasBeenUpdated = true
+                contactToUpdate.name = patientName
+            }
+
+            // Create a mutable temp address to compare
+            let potentialAddress = OCKPostalAddress(
+                street: street,
+                city: city,
+                state: state,
+                postalCode: zipcode,
+                country: country
+            )
+            if contact?.address != potentialAddress {
+                contactHasBeenUpdated = true
+                contactToUpdate.address = potentialAddress
+            }
+
+            if contactHasBeenUpdated {
+                _ = try await AppDelegateKey.defaultValue?.store.updateAnyContact(contactToUpdate)
+                Logger.profile.info("Successfully updated contact")
+            }
+
+        } else {
+
+            guard let remoteUUID = (try? await Utility.getRemoteClockUUID())?.uuidString else {
+                Logger.profile.error("The user currently is not logged in")
+                return
+            }
+
+            guard let patientName = self.patient?.name else {
+                Logger.profile.info("The patient did not have a name.")
+                return
+            }
+
+            // Added code to create a contact for the respective signed up user
+            let newContact = OCKContact(
+                id: remoteUUID,
+                name: patientName,
+                carePlanUUID: nil
+            )
+
+            _ = try await AppDelegateKey.defaultValue?.store.addAnyContact(newContact)
+            Logger.profile.info("Succesffully saved new contact")
+        }
+    }
+
+    static func queryPatient() -> OCKPatientQuery {
+        OCKPatientQuery(for: Date())
+    }
+
+    static func queryContacts() -> OCKContactQuery {
+        OCKContactQuery(for: Date())
     }
 
     @Published var tasks: [OCKAnyTask] = []
@@ -117,20 +353,22 @@ class ProfileViewModel: ObservableObject {
                 } else {
                     try await appDelegate.store.deleteAnyTask(taskToDelete)
                 }
-
                 Logger.profile.info("Successfully deleted task: \(taskToDelete.id)")
-
-                // Notify CareViewController to update
-                NotificationCenter.default.post(
-                    name: Notification.Name(rawValue: Constants.shouldRefreshView),
-                    object: nil
-                )
             } catch {
                 Logger.profile.error("Failed to delete task: \(error.localizedDescription)")
             }
         }
 
+        // Notify CareViewController once after all deletions are done, not once per deletion.
+        // Posting inside the loop caused CareViewController to reload mid-deletion, creating
+        // task controllers for tasks that were then deleted → "Task Controller is missing task".
+        NotificationCenter.default.post(
+            name: Notification.Name(rawValue: Constants.shouldRefreshView),
+            object: nil
+        )
+
         // Refresh local list so UI updates instantly
         await fetchTasks()
     }
 }
+// swiftlint:enable type_body_length

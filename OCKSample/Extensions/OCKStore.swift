@@ -128,7 +128,6 @@ extension OCKStore {
             title: "Behavioral Tracking",
             patientUUID: patientUUID
         )
-
         let feedbackCarePlan = OCKCarePlan(
             id: CarePlanID.adaptiveFeedback.rawValue,
             title: "Adaptive Feedback",
@@ -378,9 +377,14 @@ extension OCKStore {
                 sliderStepValue: 1
             )
             let questions = [questionOne, questionTwo]
+            let taskAsset = "brain.head.profile"
+            let taskTitle = String(localized: "QUALITY_OF_LIFE")
             let stepOne = SurveyStep(
                 id: "\(qualityOfLifeTaskId)-step-1",
-                questions: questions
+                questions: questions,
+                asset: taskAsset,
+                title: taskTitle,
+                subtitle: String(localized: "ANSWER_HONESTLY")
             )
             var qualityOfLife = OCKTask(
                 id: "\(qualityOfLifeTaskId)-stress",
