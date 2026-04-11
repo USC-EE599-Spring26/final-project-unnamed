@@ -13,6 +13,7 @@ import os.log
 import SwiftUI
 import UIKit
 
+#if os(ios)
 struct ContactView: UIViewControllerRepresentable {
     @Environment(\.careStore) var careStore
     @CareStoreFetchRequest(query: query()) private var contacts
@@ -65,3 +66,18 @@ struct ContactView_Previews: PreviewProvider {
 			.careKitStyle(Styler())
     }
 }
+
+#else
+struct ContactView: View {
+    var body: some View {
+        Text("Contacts are not available on this platform.")
+            .foregroundStyle(.secondary)
+    }
+}
+
+struct ContactView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContactView()
+    }
+}
+#endif

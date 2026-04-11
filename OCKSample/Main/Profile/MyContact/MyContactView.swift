@@ -11,7 +11,7 @@ import UIKit
 import CareKit
 import CareKitStore
 import os.log
-
+#if os(ios)
 struct MyContactView: UIViewControllerRepresentable {
     @Environment(\.careStore) var careStore
 
@@ -43,3 +43,18 @@ struct MyContactView_Previews: PreviewProvider {
             .accentColor(Color.accentColor)
     }
 }
+
+#else
+struct MyContactView: View {
+    var body: some View {
+        Text("MyContact are not available on this platform.")
+            .foregroundStyle(.secondary)
+    }
+}
+
+struct MyContactView_Previews: PreviewProvider {
+    static var previews: some View {
+        MyContactView()
+    }
+}
+#endif

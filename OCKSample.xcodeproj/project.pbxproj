@@ -225,8 +225,6 @@
 		BE6A497D2F7F35E000C25E90 /* CustomContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49742F7F35CC00C25E90 /* CustomContactViewController.swift */; };
 		BE6A49832F7F3C5500C25E90 /* MyContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49822F7F3C4E00C25E90 /* MyContactView.swift */; };
 		BE6A49842F7F3C5500C25E90 /* MyContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49822F7F3C4E00C25E90 /* MyContactView.swift */; };
-		BE6A49862F7F3C6F00C25E90 /* MyContectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49852F7F3C5A00C25E90 /* MyContectViewController.swift */; };
-		BE6A49872F7F3C6F00C25E90 /* MyContectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49852F7F3C5A00C25E90 /* MyContectViewController.swift */; };
 		BE6A49892F7F3C8100C25E90 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49882F7F3C7700C25E90 /* ImagePicker.swift */; };
 		BE6A498A2F7F3C8100C25E90 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A49882F7F3C7700C25E90 /* ImagePicker.swift */; };
 		BE6A498C2F7F3CC800C25E90 /* MyContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6A498B2F7F3CC800C25E90 /* MyContactViewController.swift */; };
@@ -454,7 +452,6 @@
 		BE4EAA912F51281600CF7BF0 /* CareKitTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareKitTaskView.swift; sourceTree = "<group>"; };
 		BE6A49742F7F35CC00C25E90 /* CustomContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomContactViewController.swift; sourceTree = "<group>"; };
 		BE6A49822F7F3C4E00C25E90 /* MyContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyContactView.swift; sourceTree = "<group>"; };
-		BE6A49852F7F3C5A00C25E90 /* MyContectViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyContectViewController.swift; sourceTree = "<group>"; };
 		BE6A49882F7F3C7700C25E90 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		BE6A498B2F7F3CC800C25E90 /* MyContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyContactViewController.swift; sourceTree = "<group>"; };
 		BE6A498E2F7F3CF600C25E90 /* ProfileImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileImageView.swift; sourceTree = "<group>"; };
@@ -899,7 +896,6 @@
 		BE6A49812F7F3C3B00C25E90 /* MyContact */ = {
 			isa = PBXGroup;
 			children = (
-				BE6A49852F7F3C5A00C25E90 /* MyContectViewController.swift */,
 				BE6A498B2F7F3CC800C25E90 /* MyContactViewController.swift */,
 				BE6A49822F7F3C4E00C25E90 /* MyContactView.swift */,
 			);
@@ -1374,7 +1370,6 @@
 				707D29692DCBE68500980253 /* LocalSyncSessionDelegate.swift in Sources */,
 				707D296A2DCBE68500980253 /* Constants.swift in Sources */,
 				3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
-				BE6A49872F7F3C6F00C25E90 /* MyContectViewController.swift in Sources */,
 				BE24ACC32F75F43C00611424 /* SurveyViewSynchronizer.swift in Sources */,
 				707D296B2DCBE68500980253 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
 				707D296C2DCBE68500980253 /* RemoteSessionDelegate.swift in Sources */,
@@ -1466,7 +1461,6 @@
 				BE4EAA932F51281600CF7BF0 /* CareKitTaskView.swift in Sources */,
 				918FDEB5271B40590045A0EF /* Installation.swift in Sources */,
 				7099D20829E98E200037CD8E /* UserType.swift in Sources */,
-				BE6A49862F7F3C6F00C25E90 /* MyContectViewController.swift in Sources */,
 				70F921AC27CABE3000368CEC /* SessionDelegate.swift in Sources */,
 				70F0EFEA28C2EE6C0005B5A2 /* AppDelegateKey.swift in Sources */,
 				BE6A49892F7F3C8100C25E90 /* ImagePicker.swift in Sources */,

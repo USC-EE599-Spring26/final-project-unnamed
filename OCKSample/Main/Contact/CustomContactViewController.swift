@@ -6,6 +6,8 @@
 //  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
 //
 
+#if os(ios)
+
 import UIKit
 import CareKitStore
 import CareKit
@@ -266,3 +268,5 @@ extension CustomContactViewController: @MainActor CNContactPickerDelegate {
         }
     }
 }
+
+#endif
