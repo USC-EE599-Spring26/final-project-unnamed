@@ -14,8 +14,12 @@ import os.log
 
 extension OCKHealthKitPassthroughStore {
 
+    /*
+     TODOx: You need to tie an OCKPatient and CarePlan to these tasks,
+     */
     func populateDefaultHealthKitTasks(
-		startDate: Date = Date()
+        _ patientUUID: UUID? = nil,
+        startDate: Date = Date()
 	) async throws {
 
         let countUnit = HKUnit.count()
@@ -37,7 +41,7 @@ extension OCKHealthKitPassthroughStore {
         var steps = OCKHealthKitTask(
             id: TaskID.steps,
             title: String(localized: "STEPS"),
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUIDs[.health],
             schedule: stepSchedule,
             healthKitLinkage: OCKHealthKitLinkage(
                 quantityIdentifier: .stepCount,
