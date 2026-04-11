@@ -22,6 +22,8 @@ struct CareKitTaskView: View {
     @State var selectedTime = Date()
     @State var selectedCard: CareKitCard = .button
     @State var selectedAsset: CareKitAsset = .walk
+    @State var selectedRepeat: RepeatPeriod = .never
+    @State var repeatEndDate: Date = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
 
     var body: some View {
         NavigationView {
@@ -29,7 +31,28 @@ struct CareKitTaskView: View {
                 Section("Task Details") {
                     TextField("Title", text: $title)
                     TextField("Instructions", text: $instructions)
-                    DatePicker("Scheduled", selection: $selectedTime, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker(
+                        "Scheduled",
+                        selection: $selectedTime,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                }
+
+                Section("Repeat") {
+                    Picker("Repeat", selection: $selectedRepeat) {
+                        ForEach(RepeatPeriod.allCases) { period in
+                            Text(period.rawValue).tag(period)
+                        }
+                    }
+
+                    if selectedRepeat != .never {
+                        DatePicker(
+                            "End Repeat",
+                            selection: $repeatEndDate,
+                            in: selectedTime...,
+                            displayedComponents: .date
+                        )
+                    }
                 }
 
                 Section("Style & Icon") {
@@ -59,7 +82,9 @@ struct CareKitTaskView: View {
                                 instructions: instructions,
                                 scheduleTime: selectedTime,
                                 cardType: selectedCard,
-                                asset: selectedAsset.rawValue
+                                asset: selectedAsset.rawValue,
+                                repeatPeriod: selectedRepeat,
+                                repeatEnd: selectedRepeat == .never ? nil : repeatEndDate
                             )
                             title = ""
                         }
@@ -73,7 +98,9 @@ struct CareKitTaskView: View {
                                 instructions: instructions,
                                 scheduleTime: selectedTime,
                                 cardType: selectedCard,
-                                asset: selectedAsset.rawValue
+                                asset: selectedAsset.rawValue,
+                                repeatPeriod: selectedRepeat,
+                                repeatEnd: selectedRepeat == .never ? nil : repeatEndDate
                             )
                             title = ""
                         }
