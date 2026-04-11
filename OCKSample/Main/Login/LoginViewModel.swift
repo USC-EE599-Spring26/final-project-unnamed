@@ -200,6 +200,12 @@ class LoginViewModel: ObservableObject {
 		firstName: String,
 		lastName: String, email: String
 	) async {
+        // swiftlint:disable:next line_length
+        guard username.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.union(.init(charactersIn: "_")).contains($0) }) else {
+            // swiftlint:disable:next line_length
+            self.loginError = ParseError(code: .otherCause, message: "Username can only contain letters, numbers, and underscores.")
+            return
+        }
         do {
             guard try await PCKUtility.isServerAvailable() else {
                 Logger.login.error("Server health is not \"ok\"")
@@ -248,17 +254,20 @@ class LoginViewModel: ObservableObject {
      - parameter password: The password the person logging in.
     */
     func login(
-		username: String, email: String,
-		password: String
-	) async {
+        usernameOrEmail: String,
+        password: String
+    ) async {
         do {
             guard try await PCKUtility.isServerAvailable() else {
                 Logger.login.error("Server health is not \"ok\"")
                 return
             }
-            let user = try await User.login(username: username.lowercased(),
-//                                            email: email.lowercased(),
-                                            password: password)
+            let user: User
+            if usernameOrEmail.contains("@") {
+                user = try await User.login(email: usernameOrEmail.lowercased(), password: password)
+            } else {
+                user = try await User.login(username: usernameOrEmail.lowercased(), password: password)
+            }
             Logger.login.info("Parse login successful: \(user, privacy: .private)")
             AppDelegateKey.defaultValue?.setFirstTimeLogin(true)
             do {

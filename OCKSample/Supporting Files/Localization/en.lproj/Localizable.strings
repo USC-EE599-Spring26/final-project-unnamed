@@ -70,6 +70,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "LOGIN_ANONYMOUSLY" = "Login Anonymously";
 "SIGN_UP" = "Sign Up";
 "USERNAME" = "Username";
+"USERNAME_OR_EMAIL" = "Username or Email";
 "PASSWORD" = "Password";
 "GIVEN_NAME" = "First Name";
 "FAMILY_NAME" = "Last Name";
