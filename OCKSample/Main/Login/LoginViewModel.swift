@@ -94,10 +94,10 @@ class LoginViewModel: ObservableObject {
             }
         }
 
-        // For existing user login (no careKitPatient), wait for remote data
-        // to sync before transitioning UI. This ensures onboarding status
-        // and tasks are available in the local store.
+        // For existing user login, wait for remote data to sync before
+        // transitioning UI so onboarding status and tasks are available
         if careKitPatient == nil, let appDelegate = AppDelegateKey.defaultValue {
+            appDelegate.parseRemote.automaticallySynchronizes = false
             try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
                 appDelegate.store.synchronize { error in
                     if let error = error {
@@ -107,6 +107,7 @@ class LoginViewModel: ObservableObject {
                     }
                 }
             }
+            appDelegate.parseRemote.automaticallySynchronizes = true
         }
 
         // Notify the SwiftUI view that the user is correctly logged in and to transition screens

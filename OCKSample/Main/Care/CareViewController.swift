@@ -175,12 +175,6 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             #if os(iOS)
             guard await Utility.checkIfOnboardingIsComplete() else {
 
-                // Ensure onboard task exists (may be missing for users
-                // created before the onboarding feature was added).
-                if let appDelegate = AppDelegateKey.defaultValue {
-                    try? await appDelegate.store.addOnboardingTask()
-                }
-
                 let onboardSurvey = Onboard()
                 var query = OCKEventQuery(for: Date())
                 query.taskIDs = [Onboard.identifier()]
