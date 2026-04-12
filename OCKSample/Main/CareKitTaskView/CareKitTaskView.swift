@@ -93,7 +93,7 @@ struct CareKitTaskView: View {
                         Picker("Care Plan", selection: $selectedCarePlan) {
                             Text("None").tag(Optional<OCKCarePlan>.none)
                             ForEach(carePlans, id: \.id) { plan in
-                                Text(plan.title ?? plan.id).tag(Optional(plan))
+                                Text(plan.title).tag(Optional(plan))
                             }
                         }
                     }
