@@ -227,7 +227,9 @@ class LoginViewModel: ObservableObject {
             var newUser = User()
             // Set any properties you want saved on the user befor logging in.
             newUser.username = username.lowercased()
-            newUser.email = email.lowercased()
+            if !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                newUser.email = email.lowercased()
+            }
             newUser.password = password
             let user = try await newUser.signup()
             Logger.login.info("Parse signup successful: \(user)")
@@ -331,6 +333,7 @@ class LoginViewModel: ObservableObject {
      Logs out the currently logged in person *asynchronously*.
     */
     func logout() async {
+        self.loginError = nil
 		await Utility.logoutAndResetAppState()
         await self.checkStatus()
     }
