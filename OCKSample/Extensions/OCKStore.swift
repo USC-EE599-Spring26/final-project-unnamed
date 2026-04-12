@@ -39,6 +39,12 @@ extension OCKStore {
         return results
     }
 
+    @MainActor
+    func fetchAllCarePlans() async -> [OCKCarePlan] {
+        let query = OCKCarePlanQuery(for: Date())
+        return (try? await fetchCarePlans(query: query)) ?? []
+    }
+
     /**
      Adds an `OCKAnyCarePlan`*asynchronously*  to `OCKStore` if it has not been added already.
 
@@ -138,6 +144,11 @@ extension OCKStore {
             title: "Clinical Assessment",
             patientUUID: patientUUID
         )
+        let customCarePlan = OCKCarePlan(
+            id: CarePlanID.custom.rawValue,
+            title: "Custom",
+            patientUUID: patientUUID
+        )
         try await addCarePlansIfNotPresent(
             [
                 healthCarePlan,
@@ -145,7 +156,8 @@ extension OCKStore {
                 nutritionCarePlan,
                 behavioralCarePlan,
                 feedbackCarePlan,
-                clinicalAssessmentCarePlan
+                clinicalAssessmentCarePlan,
+                customCarePlan
             ],
             patientUUID: patientUUID
         )

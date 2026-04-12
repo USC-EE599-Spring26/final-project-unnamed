@@ -9,6 +9,7 @@
 import Foundation
 import CareKitStore
 import os.log
+import CareKitUI
 
 @MainActor
 class CareKitTaskViewModel: ObservableObject {
@@ -86,7 +87,10 @@ class CareKitTaskViewModel: ObservableObject {
         cardType: CareKitCard,
         asset: String? = nil,
         repeatPeriod: RepeatPeriod = .never,
-        repeatEnd: Date? = nil
+        repeatEnd: Date? = nil,
+        carePlanUUID: UUID? = nil,
+        linkTitle: String? = nil,
+        linkURL: String? = nil,
     ) async {
         guard let appDelegate = AppDelegateKey.defaultValue else {
             error = AppError.couldntBeUnwrapped
@@ -101,12 +105,29 @@ class CareKitTaskViewModel: ObservableObject {
         var task = OCKTask(
             id: uniqueId,
             title: title,
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUID,
             schedule: schedule
         )
         task.instructions = instructions
         task.card = cardType
         task.asset = asset
+        
+        switch cardType {
+        case .survey, .uiKitSurvey, .link, .button:
+            task.impactsAdherence = false
+        default:
+            task.impactsAdherence = true
+        }
+
+        if cardType == .link,
+           let linkTitle = linkTitle,
+           let linkURL = linkURL {
+                task.userInfo = [
+                    "linkTitle": linkTitle,
+                    "linkURL": linkURL
+                ]
+        }
+
         do {
             _ = try await appDelegate.store.addTasksIfNotPresent([task])
             Logger.careKitTask.info("Saved task: \(task.id, privacy: .private)")
@@ -123,7 +144,8 @@ class CareKitTaskViewModel: ObservableObject {
         cardType: CareKitCard,
         asset: String? = nil,
         repeatPeriod: RepeatPeriod = .never,
-        repeatEnd: Date? = nil
+        repeatEnd: Date? = nil,
+        carePlanUUID: UUID? = nil,
     ) async {
         guard let appDelegate = AppDelegateKey.defaultValue else {
             error = AppError.couldntBeUnwrapped
@@ -138,7 +160,7 @@ class CareKitTaskViewModel: ObservableObject {
         var healthKitTask = OCKHealthKitTask(
             id: uniqueId,
             title: title,
-            carePlanUUID: nil,
+            carePlanUUID: carePlanUUID,
             schedule: schedule,
             healthKitLinkage: .init(
                 quantityIdentifier: .electrodermalActivity,
