@@ -52,7 +52,7 @@ extension OCKHealthKitPassthroughStore {
         )
         steps.asset = "figure.walk"
         steps.card = .numericProgress
-        steps.priority = 0
+        steps.priority = 1
         steps.carePlanUUID = carePlanUUIDs[.health]
 
 //        let ovulationTestResultSchedule = OCKSchedule.dailyAtTime(
