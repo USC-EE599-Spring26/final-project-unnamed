@@ -87,6 +87,7 @@ class CareKitTaskViewModel: ObservableObject {
         task.instructions = instructions
         task.card = cardType
         task.asset = asset
+        task.priority = 0
 
         switch cardType {
         case .survey, .uiKitSurvey, .link, .button:
@@ -147,6 +148,7 @@ class CareKitTaskViewModel: ObservableObject {
         healthKitTask.instructions = instructions
         healthKitTask.card = cardType
         healthKitTask.asset = asset
+        healthKitTask.priority = 0
         do {
             _ = try await appDelegate.healthKitStore.addTasksIfNotPresent([healthKitTask])
             Logger.careKitTask.info("Saved HealthKitTask: \(healthKitTask.id, privacy: .private)")
