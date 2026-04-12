@@ -26,13 +26,11 @@ class CareKitTaskViewModel: ObservableObject {
         let hour = calendar.component(.hour, from: scheduleTime)
         let minute = calendar.component(.minute, from: scheduleTime)
 
-        // End date: nil means the task repeats indefinitely
         let endDate: Date? = repeatPeriod == .never
             ? calendar.date(byAdding: .day, value: 1, to: startDate)
             : repeatEnd
 
-        switch repeatPeriod {
-        case .never, .daily:
+        if repeatPeriod == .never || repeatPeriod == .daily {
             return .dailyAtTime(
                 hour: hour,
                 minutes: minute,
@@ -40,43 +38,21 @@ class CareKitTaskViewModel: ObservableObject {
                 end: endDate,
                 text: nil
             )
-
-        case .weekly:
-            var interval = DateComponents()
-            interval.weekOfYear = 1
-            interval.hour = hour
-            interval.minute = minute
-            let element = OCKScheduleElement(
-                start: startDate,
-                end: endDate,
-                interval: interval
-            )
-            return OCKSchedule(composing: [element])
-
-        case .monthly:
-            var interval = DateComponents()
-            interval.month = 1
-            interval.hour = hour
-            interval.minute = minute
-            let element = OCKScheduleElement(
-                start: startDate,
-                end: endDate,
-                interval: interval
-            )
-            return OCKSchedule(composing: [element])
-
-        case .yearly:
-            var interval = DateComponents()
-            interval.year = 1
-            interval.hour = hour
-            interval.minute = minute
-            let element = OCKScheduleElement(
-                start: startDate,
-                end: endDate,
-                interval: interval
-            )
-            return OCKSchedule(composing: [element])
         }
+
+        var interval = DateComponents()
+        interval.hour = hour
+        interval.minute = minute
+
+        switch repeatPeriod {
+        case .weekly:   interval.weekOfYear = 1
+        case .monthly:  interval.month = 1
+        case .yearly:   interval.year = 1
+        default:        break
+        }
+
+        let element = OCKScheduleElement(start: startDate, end: endDate, interval: interval)
+        return OCKSchedule(composing: [element])
     }
 
     // MARK: Intents
@@ -111,7 +87,7 @@ class CareKitTaskViewModel: ObservableObject {
         task.instructions = instructions
         task.card = cardType
         task.asset = asset
-        
+
         switch cardType {
         case .survey, .uiKitSurvey, .link, .button:
             task.impactsAdherence = false
