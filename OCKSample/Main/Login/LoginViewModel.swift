@@ -94,13 +94,23 @@ class LoginViewModel: ObservableObject {
             }
         }
 
+        // For existing user login (no careKitPatient), wait for remote data
+        // to sync before transitioning UI. This ensures onboarding status
+        // and tasks are available in the local store.
+        if careKitPatient == nil, let appDelegate = AppDelegateKey.defaultValue {
+            try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                appDelegate.store.synchronize { error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume()
+                    }
+                }
+            }
+        }
+
         // Notify the SwiftUI view that the user is correctly logged in and to transition screens
         await checkStatus()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
-//            Utility.requestHealthKitPermissions()
-        }
 
         // Setup installation to receive push notifications
         await Utility.updateInstallationWithDeviceToken()
