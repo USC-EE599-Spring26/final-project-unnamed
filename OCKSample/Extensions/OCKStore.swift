@@ -39,6 +39,12 @@ extension OCKStore {
         return results
     }
 
+    @MainActor
+    func fetchAllCarePlans() async -> [OCKCarePlan] {
+        let query = OCKCarePlanQuery(for: Date())
+        return (try? await fetchCarePlans(query: query)) ?? []
+    }
+
     /**
      Adds an `OCKAnyCarePlan`*asynchronously*  to `OCKStore` if it has not been added already.
 
@@ -138,6 +144,11 @@ extension OCKStore {
             title: "Clinical Assessment",
             patientUUID: patientUUID
         )
+        let customCarePlan = OCKCarePlan(
+            id: CarePlanID.custom.rawValue,
+            title: "Custom",
+            patientUUID: patientUUID
+        )
         try await addCarePlansIfNotPresent(
             [
                 healthCarePlan,
@@ -145,7 +156,8 @@ extension OCKStore {
                 nutritionCarePlan,
                 behavioralCarePlan,
                 feedbackCarePlan,
-                clinicalAssessmentCarePlan
+                clinicalAssessmentCarePlan,
+                customCarePlan
             ],
             patientUUID: patientUUID
         )
@@ -191,7 +203,7 @@ extension OCKStore {
         methylphenidate.instructions = String(localized: "METHYLPHENIDATE_INSTRUCTIONS")
         methylphenidate.asset = "pills.fill"
         methylphenidate.card = .checklist
-        methylphenidate.priority = 4
+        methylphenidate.priority = 5
         methylphenidate.carePlanUUID = carePlanUUIDs[.health]
 
         let inattentionSchedule = OCKSchedule(
@@ -217,7 +229,7 @@ extension OCKStore {
         inattention.instructions = String(localized: "INATTENTION_INSTRUCTIONS")
         inattention.asset = "bed.double"
         inattention.card = .button
-        inattention.priority = 2
+        inattention.priority = 3
         inattention.carePlanUUID = carePlanUUIDs[.behavioralTracking]
 
         let cardioElement = OCKScheduleElement(
@@ -237,7 +249,7 @@ extension OCKStore {
         cardios.impactsAdherence = true
         cardios.instructions = String(localized: "CARDIO_INSTRUCTIONS")
         cardios.card = .custom
-        cardios.priority = 5
+        cardios.priority = 6
         cardios.carePlanUUID = carePlanUUIDs[.wellness]
 
         let stretchElement = OCKScheduleElement(
@@ -257,7 +269,7 @@ extension OCKStore {
         stretch.impactsAdherence = true
         stretch.asset = "figure.flexibility"
         stretch.card = .simple
-        stretch.priority = 4
+        stretch.priority = 5
         stretch.carePlanUUID = carePlanUUIDs[.wellness]
 
 #if os(iOS)
@@ -396,7 +408,7 @@ extension OCKStore {
             qualityOfLife.asset = "brain.head.profile"
             qualityOfLife.card = .survey
             qualityOfLife.surveySteps = [stepOne]
-            qualityOfLife.priority = 1
+            qualityOfLife.priority = 2
             qualityOfLife.carePlanUUID = carePlanUUID
 
             return qualityOfLife
@@ -468,7 +480,7 @@ extension OCKStore {
             carePlanUUID: carePlanUUID,
             schedule: rangeOfMotionCheckSchedule
         )
-        rangeOfMotionTask.priority = 3
+        rangeOfMotionTask.priority = 4
         rangeOfMotionTask.asset = "figure.walk.motion"
         rangeOfMotionTask.card = .uiKitSurvey
         rangeOfMotionTask.uiKitSurvey = .rangeOfMotion

@@ -26,6 +26,15 @@ enum CareKitCard: String, CaseIterable, Identifiable {
 
 }
 
+enum RepeatPeriod: String, CaseIterable, Identifiable {
+    var id: Self { self }
+    case never   = "Never"
+    case daily   = "Daily"
+    case weekly  = "Weekly"
+    case monthly = "Monthly"
+    case yearly  = "Yearly"
+}
+
 enum CareKitAsset: String, CaseIterable, Identifiable {
 
     case walk = "figure.walk"
