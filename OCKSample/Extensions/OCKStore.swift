@@ -172,25 +172,17 @@ extension OCKStore {
         try await populateCarePlans(patientUUID: patientUUID)
 
         let carePlanUUIDs = try await Self.getCarePlanUUIDs()
-        print("carePlanUUIDs", carePlanUUIDs)
 
         let thisMorning = Calendar.current.startOfDay(for: startDate)
         let aFewDaysAgo = Calendar.current.date(byAdding: .day, value: -4, to: thisMorning)!
         let beforeBreakfast = Calendar.current.date(byAdding: .hour, value: 8, to: aFewDaysAgo)!
         let afterLunch = Calendar.current.date(byAdding: .hour, value: 14, to: aFewDaysAgo)!
+        let evening = Calendar.current.date(byAdding: .hour, value: 20, to: aFewDaysAgo)!
 
         let schedule = OCKSchedule(
             composing: [
-                OCKScheduleElement(
-                    start: beforeBreakfast,
-                    end: nil,
-                    interval: DateComponents(day: 1)
-                ),
-                OCKScheduleElement(
-                    start: afterLunch,
-                    end: nil,
-                    interval: DateComponents(day: 2)
-                )
+                OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 1)),
+                OCKScheduleElement(start: afterLunch, end: nil, interval: DateComponents(day: 2))
             ]
         )
 
@@ -206,40 +198,9 @@ extension OCKStore {
         methylphenidate.priority = 5
         methylphenidate.carePlanUUID = carePlanUUIDs[.health]
 
-        let inattentionSchedule = OCKSchedule(
-            composing: [
-                OCKScheduleElement(
-                    start: beforeBreakfast,
-                    end: nil,
-                    interval: DateComponents(day: 1),
-                    text: String(localized: "ANYTIME_DURING_DAY"),
-                    targetValues: [],
-                    duration: .allDay
-                )
-            ]
-        )
-
-        var inattention = OCKTask(
-            id: TaskID.inattention,
-            title: String(localized: "TRACK_INATTENTION"),
-            carePlanUUID: carePlanUUIDs[.behavioralTracking],
-            schedule: inattentionSchedule
-        )
-        inattention.impactsAdherence = false
-        inattention.instructions = String(localized: "INATTENTION_INSTRUCTIONS")
-        inattention.asset = "bed.double"
-        inattention.card = .button
-        inattention.priority = 3
-        inattention.carePlanUUID = carePlanUUIDs[.behavioralTracking]
-
-        let cardioElement = OCKScheduleElement(
-            start: beforeBreakfast,
-            end: nil,
-            interval: DateComponents(day: 2)
-        )
-        let cardioSchedule = OCKSchedule(
-            composing: [cardioElement]
-        )
+        let cardioSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 2))
+        ])
         var cardios = OCKTask(
             id: TaskID.cardios,
             title: String(localized: "CARDIO_EXERCISES"),
@@ -252,14 +213,9 @@ extension OCKStore {
         cardios.priority = 6
         cardios.carePlanUUID = carePlanUUIDs[.wellness]
 
-        let stretchElement = OCKScheduleElement(
-            start: beforeBreakfast,
-            end: nil,
-            interval: DateComponents(day: 1)
-        )
-        let stretchSchedule = OCKSchedule(
-            composing: [stretchElement]
-        )
+        let stretchSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 1))
+        ])
         var stretch = OCKTask(
             id: TaskID.stretch,
             title: String(localized: "STRETCH"),
@@ -272,15 +228,207 @@ extension OCKStore {
         stretch.priority = 5
         stretch.carePlanUUID = carePlanUUIDs[.wellness]
 
-#if os(iOS)
-        let qualityOfLife = createQualityOfLifeSurveyTask(carePlanUUID: carePlanUUIDs[.clinicalAssessment])
-#endif
+        // MARK: - 1. Log Focus (replaces inattention)
+        // Behavioral Tracking — daily, all day
+        let logFocusSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: String(localized: "ANYTIME_DURING_DAY"),
+                targetValues: [], duration: .allDay
+            )
+        ])
+        var logFocus = OCKTask(
+            id: TaskID.logFocus,
+            title: String(localized: "LOG_FOCUS"),
+            carePlanUUID: carePlanUUIDs[.behavioralTracking],
+            schedule: logFocusSchedule
+        )
+        logFocus.impactsAdherence = true
+        logFocus.instructions = String(localized: "LOG_FOCUS_INSTRUCTIONS")
+        logFocus.asset = "scope"
+        logFocus.card = .button
+        logFocus.priority = 10
+        logFocus.carePlanUUID = carePlanUUIDs[.behavioralTracking]
+
+        // MARK: - 2. Log Distraction
+        // Behavioral Tracking — daily, all day
+        let logDistractionSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: String(localized: "ANYTIME_DURING_DAY"),
+                targetValues: [], duration: .allDay
+            )
+        ])
+        var logDistraction = OCKTask(
+            id: TaskID.logDistraction,
+            title: String(localized: "LOG_DISTRACTION"),
+            carePlanUUID: carePlanUUIDs[.behavioralTracking],
+            schedule: logDistractionSchedule
+        )
+        logDistraction.impactsAdherence = false
+        logDistraction.instructions = String(localized: "LOG_DISTRACTION_INSTRUCTIONS")
+        logDistraction.asset = "exclamationmark.bubble"
+        logDistraction.card = .button
+        logDistraction.priority = 11
+        logDistraction.carePlanUUID = carePlanUUIDs[.behavioralTracking]
+
+        // MARK: - 3. Log Mood
+        // Behavioral Tracking — daily at evening
+        let moodTargetValue = OCKOutcomeValue(5.0) // target mood score of 5 out of 10
+        let logMoodSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: evening, end: nil,
+                interval: DateComponents(day: 1),
+                text: String(localized: "ANYTIME_DURING_DAY"),
+                targetValues: [moodTargetValue],
+                duration: .allDay
+            )
+        ])
+        var logMood = OCKTask(
+            id: TaskID.logMood,
+            title: String(localized: "LOG_MOOD"),
+            carePlanUUID: carePlanUUIDs[.behavioralTracking],
+            schedule: logMoodSchedule
+        )
+        logMood.impactsAdherence = true
+        logMood.instructions = String(localized: "LOG_MOOD_INSTRUCTIONS")
+        logMood.asset = "face.smiling"
+        logMood.card = .grid
+        logMood.priority = 12
+        logMood.carePlanUUID = carePlanUUIDs[.behavioralTracking]
+
+        // MARK: - 4. Log Sleep
+        // Health — daily at morning (reviewing previous night)
+        let logSleepSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: String(localized: "ANYTIME_DURING_DAY"),
+                targetValues: [], duration: .allDay
+            )
+        ])
+        var logSleep = OCKTask(
+            id: TaskID.logSleep,
+            title: String(localized: "LOG_SLEEP"),
+            carePlanUUID: carePlanUUIDs[.health],
+            schedule: logSleepSchedule
+        )
+        logSleep.impactsAdherence = true
+        logSleep.instructions = String(localized: "LOG_SLEEP_INSTRUCTIONS")
+        logSleep.asset = "bed.double.fill"
+        logSleep.card = .button
+        logSleep.priority = 13
+        logSleep.carePlanUUID = carePlanUUIDs[.health]
+
+        // MARK: - 5. Refocus Prompt
+        // Adaptive Feedback — 3x daily (morning, lunch, afternoon)
+        let refocusSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 1)),
+            OCKScheduleElement(start: afterLunch, end: nil, interval: DateComponents(day: 1)),
+            OCKScheduleElement(
+                start: Calendar.current.date(byAdding: .hour, value: 16, to: aFewDaysAgo)!,
+                end: nil, interval: DateComponents(day: 1)
+            )
+        ])
+        var refocusPrompt = OCKTask(
+            id: TaskID.refocusPrompt,
+            title: String(localized: "REFOCUS_PROMPT"),
+            carePlanUUID: carePlanUUIDs[.adaptiveFeedback],
+            schedule: refocusSchedule
+        )
+        refocusPrompt.impactsAdherence = true
+        refocusPrompt.instructions = String(localized: "REFOCUS_PROMPT_INSTRUCTIONS")
+        refocusPrompt.asset = "arrow.uturn.forward.circle"
+        refocusPrompt.card = .instruction
+        refocusPrompt.priority = 14
+        refocusPrompt.carePlanUUID = carePlanUUIDs[.adaptiveFeedback]
+
+        // MARK: - 6. Breathing Exercise
+        // Wellness — twice daily (morning, afternoon)
+        let breathingSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 1)),
+            OCKScheduleElement(
+                start: Calendar.current.date(byAdding: .hour, value: 15, to: aFewDaysAgo)!,
+                end: nil, interval: DateComponents(day: 1)
+            )
+        ])
+        var breathingExercise = OCKTask(
+            id: TaskID.breathingExercise,
+            title: String(localized: "BREATHING_EXERCISE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: breathingSchedule
+        )
+        breathingExercise.impactsAdherence = true
+        breathingExercise.instructions = String(localized: "BREATHING_EXERCISE_INSTRUCTIONS")
+        breathingExercise.asset = "wind"
+        breathingExercise.card = .instruction
+        breathingExercise.priority = 15
+        breathingExercise.carePlanUUID = carePlanUUIDs[.wellness]
+
+        // MARK: - 7. Take Break
+        // Adaptive Feedback — twice daily (midday, afternoon)
+        let takeBreakSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(start: afterLunch, end: nil, interval: DateComponents(day: 1)),
+            OCKScheduleElement(
+                start: Calendar.current.date(byAdding: .hour, value: 15, to: aFewDaysAgo)!,
+                end: nil, interval: DateComponents(day: 1)
+            )
+        ])
+        var takeBreak = OCKTask(
+            id: TaskID.takeBreak,
+            title: String(localized: "TAKE_BREAK"),
+            carePlanUUID: carePlanUUIDs[.adaptiveFeedback],
+            schedule: takeBreakSchedule
+        )
+        takeBreak.impactsAdherence = false
+        takeBreak.instructions = String(localized: "TAKE_BREAK_INSTRUCTIONS")
+        takeBreak.asset = "cup.and.saucer.fill"
+        takeBreak.card = .simple
+        takeBreak.priority = 16
+        takeBreak.carePlanUUID = carePlanUUIDs[.adaptiveFeedback]
+
+        // MARK: - 8. Weekly Reflection
+        // Clinical Assessment — weekly
+        let weeklyReflectionSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: evening, end: nil,
+                interval: DateComponents(weekOfYear: 1)
+            )
+        ])
+        var weeklyReflection = OCKTask(
+            id: TaskID.weeklyReflection,
+            title: String(localized: "WEEKLY_REFLECTION"),
+            carePlanUUID: carePlanUUIDs[.clinicalAssessment],
+            schedule: weeklyReflectionSchedule
+        )
+        weeklyReflection.impactsAdherence = false
+        weeklyReflection.instructions = String(localized: "WEEKLY_REFLECTION_INSTRUCTIONS")
+        weeklyReflection.asset = "text.book.closed.fill"
+        weeklyReflection.card = .simple
+        weeklyReflection.priority = 17
+        weeklyReflection.carePlanUUID = carePlanUUIDs[.clinicalAssessment]
+
+        // MARK: - Add All Tasks
+        #if os(iOS)
+        let qualityOfLife = createQualityOfLifeSurveyTask(
+            carePlanUUID: carePlanUUIDs[.clinicalAssessment]
+        )
+        #endif
 
         var tasksToAdd: [OCKTask] = [
-            inattention,
             methylphenidate,
             cardios,
-            stretch
+            stretch,
+            logFocus,
+            logDistraction,
+            logMood,
+            logSleep,
+            refocusPrompt,
+            breathingExercise,
+            takeBreak,
+            weeklyReflection
         ]
         #if os(iOS)
         tasksToAdd.append(qualityOfLife)
