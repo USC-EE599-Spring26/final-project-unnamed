@@ -16,4 +16,5 @@ enum CarePlanID: String, CaseIterable, Identifiable {
     case behavioralTracking
     case adaptiveFeedback
     case clinicalAssessment
+    case custom
 }
