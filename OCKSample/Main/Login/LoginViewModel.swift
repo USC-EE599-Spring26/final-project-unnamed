@@ -94,13 +94,24 @@ class LoginViewModel: ObservableObject {
             }
         }
 
+        // For existing user login, wait for remote data to sync before
+        // transitioning UI so onboarding status and tasks are available
+        if careKitPatient == nil, let appDelegate = AppDelegateKey.defaultValue {
+            appDelegate.parseRemote.automaticallySynchronizes = false
+            try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                appDelegate.store.synchronize { error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume()
+                    }
+                }
+            }
+            appDelegate.parseRemote.automaticallySynchronizes = true
+        }
+
         // Notify the SwiftUI view that the user is correctly logged in and to transition screens
         await checkStatus()
-
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
-//            Utility.requestHealthKitPermissions()
-//        }
 
         // Setup installation to receive push notifications
         await Utility.updateInstallationWithDeviceToken()
@@ -200,6 +211,12 @@ class LoginViewModel: ObservableObject {
 		firstName: String,
 		lastName: String, email: String
 	) async {
+        // swiftlint:disable:next line_length
+        guard username.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.union(.init(charactersIn: "_")).contains($0) }) else {
+            // swiftlint:disable:next line_length
+            self.loginError = ParseError(code: .otherCause, message: "Username can only contain letters, numbers, and underscores.")
+            return
+        }
         do {
             guard try await PCKUtility.isServerAvailable() else {
                 Logger.login.error("Server health is not \"ok\"")
@@ -210,7 +227,9 @@ class LoginViewModel: ObservableObject {
             var newUser = User()
             // Set any properties you want saved on the user befor logging in.
             newUser.username = username.lowercased()
-            newUser.email = email.lowercased()
+            if !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                newUser.email = email.lowercased()
+            }
             newUser.password = password
             let user = try await newUser.signup()
             Logger.login.info("Parse signup successful: \(user)")
@@ -248,17 +267,20 @@ class LoginViewModel: ObservableObject {
      - parameter password: The password the person logging in.
     */
     func login(
-		username: String, email: String,
-		password: String
-	) async {
+        usernameOrEmail: String,
+        password: String
+    ) async {
         do {
             guard try await PCKUtility.isServerAvailable() else {
                 Logger.login.error("Server health is not \"ok\"")
                 return
             }
-            let user = try await User.login(username: username.lowercased(),
-//                                            email: email.lowercased(),
-                                            password: password)
+            let user: User
+            if usernameOrEmail.contains("@") {
+                user = try await User.login(email: usernameOrEmail.lowercased(), password: password)
+            } else {
+                user = try await User.login(username: usernameOrEmail.lowercased(), password: password)
+            }
             Logger.login.info("Parse login successful: \(user, privacy: .private)")
             AppDelegateKey.defaultValue?.setFirstTimeLogin(true)
             do {
@@ -311,6 +333,7 @@ class LoginViewModel: ObservableObject {
      Logs out the currently logged in person *asynchronously*.
     */
     func logout() async {
+        self.loginError = nil
 		await Utility.logoutAndResetAppState()
         await self.checkStatus()
     }
