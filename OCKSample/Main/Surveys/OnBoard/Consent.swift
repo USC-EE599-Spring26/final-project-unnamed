@@ -33,7 +33,7 @@ let informedConsentHTML = """
         <h3>Study Expectations</h3>
         <ul>
             <li>You will complete an onboarding process to review consent and confirm eligibility before using the app.</li>
-            <li>You will be asked to complete daily tasks, including but not limited to check-in surveys and range-of-motion activities.</li>
+            <li>You will be asked to complete daily tasks, including but not limited to check-in surveys and execution activities.</li>
             <li>The app may collect health-related data, including but not limited to sleep, heart rate, and physical activity or motion data.</li>
             <li>The app may send notifications to remind you to complete assigned tasks.</li>
             <li>Your data will be used to analyze behavioral patterns and support adaptive feedback within the application.</li>
