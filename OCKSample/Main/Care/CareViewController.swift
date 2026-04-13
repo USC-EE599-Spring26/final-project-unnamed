@@ -48,6 +48,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
 	private var isSyncing = false
 	private var isLoading = false
+	private var lastSyncTime: Date = .distantPast
     private let swiftUIPadding: CGFloat = 15
     private var style: Styler {
         CustomStylerKey.defaultValue
@@ -129,7 +130,13 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         guard !isSyncing else {
             return
         }
+        // Debounce: ignore sync requests within 5 seconds of last sync
+        // to prevent notification loops from didRequestSynchronization.
+        guard Date().timeIntervalSince(lastSyncTime) > 5 else {
+            return
+        }
         isSyncing = true
+        lastSyncTime = Date()
         AppDelegateKey.defaultValue?.store.synchronize { error in
             let errorString = error?.localizedDescription ?? "Successful sync with remote!"
             Logger.feed.info("\(errorString)")

@@ -23,7 +23,7 @@ import UIKit
 struct LoginView: View {
     @Environment(\.tintColorFlip) var tintColorFlip
     @ObservedObject var viewModel: LoginViewModel
-    @State var usersname = ""
+    @State var username = ""
     @State var password = ""
     @State var firstName: String = ""
     @State var lastName: String = ""
@@ -61,7 +61,10 @@ struct LoginView: View {
             .padding()
 
             VStack(alignment: .leading) {
-                TextField("USERNAME", text: $usersname)
+                TextField(
+                    signupLoginSegmentValue == 1 ? "USERNAME" : "USERNAME_OR_EMAIL",
+                    text: $username
+                )
                     .padding()
                     .background(.white)
                     .cornerRadius(20.0)
@@ -105,21 +108,20 @@ struct LoginView: View {
                 case 1:
                     Task {
                         await viewModel.signup(
-							.patient,
-							username: usersname,
-							password: password,
-							firstName: firstName,
-							lastName: lastName,
+                            .patient,
+                            username: username,
+                            password: password,
+                            firstName: firstName,
+                            lastName: lastName,
                             email: email
-						)
+                        )
                     }
                 default:
                     Task {
                         await viewModel.login(
-							username: usersname,
-                            email: email,
-							password: password
-						)
+                            usernameOrEmail: username,
+                            password: password
+                        )
                     }
                 }
             }, label: {
