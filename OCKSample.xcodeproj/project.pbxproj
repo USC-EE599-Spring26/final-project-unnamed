@@ -1639,7 +1639,7 @@
 		052F8B30235778A200E45940 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconNew;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OCKSample/OCKSample.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -2003,7 +2003,7 @@
 		E72B2C19226939E4009A9438 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconNew;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OCKSample/OCKSample.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
