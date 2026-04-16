@@ -105,6 +105,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "QUALITY_OF_LIFE_STRESS_DETAIL" = "0 is no stress, 10 is extremely high stress.";
 "ANSWER_YES" = "Yes";
 "ANSWER_NO" = "No";
+"STEPS_INSTRUCTIONS" = "Walk at least 2,000 steps today to stay active and healthy.";
+"STRESS_EMOTIONAL_STATE" = "Stress & Emotional State";
+"STRESS_INSTRUCTIONS" = "Tracks heart rate variability (HRV) as a stress indicator. Higher HRV means lower stress.";
+
+"ATTENTION_ENGAGEMENT" = "Attention & Engagement";
+"ATTENTION_INSTRUCTIONS" = "Tracks daily steps and standing time as indicators of engagement and focus.";
+
+"ROUTINE_REGULATION" = "Routine & Regulation";
+"ROUTINE_INSTRUCTIONS" = "Tracks exercise minutes and time in daylight to support healthy circadian rhythm.";
+
+"LOG_FOCUS" = "Log Focus";
+"LOG_FOCUS_INSTRUCTIONS" = "Tap when you complete a focused work session. Tracking focus helps identify your peak productivity times.";
+
+"LOG_DISTRACTION" = "Log Distraction";
+"LOG_DISTRACTION_INSTRUCTIONS" = "Tap when you notice a distraction. Awareness is the first step to improving attention regulation.";
+
+"LOG_MOOD" = "Log Mood";
+"LOG_MOOD_INSTRUCTIONS" = "Record how you feel at the end of the day. Mood patterns help identify emotional triggers and progress.";
+
+"LOG_SLEEP" = "Log Sleep";
+"LOG_SLEEP_INSTRUCTIONS" = "Rate your sleep quality from last night. Sleep directly impacts focus, mood, and medication effectiveness.";
+
+"REFOCUS_PROMPT" = "Refocus Check-in";
+"REFOCUS_PROMPT_INSTRUCTIONS" = "Take a moment to reset your attention. Close distracting tabs, take three deep breaths, and return to your priority task.";
+
+"BREATHING_EXERCISE" = "Breathing Exercise";
+"BREATHING_EXERCISE_INSTRUCTIONS" = "Practice 4-7-8 breathing: inhale for 4 counts, hold for 7, exhale for 8. Repeat 3 times to reduce stress and improve focus.";
+
+"TAKE_BREAK" = "Take a Break";
+"TAKE_BREAK_INSTRUCTIONS" = "Step away from your screen for 5-10 minutes. Short breaks restore attention and prevent mental fatigue.";
+
+"WEEKLY_REFLECTION" = "Weekly Reflection";
+"WEEKLY_REFLECTION_INSTRUCTIONS" = "Review your week: What went well? What was challenging? Identifying patterns helps adjust your care plan for next week.";
 
 // MARK: ResearchKit SwiftUI
 "BUTTON_CANCEL" = "Cancel";

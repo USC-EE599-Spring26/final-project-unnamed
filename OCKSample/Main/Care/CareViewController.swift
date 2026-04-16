@@ -246,6 +246,10 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         for date: Date
     ) async {
         let tasks = await self.fetchTasks(on: date)
+        Logger.feed.info("fetchAndDisplayTasks found \(tasks.count) tasks for \(date)")
+        tasks.forEach {
+            Logger.feed.info("  - fetched: \(($0).id), title: \(($0).title ?? "nil")")
+        }
         appendTasks(tasks, to: listViewController, date: date)
     }
 
@@ -270,12 +274,6 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 tasks.first(where: { $0.id == orderedPriorityTask.id })
             }
             return orderedTasks
-//            guard let appDelegate = AppDelegateKey.defaultValue else {
-//                Logger.feed.error("AppDelegate could not be unwrapped")
-//                return []
-//            }
-//            let healthKitTasks = try await appDelegate.healthKitStore?.fetchAnyTasks(query: query) ?? []
-//            return healthKitTasks + tasks
         } catch {
             Logger.feed.error("Could not fetch tasks: \(error, privacy: .public)")
             return []
@@ -290,11 +288,6 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
         var query = OCKEventQuery(for: date)
         query.taskIDs = [task.id]
-
-//        let userInfo = (task as? OCKTask)?.userInfo ?? (task as? OCKHealthKitTask)?.userInfo
-//        if let info = userInfo, let cardRaw = info["Card"], let cardType = CareKitCard(rawValue: cardRaw) {
-//            return handleCustomTask(card: cardType, query: query, task: task)
-//        }
 
     if let standardTask = task as? OCKTask {
 
@@ -394,6 +387,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             }
 
         } else if let healthTask = task as? OCKHealthKitTask {
+            Logger.feed.info("HealthKit task: \(healthTask.id), card: \(String(describing: healthTask.card))")
+
             switch healthTask.card {
 
             case .labeledValue:
@@ -454,11 +449,14 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         date: Date
     ) {
         let isCurrentDay = isSameDay(as: date)
-        tasks.compactMap {
-            let cards = self.taskViewControllers(
-                $0,
-                on: date
-            )
+        tasks.compactMap { task -> [UIViewController]? in
+            Logger.feed.info("Processing task: \(task.id), title: \(task.title ?? "nil")")
+            let cards = self.taskViewControllers(task, on: date)
+
+            if cards == nil {
+                Logger.feed.warning("No card for task: \(task.id) - dropped by compactMap")
+            }
+
             cards?.forEach {
                 if let carekitView = $0.view as? OCKView {
                     carekitView.customStyle = style
@@ -469,11 +467,11 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             return cards
         }.forEach { (cards: [UIViewController]) in
             cards.forEach {
-                let card = $0
-				listViewController.appendViewController(card, animated: true)
+                // Use animated: false to prevent overlap during batch append
+                listViewController.appendViewController($0, animated: false)
             }
         }
-		self.isLoading = false
+        self.isLoading = false
     }
     func deleteTask(_ task: any OCKAnyTask) async {
         do {
