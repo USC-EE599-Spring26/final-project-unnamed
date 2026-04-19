@@ -24,6 +24,10 @@ class ProfileViewModel: ObservableObject {
     @Published var sex: OCKBiologicalSex = .other("other")
     @Published var sexOtherField = "other"
     @Published var note = ""
+    @Published var emailAddresses = ""
+    @Published var messagingNumbers = ""
+    @Published var phoneNumbers = ""
+    @Published var otherContactInfo = ""
     @Published var street = ""
     @Published var city = ""
     @Published var state = ""

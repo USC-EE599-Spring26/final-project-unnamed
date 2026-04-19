@@ -52,8 +52,13 @@ struct ProfileView: View {
                         .cornerRadius(20.0)
                         .shadow(radius: 10.0, x: 20, y: 10)
                     }
-
                     Section(header: Text("Contact")) {
+                        TextField("Email Address", text: $viewModel.emailAddresses)
+                        TextField("Message Number", text: $viewModel.messagingNumbers)
+                        TextField("Phone Number", text: $viewModel.phoneNumbers)
+                        TextField("Other Info", text: $viewModel.otherContactInfo)
+                    }
+                    Section(header: Text("Address")) {
                         TextField("Street", text: $viewModel.street)
                         TextField("City", text: $viewModel.city)
                         TextField("State", text: $viewModel.state)
