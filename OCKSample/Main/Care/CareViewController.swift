@@ -54,13 +54,18 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         CustomStylerKey.defaultValue
     }
 
+    private var isSelectionMode = false
+    private var selectedTaskIDs: Set<String> = []
+    private var taskCards: [(id: String, view: UIView)] = []
+    private var currentDisplayDate: Date = Date()
+    private var syncProgress: Int?
+    private var syncFailed = false
+    private var savedLeftBarButtonItem: UIBarButtonItem?
+    private static let selectionOverlayTag = 99887766
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .refresh,
-            target: self,
-            action: #selector(synchronizeWithRemote)
-        )
+        updateRightBarButtons()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(synchronizeWithRemote),
@@ -96,34 +101,15 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             let progress = receivedInfo[Constants.progressUpdate] as? Int else {
             return
         }
-
-		switch progress {
-		case 100:
-			self.navigationItem.rightBarButtonItem = UIBarButtonItem(
-				title: "\(progress)",
-				style: .plain, target: self,
-				action: #selector(self.synchronizeWithRemote)
-			)
-			self.navigationItem.rightBarButtonItem?.tintColor = self.view.tintColor
-
-			// Give sometime for the user to see 100
-			DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-				guard let self else { return }
-				self.navigationItem.rightBarButtonItem = UIBarButtonItem(
-					barButtonSystemItem: .refresh,
-					target: self,
-					action: #selector(self.synchronizeWithRemote)
-				)
-				self.navigationItem.rightBarButtonItem?.tintColor = self.navigationItem.leftBarButtonItem?.tintColor
-			}
-		default:
-			self.navigationItem.rightBarButtonItem = UIBarButtonItem(
-				title: "\(progress)",
-				style: .plain, target: self,
-				action: #selector(self.synchronizeWithRemote)
-			)
-			self.navigationItem.rightBarButtonItem?.tintColor = self.view.tintColor
-		}
+        syncProgress = progress
+        updateRightBarButtons()
+        if progress == 100 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self else { return }
+                self.syncProgress = nil
+                self.updateRightBarButtons()
+            }
+        }
     }
 
     @objc private func synchronizeWithRemote() {
@@ -142,13 +128,143 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             Logger.feed.info("\(errorString)")
             DispatchQueue.main.async { [weak self] in
 				guard let self else { return }
-                if error != nil {
-                    self.navigationItem.rightBarButtonItem?.tintColor = .red
-                } else {
-                    self.navigationItem.rightBarButtonItem?.tintColor = self.navigationItem.leftBarButtonItem?.tintColor
-                }
+                self.syncFailed = error != nil
+                self.updateRightBarButtons()
                 self.isSyncing = false
             }
+        }
+    }
+
+    private func updateRightBarButtons() {
+        if isSelectionMode {
+            let delete = UIBarButtonItem(
+                title: "Delete (\(selectedTaskIDs.count))",
+                style: .done,
+                target: self,
+                action: #selector(confirmDelete)
+            )
+            delete.tintColor = .systemRed
+            delete.isEnabled = !selectedTaskIDs.isEmpty
+            navigationItem.rightBarButtonItems = [delete]
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .cancel,
+                target: self,
+                action: #selector(exitSelectionMode)
+            )
+            return
+        }
+        if let saved = savedLeftBarButtonItem {
+            navigationItem.leftBarButtonItem = saved
+            savedLeftBarButtonItem = nil
+        }
+        let refresh: UIBarButtonItem
+        if let progress = syncProgress {
+            refresh = UIBarButtonItem(
+                title: "\(progress)",
+                style: .plain,
+                target: self,
+                action: #selector(synchronizeWithRemote)
+            )
+            refresh.tintColor = view.tintColor
+        } else {
+            refresh = UIBarButtonItem(
+                barButtonSystemItem: .refresh,
+                target: self,
+                action: #selector(synchronizeWithRemote)
+            )
+            if syncFailed {
+                refresh.tintColor = .red
+            }
+        }
+        if isSameDay(as: currentDisplayDate) {
+            let select = UIBarButtonItem(
+                title: "Select",
+                style: .plain,
+                target: self,
+                action: #selector(enterSelectionMode)
+            )
+            navigationItem.rightBarButtonItems = [refresh, select]
+        } else {
+            navigationItem.rightBarButtonItems = [refresh]
+        }
+    }
+
+    @objc private func enterSelectionMode() {
+        savedLeftBarButtonItem = navigationItem.leftBarButtonItem
+        isSelectionMode = true
+        updateRightBarButtons()
+        refreshSelectionOverlays()
+    }
+
+    @objc private func exitSelectionMode() {
+        isSelectionMode = false
+        selectedTaskIDs.removeAll()
+        updateRightBarButtons()
+        refreshSelectionOverlays()
+    }
+
+    private func toggleSelection(for taskID: String) {
+        if selectedTaskIDs.contains(taskID) {
+            selectedTaskIDs.remove(taskID)
+        } else {
+            selectedTaskIDs.insert(taskID)
+        }
+        updateRightBarButtons()
+        refreshSelectionOverlays()
+    }
+
+    private func refreshSelectionOverlays() {
+        let showOverlays = isSelectionMode && isSameDay(as: currentDisplayDate)
+        for (id, view) in taskCards {
+            view.viewWithTag(Self.selectionOverlayTag)?.removeFromSuperview()
+            if showOverlays {
+                let overlay = SelectionOverlayView(
+                    taskID: id,
+                    selected: selectedTaskIDs.contains(id)
+                ) { [weak self] tappedID in
+                    self?.toggleSelection(for: tappedID)
+                }
+                overlay.tag = Self.selectionOverlayTag
+                overlay.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview(overlay)
+                NSLayoutConstraint.activate([
+                    overlay.topAnchor.constraint(equalTo: view.topAnchor),
+                    overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                    overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                    overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+                ])
+            }
+        }
+    }
+
+    @objc private func confirmDelete() {
+        guard !selectedTaskIDs.isEmpty else { return }
+        let count = selectedTaskIDs.count
+        let alert = UIAlertController(
+            title: "Delete \(count) task\(count == 1 ? "" : "s")?",
+            message: "This cannot be undone.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.performDelete()
+        })
+        present(alert, animated: true)
+    }
+
+    private func performDelete() {
+        let idsToDelete = selectedTaskIDs
+        let date = currentDisplayDate
+        Task { @MainActor in
+            var query = OCKTaskQuery(for: date)
+            query.excludesTasksWithNoEvents = true
+            let regular = (try? await store.fetchAnyTasks(query: query)) ?? []
+            let healthKit = (try? await AppDelegateKey.defaultValue?.healthKitStore?.fetchAnyTasks(query: query)) ?? []
+            let all = regular + healthKit
+            for task in all where idsToDelete.contains(task.id) {
+                await deleteTask(task)
+            }
+            exitSelectionMode()
         }
     }
 
@@ -170,6 +286,9 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     ) {
         self.isLoading = true
         let date = modifyDateIfNeeded(date)
+        self.currentDisplayDate = date
+        self.taskCards.removeAll()
+        self.updateRightBarButtons()
 
         Task {
             #if os(iOS)
@@ -449,33 +568,36 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         date: Date
     ) {
         let isCurrentDay = isSameDay(as: date)
-        tasks.compactMap { task -> [UIViewController]? in
+        tasks.compactMap { task -> (String, [UIViewController])? in
             Logger.feed.info("Processing task: \(task.id), title: \(task.title ?? "nil")")
-            let cards = self.taskViewControllers(task, on: date)
-
-            if cards == nil {
+            guard let cards = self.taskViewControllers(task, on: date) else {
                 Logger.feed.warning("No card for task: \(task.id) - dropped by compactMap")
+                return nil
             }
-
-            cards?.forEach {
+            cards.forEach {
                 if let carekitView = $0.view as? OCKView {
                     carekitView.customStyle = style
                 }
                 $0.view.isUserInteractionEnabled = isCurrentDay
                 $0.view.alpha = !isCurrentDay ? 0.4 : 1.0
             }
-            return cards
-        }.forEach { (cards: [UIViewController]) in
+            return (task.id, cards)
+        }.forEach { (taskID: String, cards: [UIViewController]) in
             cards.forEach {
-                // Use animated: false to prevent overlap during batch append
                 listViewController.appendViewController($0, animated: false)
+                self.taskCards.append((id: taskID, view: $0.view))
             }
         }
+        self.refreshSelectionOverlays()
         self.isLoading = false
     }
     func deleteTask(_ task: any OCKAnyTask) async {
         do {
-            try await store.deleteAnyTask(task)
+            if let hkTask = task as? OCKHealthKitTask {
+                try await AppDelegateKey.defaultValue?.healthKitStore?.deleteAnyTask(hkTask)
+            } else {
+                try await store.deleteAnyTask(task)
+            }
             Logger.feed.info("Successfully deleted task: \(task.id)")
 
             // Trigger the existing notification to reload the View Controller
@@ -515,3 +637,38 @@ private extension View {
 }
 
 // swiftlint: enable type_body_length
+
+private final class SelectionOverlayView: UIView {
+    private let taskID: String
+    private let onTap: (String) -> Void
+
+    init(taskID: String, selected: Bool, onTap: @escaping (String) -> Void) {
+        self.taskID = taskID
+        self.onTap = onTap
+        super.init(frame: .zero)
+        backgroundColor = selected
+            ? UIColor.systemBlue.withAlphaComponent(0.12)
+            : UIColor.black.withAlphaComponent(0.001)
+        layer.cornerRadius = 12
+        let symbolName = selected ? "checkmark.circle.fill" : "circle"
+        let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
+        let checkmark = UIImageView(image: UIImage(systemName: symbolName, withConfiguration: config))
+        checkmark.tintColor = selected ? .systemBlue : .systemGray
+        checkmark.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.85)
+        checkmark.layer.cornerRadius = 14
+        checkmark.layer.masksToBounds = true
+        checkmark.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(checkmark)
+        NSLayoutConstraint.activate([
+            checkmark.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            checkmark.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            checkmark.widthAnchor.constraint(equalToConstant: 28),
+            checkmark.heightAnchor.constraint(equalToConstant: 28)
+        ])
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap)))
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    @objc private func handleTap() { onTap(taskID) }
+}
