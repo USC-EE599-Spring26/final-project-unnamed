@@ -13,7 +13,6 @@ import ParseSwift
 import SwiftUI
 import os.log
 
-// swiftlint:disable type_body_length
 @MainActor
 class ProfileViewModel: ObservableObject {
 
@@ -315,60 +314,6 @@ class ProfileViewModel: ObservableObject {
 
     static func queryContacts() -> OCKContactQuery {
         OCKContactQuery(for: Date())
-    }
-
-    @Published var tasks: [OCKAnyTask] = []
-
-    // MARK: Task Management
-
-    func fetchTasks() async {
-        // CareView's query logic
-        var query = OCKTaskQuery(for: Date())
-        query.excludesTasksWithNoEvents = true
-
-        do {
-            guard let appDelegate = AppDelegateKey.defaultValue else { return }
-
-            // Fetch from BOTH stores
-            let regularTasks = try await appDelegate.store.fetchAnyTasks(query: query)
-            let healthKitTasks = try await appDelegate.healthKitStore?.fetchAnyTasks(query: query) ?? []
-
-            // Because ProfileViewModel is marked @MainActor, can assign directly
-            self.tasks = healthKitTasks + regularTasks
-
-        } catch {
-            Logger.profile.error("Could not fetch tasks: \(error.localizedDescription)")
-        }
-    }
-
-    func deleteTasks(at offsets: IndexSet) async {
-        guard let appDelegate = AppDelegateKey.defaultValue else { return }
-
-        for index in offsets {
-            let taskToDelete = tasks[index]
-            do {
-                // Route the deletion to correct store
-                if let hkTask = taskToDelete as? OCKHealthKitTask {
-                    try await appDelegate.healthKitStore?.deleteAnyTask(hkTask)
-                } else {
-                    try await appDelegate.store.deleteAnyTask(taskToDelete)
-                }
-                Logger.profile.info("Successfully deleted task: \(taskToDelete.id)")
-            } catch {
-                Logger.profile.error("Failed to delete task: \(error.localizedDescription)")
-            }
-        }
-
-        // Notify CareViewController once after all deletions are done, not once per deletion.
-        // Posting inside the loop caused CareViewController to reload mid-deletion, creating
-        // task controllers for tasks that were then deleted → "Task Controller is missing task".
-        NotificationCenter.default.post(
-            name: Notification.Name(rawValue: Constants.shouldRefreshView),
-            object: nil
-        )
-
-        // Refresh local list so UI updates instantly
-        await fetchTasks()
     }
 }
 // swiftlint:enable type_body_length
