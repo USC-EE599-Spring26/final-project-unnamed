@@ -99,16 +99,6 @@ struct ProfileView: View {
                     }
                     .listRowSeparator(.hidden)
 
-                    Section(header: Text("My Tasks")) {
-                        ForEach(viewModel.tasks, id: \.id) { task in
-                            Text(task.title ?? task.id)
-                        }
-                        .onDelete { offsets in
-                            Task {
-                                await viewModel.deleteTasks(at: offsets)
-                            }
-                        }
-                    }
                 } // Form ends
             }
             .toolbar {
@@ -153,9 +143,6 @@ struct ProfileView: View {
             viewModel.updateContact(publishedContact.result)
         }
 
-        .task {
-            await viewModel.fetchTasks()
-        }
     }
 }
 
