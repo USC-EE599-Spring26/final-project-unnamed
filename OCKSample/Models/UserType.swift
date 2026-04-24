@@ -8,13 +8,26 @@
 
 import Foundation
 
-enum UserType: String, Codable {
-    case patient                           = "Patient"
-    case none                              = "None"
+enum UserType: String, Codable, CaseIterable, Identifiable {
+    var id: Self { self }
 
-    // Return all types as an array, make sure to maintain order above
-    func allTypesAsArray() -> [String] {
-        return [UserType.patient.rawValue,
-                UserType.none.rawValue]
+    case patient    = "Patient"
+    case clinician  = "Clinician"
+    case none       = "None"
+
+    var displayName: String {
+        switch self {
+        case .patient: return "Patient"
+        case .clinician:  return "Clinician"
+        case .none:    return "None"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .patient: return "person.fill"
+        case .clinician:  return "stethoscope"
+        case .none:    return "questionmark"
+        }
     }
 }
