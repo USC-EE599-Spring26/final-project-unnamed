@@ -9,6 +9,7 @@ import CareKit
 import CareKitEssentials
 import CareKitStore
 import CareKitUI
+import ParseSwift
 import SwiftUI
 
 struct MainView: View {
@@ -16,14 +17,20 @@ struct MainView: View {
     @StateObject private var loginViewModel = LoginViewModel()
     @State private var storeCoordinator = OCKStoreCoordinator()
 	@State private var isLoggedIn: Bool?
+    @State private var userType: UserType = .patient
 
     var body: some View {
 		Group {
 			if let isLoggedIn {
 				if isLoggedIn {
 					if isSyncingWithRemote {
-						MainTabView(loginViewModel: loginViewModel)
-							.navigationBarHidden(true)
+                        if userType == .clinician {
+                            ClinicianTabView(loginViewModel: loginViewModel)
+                                .navigationBarHidden(true)
+                        } else {
+                            MainTabView(loginViewModel: loginViewModel)
+                                .navigationBarHidden(true)
+                        }
 					} else {
 						CareView()
 							.navigationBarHidden(true)
@@ -37,15 +44,30 @@ struct MainView: View {
 		}
 		.task {
 			await loginViewModel.checkStatus()
+            await fetchUserType()
 		}
         .environment(\.careStore, storeCoordinator)
 		.onReceive(appDelegate.$storeCoordinator) { newStoreCoordinator in
 			guard storeCoordinator !== newStoreCoordinator else { return }
 			storeCoordinator = newStoreCoordinator
 		}
-		.onReceive(loginViewModel.isLoggedIn.publisher) { currentStatus in
-			isLoggedIn = currentStatus
+        .onReceive(loginViewModel.isLoggedIn.publisher) { currentStatus in
+            isLoggedIn = currentStatus
+            if currentStatus == true {
+                Task { await fetchUserType() }
+            }
         }
+    }
+
+    @MainActor
+    private func fetchUserType() async {
+        guard let user = try? await User.current(),
+              let typeString = user.lastTypeSelected,
+              let type = UserType(rawValue: typeString) else {
+            userType = .patient  // safe default
+            return
+        }
+        userType = type
     }
 }
 
