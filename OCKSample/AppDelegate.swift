@@ -84,6 +84,10 @@ final class AppDelegate: UIResponder, ObservableObject {
 		}
 	}
 
+    // Auto-detected activity feature.
+    let detectionNotifications = DetectionNotificationManager()
+    private(set) var exerciseDetector: ExerciseDetector?
+
 	fileprivate var _sessionDelegate: SessionDelegate!
 	fileprivate var sessionDelegate: SessionDelegate! {
 		get {
@@ -111,6 +115,20 @@ final class AppDelegate: UIResponder, ObservableObject {
 	func setFirstTimeLogin(_ isFirstTimeLogin: Bool) {
 		self.isFirstTimeLogin = isFirstTimeLogin
 	}
+
+    private func startExerciseDetectionIfNeeded(store: OCKStore) async {
+        // Detector is a one-shot singleton per app session. Skip if already up.
+        guard exerciseDetector == nil else { return }
+
+        await detectionNotifications.requestAuthorizationIfNeeded()
+
+        let detector = ExerciseDetector(
+            ockStore: store,
+            notifications: detectionNotifications
+        )
+        exerciseDetector = detector
+        await detector.start()
+    }
 
     func resetAppToInitialState() {
         do {
@@ -178,6 +196,8 @@ final class AppDelegate: UIResponder, ObservableObject {
             storeCoordinator.attach(store: store)
             storeCoordinator.attach(eventStore: healthKitStore)
             self.storeCoordinator = storeCoordinator
+
+            await startExerciseDetectionIfNeeded(store: store)
         } catch {
             Logger.appDelegate.error("Could not setup remote: \(error)")
             throw error
