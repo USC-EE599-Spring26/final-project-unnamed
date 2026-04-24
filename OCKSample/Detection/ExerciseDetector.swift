@@ -10,6 +10,7 @@ import CareKitStore
 import Foundation
 import HealthKit
 import os.log
+// swiftlint:disable identifier_name
 
 /// Watches step data in the background and prompts the user to log exercise
 /// when it looks like they're being active without having started a task.
@@ -19,6 +20,13 @@ import os.log
 ///      iOS wakes the app whenever new step samples arrive (~few min cadence).
 ///   2. Each wake-up runs `evaluate()` which looks at the past 5 min of steps.
 ///   3. A tiny state machine decides whether to prompt, wait for end, or idle.
+/// Unsafe escape hatch for closures that Apple frameworks hand us without
+/// `@Sendable`, but which are documented safe to call across threads.
+private struct UncheckedSendableBox<T>: @unchecked Sendable {
+    let value: T
+    init(_ value: T) { self.value = value }
+}
+
 @MainActor
 final class ExerciseDetector {
 
@@ -81,6 +89,7 @@ final class ExerciseDetector {
     // MARK: Public lifecycle
 
     func start() async {
+        Logger.detection.info("ExerciseDetector.start() called")
         notifications.handler = self
 
         guard HKHealthStore.isHealthDataAvailable() else {
@@ -91,6 +100,7 @@ final class ExerciseDetector {
         let stepType = HKQuantityType(.stepCount)
         do {
             try await healthStore.requestAuthorization(toShare: [], read: [stepType])
+            Logger.detection.info("HealthKit step read auth requested")
         } catch {
             Logger.detection.error("HealthKit auth failed: \(error)")
             return
@@ -104,14 +114,18 @@ final class ExerciseDetector {
         }
 
         let query = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, completion, error in
+            // HealthKit's completion handler type isn't Sendable, but Apple
+            // documents it as safe to call from any thread. Wrap it so we can
+            // invoke it after awaiting on MainActor.
+            let safeCompletion = UncheckedSendableBox(completion)
             if let error {
                 Logger.detection.error("Observer query error: \(error)")
-                completion()
+                safeCompletion.value()
                 return
             }
             Task { @MainActor [weak self] in
                 await self?.evaluate()
-                completion()
+                safeCompletion.value()
             }
         }
         healthStore.execute(query)
@@ -138,10 +152,12 @@ final class ExerciseDetector {
     private func evaluateIdle(now: Date) async {
         // Debounce after a recent dismiss.
         if let last = state.lastDismissAt, now.timeIntervalSince(last) < Self.dismissDebounce {
+            Logger.detection.info("Idle: debounced (last dismiss \(last))")
             return
         }
 
         let recentSteps = await sumSteps(from: now.addingTimeInterval(-Self.detectionWindow), to: now)
+        Logger.detection.info("Idle: steps in last \(Int(Self.detectionWindow/60))min = \(recentSteps)")
         guard recentSteps >= Self.stepTriggerThreshold else { return }
 
         // User may already be logging this session manually.
@@ -263,6 +279,9 @@ final class ExerciseDetector {
         query.taskIDs = TaskID.exerciseRelated.filter { $0 != TaskID.detectedExercise }
         do {
             let outcomes = try await ockStore.fetchOutcomes(query: query)
+            if !outcomes.isEmpty {
+                Logger.detection.info("Found \(outcomes.count) recent exercise-related outcome(s) — suppressing")
+            }
             return !outcomes.isEmpty
         } catch {
             Logger.detection.error("Outcome fetch for suppression failed: \(error)")

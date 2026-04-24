@@ -42,12 +42,14 @@ final class DetectionNotificationManager: NSObject {
         center.setNotificationCategories([Self.buildCategory()])
     }
 
-    /// Request notification permission. Silently no-ops if already decided.
+    /// Request notification permission. Logs current status so we can diagnose
+    /// cases where the system alert never appears (usually: already decided).
     func requestAuthorizationIfNeeded() async {
         let settings = await center.notificationSettings()
-        guard settings.authorizationStatus == .notDetermined else { return }
+        Logger.detection.info("Notification auth status: \(settings.authorizationStatus.rawValue)")
         do {
-            _ = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            Logger.detection.info("Notification auth granted=\(granted)")
         } catch {
             Logger.detection.error("Notification auth request failed: \(error)")
         }
