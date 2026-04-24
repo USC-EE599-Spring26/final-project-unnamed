@@ -43,6 +43,19 @@ enum TaskID {
     static let attention = "attention"
     static let routine = "routine"
 
+    // Auto-detected activity (inferred from HealthKit, not user-logged)
+    static let detectedExercise = "detected_exercise"
+
+    // Tasks that represent exercise/movement — used to suppress duplicate
+    // auto-detection prompts when the user is already logging something.
+    static var exerciseRelated: [String] {
+        [
+            Self.cardios,
+            Self.stretch,
+            Self.detectedExercise
+        ]
+    }
+
     static var ordered: [String] {
         orderedObjective + orderedSubjective
     }

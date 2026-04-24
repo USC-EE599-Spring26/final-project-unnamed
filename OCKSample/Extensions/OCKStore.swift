@@ -410,6 +410,28 @@ extension OCKStore {
         weeklyReflection.priority = 17
         weeklyReflection.carePlanUUID = carePlanUUIDs[.clinicalAssessment]
 
+        // MARK: - Auto-detected exercise (inferred from HealthKit step patterns)
+        // Wellness — all-day container for records written by ExerciseDetector.
+        // Not user-facing as a "do this" task; outcomes represent detected sessions.
+        let detectedExerciseSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: nil, targetValues: [], duration: .allDay
+            )
+        ])
+        var detectedExercise = OCKTask(
+            id: TaskID.detectedExercise,
+            title: String(localized: "DETECTED_EXERCISE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: detectedExerciseSchedule
+        )
+        detectedExercise.impactsAdherence = false
+        detectedExercise.asset = "figure.walk.motion"
+        detectedExercise.card = .simple
+        detectedExercise.priority = 20
+        detectedExercise.carePlanUUID = carePlanUUIDs[.wellness]
+
         // MARK: - Add All Tasks
         #if os(iOS)
         let qualityOfLife = createQualityOfLifeSurveyTask(
@@ -428,7 +450,8 @@ extension OCKStore {
             refocusPrompt,
             breathingExercise,
             takeBreak,
-            weeklyReflection
+            weeklyReflection,
+            detectedExercise
         ]
         #if os(iOS)
         tasksToAdd.append(qualityOfLife)
