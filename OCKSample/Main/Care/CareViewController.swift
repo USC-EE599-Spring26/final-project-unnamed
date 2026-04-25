@@ -379,9 +379,13 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             let tasks = try await store.fetchAnyTasks(query: query)
             let onboardingComplete = await Utility.checkIfOnboardingIsComplete()
 
+            // detectedExercise stores auto-detected sessions but isn't a
+            // "task to do" — hide it from the daily Care list.
+            let hiddenIDs: Set<String> = [TaskID.detectedExercise]
+            let baseFiltered = tasks.filter { !hiddenIDs.contains($0.id) }
             let filteredTasks = onboardingComplete
-                ? tasks.filter { $0.id != Onboard.identifier() }
-                : tasks
+                ? baseFiltered.filter { $0.id != Onboard.identifier() }
+                : baseFiltered
 
             guard let tasksWithPriority = filteredTasks as? [CareTask] else {
                 Logger.feed.warning("Could not cast all tasks to \"CareTask\"")

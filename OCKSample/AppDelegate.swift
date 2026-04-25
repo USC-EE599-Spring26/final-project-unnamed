@@ -117,16 +117,21 @@ final class AppDelegate: UIResponder, ObservableObject {
 	}
 
     private func startExerciseDetectionIfNeeded(store: OCKStore) async {
-        // Detector is a one-shot singleton per app session. Skip if already up.
-        guard exerciseDetector == nil else { return }
-
-        await detectionNotifications.requestAuthorizationIfNeeded()
+        Logger.detection.info("startExerciseDetectionIfNeeded called")
+        guard exerciseDetector == nil else {
+            Logger.detection.info("Detector already exists — skipping")
+            return
+        }
 
         let detector = ExerciseDetector(
             ockStore: store,
             notifications: detectionNotifications
         )
         exerciseDetector = detector
+
+        // Always start the observer. Detector internally bails out if
+        // onboarding hasn't completed yet, so no alerts pop and no work runs
+        // until the user has gone through ORKRequestPermissionsStep.
         await detector.start()
     }
 

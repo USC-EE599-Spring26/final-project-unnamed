@@ -97,21 +97,29 @@ final class ExerciseDetector {
             return
         }
 
+        // HealthKit + notification authorization are requested by onboarding's
+        // ORKRequestPermissionsStep. We deliberately do NOT request here so no
+        // alerts pop at signup time. If the user hasn't yet authorized step
+        // data, enableBackgroundDelivery / observer queries will simply yield
+        // no samples — no crash.
         let stepType = HKQuantityType(.stepCount)
-        do {
-            try await healthStore.requestAuthorization(toShare: [], read: [stepType])
-            Logger.detection.info("HealthKit step read auth requested")
-        } catch {
-            Logger.detection.error("HealthKit auth failed: \(error)")
-            return
+
+        // Tear down any previous observer so we can re-register against the
+        // (possibly newly-authorized) HealthKit state.
+        if let existing = observerQuery {
+            healthStore.stop(existing)
+            observerQuery = nil
         }
 
         // Background delivery → iOS wakes us when new samples arrive.
         do {
             try await healthStore.enableBackgroundDelivery(for: stepType, frequency: .immediate)
+            Logger.detection.info("Background delivery enabled")
         } catch {
             Logger.detection.error("enableBackgroundDelivery failed: \(error)")
         }
+
+        observeAppForeground()
 
         let query = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, completion, error in
             // HealthKit's completion handler type isn't Sendable, but Apple
@@ -138,6 +146,17 @@ final class ExerciseDetector {
     // MARK: Core evaluation (runs on every wake-up)
 
     private func evaluate() async {
+        // Gate everything on onboarding: until ORKRequestPermissionsStep has
+        // run, we have no notification permission and likely no HealthKit
+        // permission, so any work we do here is wasted (and any notification
+        // post would silently drop).
+        let onboarded = await Utility.checkIfOnboardingIsComplete()
+        let onboardOutcomes = await debugCountOnboardOutcomes()
+        Logger.detection.info("evaluate: onboarded=\(onboarded), onboardOutcomes=\(onboardOutcomes)")
+        guard onboarded else {
+            return
+        }
+
         let now = Date()
         switch state.phase {
         case .idle:
@@ -289,6 +308,38 @@ final class ExerciseDetector {
         }
     }
 
+    private var didRegisterForegroundObserver = false
+    private func observeAppForeground() {
+        guard !didRegisterForegroundObserver else { return }
+        didRegisterForegroundObserver = true
+        // Use the raw notification name string so we don't pull in UIKit
+        // (which is unavailable on watchOS targets that share this file).
+        let foregroundName = Notification.Name("UIApplicationWillEnterForegroundNotification")
+        NotificationCenter.default.addObserver(
+            forName: foregroundName,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                Logger.detection.info("willEnterForeground — re-running start()")
+                await self?.start()
+            }
+        }
+    }
+
+    private func debugCountOnboardOutcomes() async -> Int {
+        var query = OCKOutcomeQuery()
+        let dayStart = Calendar.current.date(byAdding: .year, value: -1, to: Date())!
+        query.dateInterval = DateInterval(start: dayStart, end: Date().addingTimeInterval(86400))
+        do {
+            let all = try await ockStore.fetchAnyOutcomes(query: query)
+            Logger.detection.info("All outcomes in store: \(all.count)")
+            return all.count
+        } catch {
+            return -1
+        }
+    }
+
     // MARK: Persistence
 
     private static let persistenceKey = "ExerciseDetector.state"
@@ -307,22 +358,27 @@ final class ExerciseDetector {
 extension ExerciseDetector: DetectionNotificationHandler {
 
     func userConfirmedDetectedExercise() async {
+        Logger.detection.info("User confirmed. Current phase: \(self.state.phase.rawValue)")
         guard state.phase == .pendingConfirmation else { return }
 
         // Check whether movement already ended: if so, write immediately using
         // a best-effort end time (now). Otherwise enter monitoring.
         let now = Date()
         let recent = await sumSteps(from: now.addingTimeInterval(-Self.endWindow), to: now)
+        Logger.detection.info("Confirm: recent steps = \(recent), threshold = \(Self.stepEndedThreshold)")
         if recent < Self.stepEndedThreshold {
+            Logger.detection.info("Movement already ended — writing record immediately")
             await writeRecord(end: now, isUnconfirmed: false)
             resetToIdle()
         } else {
+            Logger.detection.info("Movement ongoing — entering monitoringEnd phase")
             state.phase = .monitoringEnd
             state.notificationPostedAt = nil
         }
     }
 
     func userDismissedDetectedExercise() async {
+        Logger.detection.info("User dismissed notification")
         state.lastDismissAt = Date()
         resetToIdle()
     }

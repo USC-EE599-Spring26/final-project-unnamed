@@ -57,6 +57,10 @@ final class DetectionNotificationManager: NSObject {
 
     /// Post the "are you exercising?" prompt.
     func postExerciseDetectedNotification() async {
+        let settings = await center.notificationSettings()
+        // swiftlint:disable:next line_length
+        Logger.detection.info("Posting prompt. Auth status: \(settings.authorizationStatus.rawValue), alertSetting: \(settings.alertSetting.rawValue)")
+
         let content = UNMutableNotificationContent()
         content.title = String(localized: "DETECTED_EXERCISE_NOTIF_TITLE")
         content.body = String(localized: "DETECTED_EXERCISE_NOTIF_BODY")
@@ -70,6 +74,7 @@ final class DetectionNotificationManager: NSObject {
         )
         do {
             try await center.add(request)
+            Logger.detection.info("Notification request added successfully")
         } catch {
             Logger.detection.error("Failed to post detection notification: \(error)")
         }
@@ -107,27 +112,37 @@ extension DetectionNotificationManager: UNUserNotificationCenterDelegate {
     // Show the banner even when app is foregrounded — useful during testing.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
-        [.banner, .sound]
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .list])
     }
 
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         let actionID = response.actionIdentifier
-        await MainActor.run {
+        Logger.detection.info("didReceive action: \(actionID)")
+        let done = UncheckedSendableCompletion(completionHandler)
+        Task { @MainActor [weak self] in
+            guard let self else { done.value(); return }
+            Logger.detection.info("handler present: \(self.handler != nil)")
             switch actionID {
             case Identifier.actionLog, UNNotificationDefaultActionIdentifier:
-                // Default action = user tapped the notification body itself.
-                // Treat as confirmation.
-                Task { await self.handler?.userConfirmedDetectedExercise() }
+                await self.handler?.userConfirmedDetectedExercise()
             case Identifier.actionDismiss, UNNotificationDismissActionIdentifier:
-                Task { await self.handler?.userDismissedDetectedExercise() }
+                await self.handler?.userDismissedDetectedExercise()
             default:
                 break
             }
+            done.value()
         }
     }
+}
+
+private struct UncheckedSendableCompletion: @unchecked Sendable {
+    let value: () -> Void
+    init(_ value: @escaping () -> Void) { self.value = value }
 }
