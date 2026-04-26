@@ -38,6 +38,17 @@ struct MainView: View {
 		.task {
 			await loginViewModel.checkStatus()
 		}
+        .overlay(alignment: .top) {
+            if let message = appDelegate.detectionToast {
+                DetectionToastView(message: message) {
+                    appDelegate.detectionToast = nil
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: appDelegate.detectionToast)
         .environment(\.careStore, storeCoordinator)
 		.onReceive(appDelegate.$storeCoordinator) { newStoreCoordinator in
 			guard storeCoordinator !== newStoreCoordinator else { return }
@@ -46,6 +57,31 @@ struct MainView: View {
 		.onReceive(loginViewModel.isLoggedIn.publisher) { currentStatus in
 			isLoggedIn = currentStatus
         }
+    }
+}
+
+/// Transient banner shown when the user taps the detected-exercise
+/// notification's Log action. Auto-dismisses after a short delay.
+private struct DetectionToastView: View {
+    let message: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        Text(message)
+            .font(.subheadline.weight(.medium))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .background(Color.accentColor.opacity(0.95))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .shadow(radius: 4, y: 2)
+            .onTapGesture { onDismiss() }
+            .task(id: message) {
+                try? await Task.sleep(nanoseconds: 3_500_000_000)
+                onDismiss()
+            }
     }
 }
 

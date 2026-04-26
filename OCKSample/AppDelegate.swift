@@ -44,6 +44,10 @@ final class AppDelegate: UIResponder, ObservableObject {
 
     @Published var isFirstTimeLogin = false
 
+    /// Set when the detector confirms a detected-exercise action so the UI can
+    /// show a transient toast. Cleared by the toast view after auto-dismiss.
+    @Published var detectionToast: String?
+
     // MARK: Public read private write properties
 
     @Published private(set) var storeCoordinator: OCKStoreCoordinator = .init() {
@@ -118,15 +122,20 @@ final class AppDelegate: UIResponder, ObservableObject {
 
     private func startExerciseDetectionIfNeeded(store: OCKStore) async {
         Logger.detection.info("startExerciseDetectionIfNeeded called")
-        guard exerciseDetector == nil else {
-            Logger.detection.info("Detector already exists — skipping")
-            return
-        }
+
+        // Replace any existing detector — `setupRemotes` runs on every
+        // login, and the previous detector holds a reference to the old
+        // (now-deleted) OCKStore. Reusing it leads to "task not found"
+        // errors when writing outcomes after a logout/re-login cycle.
+        exerciseDetector = nil
 
         let detector = ExerciseDetector(
             ockStore: store,
             notifications: detectionNotifications
         )
+        detector.onUserConfirmedToast = { [weak self] message in
+            self?.detectionToast = message
+        }
         exerciseDetector = detector
 
         // Always start the observer. Detector internally bails out if

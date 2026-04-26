@@ -103,6 +103,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "DETECTED_EXERCISE_NOTIF_BODY" = "We noticed you've been moving. Want to log this as exercise?";
 "DETECTED_EXERCISE_ACTION_LOG" = "Yes, log it";
 "DETECTED_EXERCISE_ACTION_DISMISS" = "Dismiss";
+"DETECTED_EXERCISE_TOAST_LOGGED" = "Logged your exercise — nice work.";
+"DETECTED_EXERCISE_TOAST_TRACKING" = "Got it — we'll log it when you stop moving.";
 //"OVULATION_TEST_RESULT" = "Ovulation Test Result";
 "QUALITY_OF_LIFE" = "Quality of Life";
 "QUALITY_OF_LIFE_TIME" = "Since using the app, have you felt more flexible in managing your time?";

@@ -51,13 +51,13 @@ final class ExerciseDetector {
 
     // MARK: State machine
 
-    private enum Phase: String, Codable {
+    fileprivate enum Phase: String, Codable {
         case idle
         case pendingConfirmation  // notification posted, waiting on user
         case monitoringEnd        // user confirmed, waiting for movement to stop
     }
 
-    private struct PersistedState: Codable {
+    fileprivate struct PersistedState: Codable {
         var phase: Phase = .idle
         var sessionStart: Date?
         var notificationPostedAt: Date?
@@ -72,6 +72,15 @@ final class ExerciseDetector {
     private let notifications: DetectionNotificationManager
 
     private var observerQuery: HKObserverQuery?
+    /// Guards against multiple concurrent `evaluate()` runs when HK fires the
+    /// observer query several times in quick succession. MainActor alone isn't
+    /// enough — `await`s inside evaluate are reentrancy points.
+    private var isEvaluating = false
+
+    /// UI hook: invoked on the main actor when the user taps the notification's
+    /// Log action. The string is a localized message describing what just
+    /// happened (immediate log vs. waiting for movement to end).
+    var onUserConfirmedToast: ((String) -> Void)?
     private var state: PersistedState {
         didSet { Self.persist(state) }
     }
@@ -146,6 +155,13 @@ final class ExerciseDetector {
     // MARK: Core evaluation (runs on every wake-up)
 
     private func evaluate() async {
+        guard !isEvaluating else {
+            Logger.detection.info("evaluate: skipping — already running")
+            return
+        }
+        isEvaluating = true
+        defer { isEvaluating = false }
+
         // Gate everything on onboarding: until ORKRequestPermissionsStep has
         // run, we have no notification permission and likely no HealthKit
         // permission, so any work we do here is wasted (and any notification
@@ -207,25 +223,40 @@ final class ExerciseDetector {
 
         await writeRecord(end: now, isUnconfirmed: true)
         notifications.cancelExerciseDetectedNotification()
+        state.lastDismissAt = Date()
         resetToIdle()
     }
 
     private func evaluateMonitoring(now: Date) async {
         let recent = await sumSteps(from: now.addingTimeInterval(-Self.endWindow), to: now)
+        let windowMin = Int(Self.endWindow / 60)
+        let endThreshold = Self.stepEndedThreshold
+        Logger.detection.info(
+            "Monitoring: steps in last \(windowMin)min = \(recent), endThreshold = \(endThreshold)"
+        )
         guard recent < Self.stepEndedThreshold else { return }
 
-        await writeRecord(end: now, isUnconfirmed: false)
+        let ok = await writeRecord(end: now, isUnconfirmed: false)
+        if ok {
+            Logger.detection.info("Monitoring: end detected — outcome written")
+        }
+        // Always debounce — even if write failed, we don't want to spam
+        // re-prompts for the same step burst on every observer wake.
+        state.lastDismissAt = Date()
         resetToIdle()
     }
 
     // MARK: DetectionNotificationHandler callbacks
 
-    private func writeRecord(end: Date, isUnconfirmed: Bool) async {
-        guard let start = state.sessionStart else { return }
+    @discardableResult
+    private func writeRecord(end: Date, isUnconfirmed: Bool) async -> Bool {
+        guard let start = state.sessionStart else { return false }
         do {
             try await recorder.record(start: start, end: end, isUnconfirmed: isUnconfirmed)
+            return true
         } catch {
             Logger.detection.error("Record write failed: \(error)")
+            return false
         }
     }
 
@@ -235,9 +266,18 @@ final class ExerciseDetector {
         state.notificationPostedAt = nil
     }
 
-    // MARK: Queries
+    fileprivate var didRegisterForegroundObserver: Bool {
+        get { _didRegisterForegroundObserver }
+        set { _didRegisterForegroundObserver = newValue }
+    }
+    private var _didRegisterForegroundObserver = false
+}
 
-    private func sumSteps(from: Date, to: Date) async -> Double {
+// MARK: Queries
+
+extension ExerciseDetector {
+
+    fileprivate func sumSteps(from: Date, to: Date) async -> Double {
         let type = HKQuantityType(.stepCount)
         let predicate = HKQuery.predicateForSamples(withStart: from, end: to, options: .strictStartDate)
         return await withCheckedContinuation { continuation in
@@ -256,7 +296,7 @@ final class ExerciseDetector {
     /// Walks backward from `endingAt` in 1-minute buckets and returns the
     /// timestamp of the first bucket where steps first became non-trivial.
     /// Capped at 30 minutes of lookback.
-    private func estimatedMovementStart(endingAt: Date) async -> Date? {
+    fileprivate func estimatedMovementStart(endingAt: Date) async -> Date? {
         let maxLookback: TimeInterval = 30 * 60
         let windowStart = endingAt.addingTimeInterval(-maxLookback)
         let type = HKQuantityType(.stepCount)
@@ -290,7 +330,7 @@ final class ExerciseDetector {
         }
     }
 
-    private func userIsAlreadyLoggingExercise(now: Date) async -> Bool {
+    fileprivate func userIsAlreadyLoggingExercise(now: Date) async -> Bool {
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
         var query = OCKOutcomeQuery(
             dateInterval: DateInterval(start: windowStart, end: now)
@@ -308,8 +348,7 @@ final class ExerciseDetector {
         }
     }
 
-    private var didRegisterForegroundObserver = false
-    private func observeAppForeground() {
+    fileprivate func observeAppForeground() {
         guard !didRegisterForegroundObserver else { return }
         didRegisterForegroundObserver = true
         // Use the raw notification name string so we don't pull in UIKit
@@ -327,7 +366,7 @@ final class ExerciseDetector {
         }
     }
 
-    private func debugCountOnboardOutcomes() async -> Int {
+    fileprivate func debugCountOnboardOutcomes() async -> Int {
         var query = OCKOutcomeQuery()
         let dayStart = Calendar.current.date(byAdding: .year, value: -1, to: Date())!
         query.dateInterval = DateInterval(start: dayStart, end: Date().addingTimeInterval(86400))
@@ -339,17 +378,20 @@ final class ExerciseDetector {
             return -1
         }
     }
+}
 
-    // MARK: Persistence
+// MARK: Persistence
 
-    private static let persistenceKey = "ExerciseDetector.state"
+extension ExerciseDetector {
 
-    private static func loadPersisted() -> PersistedState? {
+    fileprivate static let persistenceKey = "ExerciseDetector.state"
+
+    fileprivate static func loadPersisted() -> PersistedState? {
         guard let data = UserDefaults.standard.data(forKey: persistenceKey) else { return nil }
         return try? JSONDecoder().decode(PersistedState.self, from: data)
     }
 
-    private static func persist(_ state: PersistedState) {
+    fileprivate static func persist(_ state: PersistedState) {
         guard let data = try? JSONEncoder().encode(state) else { return }
         UserDefaults.standard.set(data, forKey: persistenceKey)
     }
@@ -368,12 +410,17 @@ extension ExerciseDetector: DetectionNotificationHandler {
         Logger.detection.info("Confirm: recent steps = \(recent), threshold = \(Self.stepEndedThreshold)")
         if recent < Self.stepEndedThreshold {
             Logger.detection.info("Movement already ended — writing record immediately")
-            await writeRecord(end: now, isUnconfirmed: false)
+            let ok = await writeRecord(end: now, isUnconfirmed: false)
+            state.lastDismissAt = Date()
             resetToIdle()
+            if ok {
+                onUserConfirmedToast?(String(localized: "DETECTED_EXERCISE_TOAST_LOGGED"))
+            }
         } else {
             Logger.detection.info("Movement ongoing — entering monitoringEnd phase")
             state.phase = .monitoringEnd
             state.notificationPostedAt = nil
+            onUserConfirmedToast?(String(localized: "DETECTED_EXERCISE_TOAST_TRACKING"))
         }
     }
 
