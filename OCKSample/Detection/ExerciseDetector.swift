@@ -53,8 +53,9 @@ final class ExerciseDetector {
 
     fileprivate enum Phase: String, Codable {
         case idle
-        case pendingConfirmation  // notification posted, waiting on user
-        case monitoringEnd        // user confirmed, waiting for movement to stop
+        case pendingConfirmation     // start prompt posted, waiting on user
+        case monitoringEnd           // user confirmed, waiting for movement to stop
+        case pendingEndConfirmation  // end prompt posted, waiting on user
     }
 
     fileprivate struct PersistedState: Codable {
@@ -62,7 +63,15 @@ final class ExerciseDetector {
         var sessionStart: Date?
         var notificationPostedAt: Date?
         var lastDismissAt: Date?
+        // When we last posted the stage-2 "did you finish?" prompt. Prevents
+        // re-posting too quickly if the user picks "still going" and then
+        // immediately drops below the end threshold again.
+        var endPromptPostedAt: Date?
     }
+
+    /// Don't re-post the end prompt sooner than this after the user picked
+    /// "still going" or after the previous end prompt fired.
+    private static let endPromptDebounce: TimeInterval = 5 * 60
 
     // MARK: Dependencies
 
@@ -77,12 +86,28 @@ final class ExerciseDetector {
     /// enough — `await`s inside evaluate are reentrancy points.
     private var isEvaluating = false
 
-    /// UI hook: invoked on the main actor when the user taps the notification's
-    /// Log action. The string is a localized message describing what just
-    /// happened (immediate log vs. waiting for movement to end).
+    /// UI hook: transient toast on user actions (start-confirm, still going,
+    /// ended). String is already localized.
     var onUserConfirmedToast: ((String) -> Void)?
+
+    /// UI hook: fires whenever an active tracking session begins or ends so
+    /// the in-app banner can show/hide. True while phase ∈
+    /// {monitoringEnd, pendingEndConfirmation}.
+    var onSessionActiveChanged: ((Bool) -> Void)?
+    private var lastReportedActive = false
     private var state: PersistedState {
-        didSet { Self.persist(state) }
+        didSet {
+            Self.persist(state)
+            reportSessionActiveIfChanged()
+        }
+    }
+
+    private func reportSessionActiveIfChanged() {
+        let active = state.phase == .monitoringEnd
+            || state.phase == .pendingEndConfirmation
+        guard active != lastReportedActive else { return }
+        lastReportedActive = active
+        onSessionActiveChanged?(active)
     }
 
     init(
@@ -100,6 +125,10 @@ final class ExerciseDetector {
     func start() async {
         Logger.detection.info("ExerciseDetector.start() called")
         notifications.handler = self
+
+        // Persisted state may already represent an active session (e.g. user
+        // killed the app mid-exercise). Sync the UI banner right away.
+        reportSessionActiveIfChanged()
 
         guard HKHealthStore.isHealthDataAvailable() else {
             Logger.detection.warning("HealthKit unavailable on this device")
@@ -181,6 +210,8 @@ final class ExerciseDetector {
             await evaluatePending(now: now)
         case .monitoringEnd:
             await evaluateMonitoring(now: now)
+        case .pendingEndConfirmation:
+            await evaluateAwaitingEnd(now: now)
         }
     }
 
@@ -228,6 +259,13 @@ final class ExerciseDetector {
     }
 
     private func evaluateMonitoring(now: Date) async {
+        // If we already posted an end prompt very recently, don't re-post —
+        // user picked "Still going" and may briefly drop steps again.
+        if let lastPost = state.endPromptPostedAt,
+           now.timeIntervalSince(lastPost) < Self.endPromptDebounce {
+            return
+        }
+
         let recent = await sumSteps(from: now.addingTimeInterval(-Self.endWindow), to: now)
         let windowMin = Int(Self.endWindow / 60)
         let endThreshold = Self.stepEndedThreshold
@@ -236,12 +274,27 @@ final class ExerciseDetector {
         )
         guard recent < Self.stepEndedThreshold else { return }
 
-        let ok = await writeRecord(end: now, isUnconfirmed: false)
-        if ok {
-            Logger.detection.info("Monitoring: end detected — outcome written")
+        Logger.detection.info("Monitoring: drop detected — posting end prompt")
+        state.endPromptPostedAt = now
+        state.phase = .pendingEndConfirmation
+        await notifications.postExerciseEndedNotification()
+    }
+
+    private func evaluateAwaitingEnd(now: Date) async {
+        // User never tapped Still/Ended. After the unconfirmed timeout,
+        // write a record marked unconfirmed and reset.
+        guard let postedAt = state.endPromptPostedAt else {
+            resetToIdle()
+            return
         }
-        // Always debounce — even if write failed, we don't want to spam
-        // re-prompts for the same step burst on every observer wake.
+        guard now.timeIntervalSince(postedAt) >= Self.unconfirmedTimeout else { return }
+
+        let recent = await sumSteps(from: now.addingTimeInterval(-Self.endWindow), to: now)
+        guard recent < Self.stepEndedThreshold else { return }
+
+        Logger.detection.info("AwaitingEnd: timed out — writing unconfirmed record")
+        await writeRecord(end: now, isUnconfirmed: true)
+        notifications.cancelExerciseEndedNotification()
         state.lastDismissAt = Date()
         resetToIdle()
     }
@@ -264,6 +317,15 @@ final class ExerciseDetector {
         state.phase = .idle
         state.sessionStart = nil
         state.notificationPostedAt = nil
+        state.endPromptPostedAt = nil
+    }
+
+    /// In-app card "Dismiss" — user says "this isn't real exercise, abort."
+    func dismissActiveSession() async {
+        Logger.detection.info("dismissActiveSession called (phase=\(self.state.phase.rawValue))")
+        notifications.cancelAllDetectionNotifications()
+        state.lastDismissAt = Date()
+        resetToIdle()
     }
 
     fileprivate var didRegisterForegroundObserver: Bool {
@@ -425,8 +487,29 @@ extension ExerciseDetector: DetectionNotificationHandler {
     }
 
     func userDismissedDetectedExercise() async {
-        Logger.detection.info("User dismissed notification")
+        Logger.detection.info("User dismissed start notification")
         state.lastDismissAt = Date()
         resetToIdle()
+    }
+
+    func userIndicatedStillExercising() async {
+        Logger.detection.info("User picked 'still going' (phase=\(self.state.phase.rawValue))")
+        guard state.phase == .pendingEndConfirmation else { return }
+        state.phase = .monitoringEnd
+        // endPromptPostedAt stays — used as the 5-min repost debounce.
+        onUserConfirmedToast?(String(localized: "DETECTED_EXERCISE_TOAST_STILL"))
+    }
+
+    func userConfirmedExerciseEnded() async {
+        Logger.detection.info("User confirmed end (phase=\(self.state.phase.rawValue))")
+        guard state.phase == .pendingEndConfirmation else { return }
+        let now = Date()
+        let ok = await writeRecord(end: now, isUnconfirmed: false)
+        notifications.cancelExerciseEndedNotification()
+        state.lastDismissAt = Date()
+        resetToIdle()
+        if ok {
+            onUserConfirmedToast?(String(localized: "DETECTED_EXERCISE_TOAST_LOGGED"))
+        }
     }
 }

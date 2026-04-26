@@ -48,6 +48,11 @@ final class AppDelegate: UIResponder, ObservableObject {
     /// show a transient toast. Cleared by the toast view after auto-dismiss.
     @Published var detectionToast: String?
 
+    /// True while a detected-exercise session is being tracked (after the user
+    /// tapped Yes on the start prompt, until the end is confirmed/cancelled).
+    /// Drives the persistent in-app "Tracking exercise" banner.
+    @Published var detectionSessionActive: Bool = false
+
     // MARK: Public read private write properties
 
     @Published private(set) var storeCoordinator: OCKStoreCoordinator = .init() {
@@ -135,6 +140,9 @@ final class AppDelegate: UIResponder, ObservableObject {
         )
         detector.onUserConfirmedToast = { [weak self] message in
             self?.detectionToast = message
+        }
+        detector.onSessionActiveChanged = { [weak self] active in
+            self?.detectionSessionActive = active
         }
         exerciseDetector = detector
 

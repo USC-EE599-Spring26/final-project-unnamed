@@ -16,6 +16,8 @@ import os.log
 protocol DetectionNotificationHandler: AnyObject {
     func userConfirmedDetectedExercise() async
     func userDismissedDetectedExercise() async
+    func userIndicatedStillExercising() async
+    func userConfirmedExerciseEnded() async
 }
 
 /// Owns notification authorization, category registration, and tap routing for
@@ -24,10 +26,16 @@ protocol DetectionNotificationHandler: AnyObject {
 final class DetectionNotificationManager: NSObject {
 
     enum Identifier {
+        // Stage 1 — "Are you exercising?"
         static let category = "detected_exercise.category"
         static let notification = "detected_exercise.prompt"
         static let actionLog = "detected_exercise.action.log"
         static let actionDismiss = "detected_exercise.action.dismiss"
+        // Stage 2 — "Did you finish?"
+        static let endCategory = "detected_exercise.end.category"
+        static let endNotification = "detected_exercise.end.prompt"
+        static let actionStill = "detected_exercise.action.still"
+        static let actionEnded = "detected_exercise.action.ended"
     }
 
     weak var handler: DetectionNotificationHandler?
@@ -39,7 +47,10 @@ final class DetectionNotificationManager: NSObject {
     /// back to us.
     func configure() {
         center.delegate = self
-        center.setNotificationCategories([Self.buildCategory()])
+        center.setNotificationCategories([
+            Self.buildStartCategory(),
+            Self.buildEndCategory()
+        ])
     }
 
     /// Request notification permission. Logs current status so we can diagnose
@@ -80,14 +91,48 @@ final class DetectionNotificationManager: NSObject {
         }
     }
 
-    /// Remove a pending/delivered detection prompt (e.g. movement ended before
-    /// the user responded — we don't want a stale notification sitting around).
-    func cancelExerciseDetectedNotification() {
-        center.removePendingNotificationRequests(withIdentifiers: [Identifier.notification])
-        center.removeDeliveredNotifications(withIdentifiers: [Identifier.notification])
+    /// Post the stage-2 "did you finish?" prompt.
+    func postExerciseEndedNotification() async {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "DETECTED_EXERCISE_END_NOTIF_TITLE")
+        content.body = String(localized: "DETECTED_EXERCISE_END_NOTIF_BODY")
+        content.categoryIdentifier = Identifier.endCategory
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: Identifier.endNotification,
+            content: content,
+            trigger: nil
+        )
+        do {
+            try await center.add(request)
+            Logger.detection.info("End notification posted")
+        } catch {
+            Logger.detection.error("Failed to post end notification: \(error)")
+        }
     }
 
-    private static func buildCategory() -> UNNotificationCategory {
+    /// Remove pending/delivered start prompts.
+    func cancelExerciseDetectedNotification() {
+        let ids = [Identifier.notification]
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+        center.removeDeliveredNotifications(withIdentifiers: ids)
+    }
+
+    /// Remove pending/delivered end prompts.
+    func cancelExerciseEndedNotification() {
+        let ids = [Identifier.endNotification]
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+        center.removeDeliveredNotifications(withIdentifiers: ids)
+    }
+
+    /// Cancel both prompts at once (used when user dismisses via in-app card).
+    func cancelAllDetectionNotifications() {
+        cancelExerciseDetectedNotification()
+        cancelExerciseEndedNotification()
+    }
+
+    private static func buildStartCategory() -> UNNotificationCategory {
         let log = UNNotificationAction(
             identifier: Identifier.actionLog,
             title: String(localized: "DETECTED_EXERCISE_ACTION_LOG"),
@@ -101,6 +146,25 @@ final class DetectionNotificationManager: NSObject {
         return UNNotificationCategory(
             identifier: Identifier.category,
             actions: [log, dismiss],
+            intentIdentifiers: [],
+            options: []
+        )
+    }
+
+    private static func buildEndCategory() -> UNNotificationCategory {
+        let still = UNNotificationAction(
+            identifier: Identifier.actionStill,
+            title: String(localized: "DETECTED_EXERCISE_END_ACTION_STILL"),
+            options: []
+        )
+        let ended = UNNotificationAction(
+            identifier: Identifier.actionEnded,
+            title: String(localized: "DETECTED_EXERCISE_END_ACTION_ENDED"),
+            options: [.foreground]
+        )
+        return UNNotificationCategory(
+            identifier: Identifier.endCategory,
+            actions: [still, ended],
             intentIdentifiers: [],
             options: []
         )
@@ -124,16 +188,26 @@ extension DetectionNotificationManager: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let actionID = response.actionIdentifier
-        Logger.detection.info("didReceive action: \(actionID)")
+        let categoryID = response.notification.request.content.categoryIdentifier
+        Logger.detection.info("didReceive action: \(actionID) (category=\(categoryID))")
         let done = UncheckedSendableCompletion(completionHandler)
         Task { @MainActor [weak self] in
             guard let self else { done.value(); return }
             Logger.detection.info("handler present: \(self.handler != nil)")
-            switch actionID {
-            case Identifier.actionLog, UNNotificationDefaultActionIdentifier:
+            switch (categoryID, actionID) {
+            // Stage 1 — start prompt
+            case (Identifier.category, Identifier.actionLog),
+                 (Identifier.category, UNNotificationDefaultActionIdentifier):
                 await self.handler?.userConfirmedDetectedExercise()
-            case Identifier.actionDismiss, UNNotificationDismissActionIdentifier:
+            case (Identifier.category, Identifier.actionDismiss),
+                 (Identifier.category, UNNotificationDismissActionIdentifier):
                 await self.handler?.userDismissedDetectedExercise()
+            // Stage 2 — end prompt
+            case (Identifier.endCategory, Identifier.actionStill):
+                await self.handler?.userIndicatedStillExercising()
+            case (Identifier.endCategory, Identifier.actionEnded),
+                 (Identifier.endCategory, UNNotificationDefaultActionIdentifier):
+                await self.handler?.userConfirmedExerciseEnded()
             default:
                 break
             }
