@@ -35,22 +35,13 @@ struct ProfileView: View {
                     Section(header: Text("About")) {
                         TextField("First Name",
                                   text: $viewModel.firstName)
-                        .padding()
-                        .cornerRadius(20.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
 
                         TextField("Last Name",
                                   text: $viewModel.lastName)
-                        .padding()
-                        .cornerRadius(20.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
 
                         DatePicker("Birthday",
                                    selection: $viewModel.birthday,
                                    displayedComponents: [DatePickerComponents.date])
-                        .padding()
-                        .cornerRadius(20.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
                     }
                     Section(header: Text("Contact")) {
                         TextField("Email Address", text: $viewModel.emailAddresses)
@@ -72,10 +63,10 @@ struct ProfileView: View {
                         }, label: {
                             Text("Save Profile")
                                 .font(.headline)
-                                .foregroundColor(.green)
+                                .foregroundColor(.white)
                                 .padding(.vertical, 15)
                                 .frame(maxWidth: .infinity, alignment: .center)
-                                .background(Color.white)
+                                .background(Color.cyan)
                                 .cornerRadius(15)
                         })
                         .listRowBackground(Color.clear)
@@ -89,10 +80,10 @@ struct ProfileView: View {
                         }, label: {
                             Text("Log Out")
                                 .font(.headline)
-                                .foregroundColor(.red)
+                                .foregroundColor(.white)
                                 .padding(.vertical, 15)
                                 .frame(maxWidth: .infinity, alignment: .center)
-                                .background(Color.white)
+                                .background(Color.purple)
                                 .cornerRadius(15)
                         })
                         .listRowBackground(Color.clear)
