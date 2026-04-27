@@ -24,7 +24,6 @@ class NotificationViewModel: ObservableObject {
         let relatedId: String
         let createdAt: Date?
         var isRead: Bool
-        /// "accepted" | "rejected" | nil (still pending)
         var result: String?
     }
 
@@ -80,9 +79,7 @@ class NotificationViewModel: ObservableObject {
         do {
             switch item.type {
             case AppNotification.typeConnectionRequest:
-                // Claims patientObjectId (if not yet set), tightens ACL, sets accepted.
                 try await Relationship.acceptRequest(objectId: item.relatedId)
-                // Auto-add the clinician to the patient's local contact list.
                 await addClinicianContactIfNeeded(username: item.fromUsername)
 
             case AppNotification.typeCarePlanAssignment:
@@ -91,6 +88,8 @@ class NotificationViewModel: ObservableObject {
                 var fetched  = try await assignment.fetch()
                 fetched.status = CarePlanAssignment.statusAccepted
                 _ = try await fetched.save()
+                // Copy the care plan and its tasks into the patient's local store.
+                await copyCarePlanToPatientStore(from: fetched)
 
             default:
                 break
@@ -126,17 +125,78 @@ class NotificationViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Copy care plan to patient's store
+
+    /// Decodes the CarePlanSnapshot from CarePlanAssignment.payload and
+    /// creates the OCKCarePlan + OCKTasks in the patient's local CareKit store.
+    /// Skips tasks that already exist (idempotent — safe on re-accept).
+    private func copyCarePlanToPatientStore(from assignment: CarePlanAssignment) async {
+        guard let store   = AppDelegateKey.defaultValue?.store,
+              let payload = assignment.payload else {
+            Logger.contact.warning("copyCarePlanToPatientStore: no payload — skipping")
+            return
+        }
+
+        do {
+            let snapshot = try CarePlanSnapshot.from(jsonString: payload)
+
+            // ── 1. Care plan ─────────────────────────────────────────────
+            // Fetch the patient's own UUID to link the care plan to their profile.
+            let patientUUID = (try? await store
+                .fetchPatients(query: OCKPatientQuery(for: Date())))?.first?.uuid
+
+            // Check if this care plan was already copied (idempotent).
+            var planQuery = OCKCarePlanQuery(for: Date())
+            planQuery.ids = [snapshot.carePlanId]
+            let existingPlan = (try? await store.fetchCarePlans(query: planQuery))?.first
+
+            let titleForLog = snapshot.carePlanTitle ?? snapshot.carePlanId
+
+            let carePlan: OCKCarePlan
+            if let existing = existingPlan {
+                carePlan = existing
+                Logger.contact.info("copyCarePlan: plan '\(snapshot.carePlanId)' already exists")
+            } else {
+                let newPlan = OCKCarePlan(
+                    id: snapshot.carePlanId,
+                    title: snapshot.carePlanTitle ?? snapshot.carePlanId,
+                    patientUUID: patientUUID
+                )
+                carePlan = try await store.addCarePlan(newPlan)
+                Logger.contact.info("copyCarePlan: created plan '\(titleForLog)'")
+            }
+
+            // ── 2. Tasks ─────────────────────────────────────────────────
+            let taskIds = snapshot.tasks.map { $0.id }
+            var taskQuery = OCKTaskQuery(for: Date())
+            taskQuery.ids = taskIds
+            let existingTaskIds = Set(
+                ((try? await store.fetchTasks(query: taskQuery)) ?? []).map { $0.id }
+            )
+
+            let tasksToAdd = snapshot.tasks
+                .filter { !existingTaskIds.contains($0.id) }
+                .map { $0.toOCKTask(carePlanUUID: carePlan.uuid) }
+
+            if !tasksToAdd.isEmpty {
+                _ = try await store.addTasks(tasksToAdd)
+                Logger.contact.info(
+                    "copyCarePlan: added \(tasksToAdd.count) task(s) for '\(titleForLog)'"
+                )
+            }
+        } catch {
+            // Non-fatal — assignment is already marked accepted; log and continue.
+            Logger.contact.warning("copyCarePlanToPatientStore failed: \(error)")
+        }
+    }
+
     // MARK: - Auto-add clinician contact
 
-    /// Adds the clinician as an OCKContact in the patient's local CareKit store
-    /// after they accept a connection request. Checks for an existing contact first
-    /// so repeated accepts (or re-logins) don't create duplicates.
     private func addClinicianContactIfNeeded(username: String) async {
         guard let store = AppDelegateKey.defaultValue?.store else { return }
 
         let contactId = "clinician-\(username)"
 
-        // Existence check — skip if already in the local store.
         var query = OCKContactQuery()
         query.ids = [contactId]
         let existing = (try? await store.fetchContacts(query: query)) ?? []
@@ -145,7 +205,6 @@ class NotificationViewModel: ObservableObject {
             return
         }
 
-        // Build a minimal contact from the username we already have.
         var name = PersonNameComponents()
         name.givenName = username.capitalized
 
@@ -165,14 +224,13 @@ class NotificationViewModel: ObservableObject {
 
     func markRead(_ item: NotificationItem, result: String? = nil) async {
         do {
-            var notif = AppNotification()
-            notif.objectId = item.id
-            var fetched  = try await notif.fetch()
-            fetched.isRead = true
-            if let result { fetched.result = result }
-            _ = try await fetched.save()
+            var found = try await AppNotification
+                .query("objectId" == item.id)
+                .first()
+            found.isRead = true
+            if let result { found.result = result }
+            _ = try await found.save()
 
-            // Update local state so UI reflects the change immediately.
             notifications = notifications.map { notification in
                 guard notification.id == item.id else { return notification }
                 var updated = notification
@@ -181,6 +239,7 @@ class NotificationViewModel: ObservableObject {
                 return updated
             }
         } catch {
+            errorMessage = "Could not update notification: \(error.localizedDescription)"
             Logger.contact.warning("NotificationViewModel: markRead failed: \(error)")
         }
     }

@@ -245,6 +245,9 @@
 		BE7C4AB32F9DFD5C003554A0 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */; };
 		BE7C4AB52F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */; };
 		BE7C4AB62F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */; };
+		BEB2F93B2F9F474A005B043C /* CarePlanSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */; };
+		BEB2F93C2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */; };
+		BEB2F93D2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */; };
 		BECC02012FAABB00CCDDEE01 /* Patient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01012FAABB00CCDDEE01 /* Patient.swift */; };
 		BECC02022FAABB00CCDDEE01 /* Clinician.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01022FAABB00CCDDEE01 /* Clinician.swift */; };
 		BECC02032FAABB00CCDDEE01 /* AppNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01032FAABB00CCDDEE01 /* AppNotification.swift */; };
@@ -492,6 +495,7 @@
 		BE7C49462F9DF46E003554A0 /* Relationship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relationship.swift; sourceTree = "<group>"; };
 		BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
 		BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewModel.swift; sourceTree = "<group>"; };
+		BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanSnapshot.swift; sourceTree = "<group>"; };
 		BECC01012FAABB00CCDDEE01 /* Patient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patient.swift; sourceTree = "<group>"; };
 		BECC01022FAABB00CCDDEE01 /* Clinician.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clinician.swift; sourceTree = "<group>"; };
 		BECC01032FAABB00CCDDEE01 /* AppNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotification.swift; sourceTree = "<group>"; };
@@ -843,6 +847,7 @@
 			children = (
 				BE24ACB22F735F4D00611424 /* CarePlanID.swift */,
 				BE4EAA802F511D1900CF7BF0 /* CareKitCard.swift */,
+				BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */,
 				7099D1FE29E98D900037CD8E /* AppError.swift */,
 				7099D20A29E98E400037CD8E /* InstallationChannel.swift */,
 				7099D20429E98DFF0037CD8E /* TaskID.swift */,
@@ -1446,6 +1451,7 @@
 				BE24ACA52F7355C300611424 /* RangeOfMotion.swift in Sources */,
 				707D295F2DCBE68500980253 /* OCKSampleApp.swift in Sources */,
 				707D29602DCBE68500980253 /* SessionDelegate.swift in Sources */,
+				BEB2F93B2F9F474A005B043C /* CarePlanSnapshot.swift in Sources */,
 				3F0412042F58A7E200A9641E /* AnimationStyler.swift in Sources */,
 				BE4EAB132F59735200CF7BF0 /* CareKitTaskViewModel.swift in Sources */,
 				BE6A48C82F7E4ED700C25E90 /* CareViewController.swift in Sources */,
@@ -1530,6 +1536,7 @@
 				3F0412002F58A76E00A9641E /* DimensionStyler.swift in Sources */,
 				707CC719254DA91900116728 /* OCKLocalization.swift in Sources */,
 				7007759B252229C900EC0EDA /* User.swift in Sources */,
+				BEB2F93C2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */,
 				7099D20929E98E200037CD8E /* UserType.swift in Sources */,
 				918FDEB9271B493A0045A0EF /* Installation.swift in Sources */,
 				91AD923F24A4C42D00925D4D /* NotificationController.swift in Sources */,
@@ -1619,6 +1626,7 @@
 				BECC020A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift in Sources */,
 				BE7C48822F9AF1DB003554A0 /* CarePlanDetailView.swift in Sources */,
 				3F0412022F58A7E200A9641E /* AnimationStyler.swift in Sources */,
+				BEB2F93D2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */,
 				70077597252228E900EC0EDA /* User.swift in Sources */,
 				7036E4C9256E1A6F006E9A3C /* ProfileView.swift in Sources */,
 				BE7C4AB52F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */,

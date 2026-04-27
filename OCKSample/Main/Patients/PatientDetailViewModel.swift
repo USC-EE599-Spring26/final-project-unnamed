@@ -28,7 +28,8 @@ class PatientDetailViewModel: ObservableObject {
     // MARK: - Published
 
     @Published var carePlans: [CarePlanItem] = []
-    @Published var isLoading     = false
+    @Published var isLoading      = false
+    @Published var isProcessing   = false   // true while toggleAssignment is in-flight
     @Published var errorMessage: String?
 
     // MARK: - Private
@@ -82,6 +83,9 @@ class PatientDetailViewModel: ObservableObject {
     // MARK: - Assign / Unassign
 
     func toggleAssignment(for item: CarePlanItem) async {
+        guard !isProcessing else { return }
+        isProcessing = true
+        defer { isProcessing = false }
         do {
             let currentUser = try await User.current()
             guard let myObjectId = currentUser.objectId,
@@ -105,11 +109,13 @@ class PatientDetailViewModel: ObservableObject {
                     updateLocalItem(id: item.id, status: CarePlanAssignment.statusRejected,
                                     objId: existingId)
                 } else {
-                    // Re-assign (was rejected): flip back to pending
+                    // Re-assign (was rejected): rebuild snapshot in case plan changed
+                    let payload = await buildSnapshot(for: item)
                     var assignment = CarePlanAssignment()
                     assignment.objectId = existingId
                     var fetched = try await assignment.fetch()
-                    fetched.status = CarePlanAssignment.statusPending
+                    fetched.status  = CarePlanAssignment.statusPending
+                    fetched.payload = payload
                     _ = try await fetched.save()
 
                     // Re-notify patient
@@ -126,14 +132,16 @@ class PatientDetailViewModel: ObservableObject {
                 }
 
             } else {
-                // First-time assignment
+                // First-time assignment — build snapshot of the care plan + tasks
+                let payload = await buildSnapshot(for: item)
                 let saved = try await CarePlanAssignment.create(
                     clinicianObjectId: myObjectId,
                     clinicianUsername: myUsername,
                     patientObjectId: patient.patientObjectId,
                     patientUsername: patient.username,
                     carePlanId: item.id,
-                    carePlanTitle: item.title
+                    carePlanTitle: item.title,
+                    payload: payload
                 )
                 guard let assignment = saved, let objId = assignment.objectId else {
                     errorMessage = "Assignment already exists."
@@ -146,7 +154,7 @@ class PatientDetailViewModel: ObservableObject {
                     fromUsername: myUsername,
                     type: AppNotification.typeCarePlanAssignment,
                     relatedId: objId,
-                    message: "\(myUsername.capitalized) assigned care plan: \(item.title)"
+                    message: "\(myUsername.capitalized) assigned you a care plan: \(item.title)"
                 )
                 updateLocalItem(id: item.id, status: CarePlanAssignment.statusPending,
                                 objId: objId)
@@ -157,6 +165,33 @@ class PatientDetailViewModel: ObservableObject {
     }
 
     // MARK: - Private helpers
+
+    /// Serialises the care plan and all its tasks into a JSON string for storage
+    /// in CarePlanAssignment.payload. Returns nil if the store is unavailable or
+    /// the plan cannot be found (assignment still works — patient just won't get tasks).
+    private func buildSnapshot(for item: CarePlanItem) async -> String? {
+        guard let store = AppDelegateKey.defaultValue?.store else { return nil }
+
+        // Fetch the full OCKCarePlan so we have its UUID.
+        var planQuery = OCKCarePlanQuery(for: Date())
+        planQuery.ids = [item.id]
+        guard let plan = (try? await store.fetchCarePlans(query: planQuery))?.first else {
+            Logger.contact.warning("buildSnapshot: care plan '\(item.id)' not found")
+            return nil
+        }
+
+        // Fetch all tasks that belong to this care plan.
+        var taskQuery = OCKTaskQuery(for: Date())
+        taskQuery.carePlanUUIDs = [plan.uuid]
+        let tasks = (try? await store.fetchTasks(query: taskQuery)) ?? []
+
+        let snapshot = CarePlanSnapshot(plan: plan, tasks: tasks)
+        let json = try? snapshot.toJSONString()
+        Logger.contact.info(
+            "buildSnapshot: '\(item.title)' — \(tasks.count) task(s) serialised"
+        )
+        return json
+    }
 
     private func updateLocalItem(id: String, status: String, objId: String) {
         carePlans = carePlans.map { item in

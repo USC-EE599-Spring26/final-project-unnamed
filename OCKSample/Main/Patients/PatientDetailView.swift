@@ -55,10 +55,16 @@ struct PatientDetailView: View {
                                 Label(item.title, systemImage: "list.clipboard")
                                     .foregroundStyle(.primary)
                                 Spacer()
-                                assignmentIcon(for: item.assignmentStatus)
+                                if viewModel.isProcessing {
+                                    ProgressView()
+                                        .frame(width: 22, height: 22)
+                                } else {
+                                    assignmentIcon(for: item.assignmentStatus)
+                                }
                             }
                         }
                         .buttonStyle(.plain)
+                        .disabled(viewModel.isProcessing)
                     }
                 }
             } header: {

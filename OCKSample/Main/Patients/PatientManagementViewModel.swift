@@ -174,10 +174,17 @@ class PatientManagementViewModel: ObservableObject {
         let pendingEmails  = Set(pendingPatients.compactMap { $0.email?.lowercased() })
                                 .union(Set(pendingUnlinked.compactMap { $0.email?.lowercased() }))
 
+        // DEBUG — remove after diagnosing Patient111 issue
+        Logger.contact.debug("fetchContacts: acceptedEmails=\(acceptedEmails)")
+        Logger.contact.debug("fetchContacts: pendingEmails=\(pendingEmails)")
+
         // Only include contacts that have an email address (required for inviting).
         contactItems = rawContacts.compactMap { contact in
             guard let email = contact.emailAddresses?.first?.value.lowercased(),
                   !email.isEmpty else { return nil }
+
+            // DEBUG — remove after diagnosing Patient111 issue
+            Logger.contact.debug("fetchContacts: contact id=\(contact.id) email=\(email)")
 
             let phone = contact.phoneNumbers?.first?.value.lowercased()
             let name  = PersonNameComponentsFormatter()
@@ -242,6 +249,8 @@ class PatientManagementViewModel: ObservableObject {
                 patientUsername: resolvedUsername,
                 patientEmail: email
             )
+
+            Logger.contact.info("Sending connection request for \(email, privacy: .private)")
 
             // nil → duplicate pending row, already logged inside createRequest.
             guard saved != nil else { return }

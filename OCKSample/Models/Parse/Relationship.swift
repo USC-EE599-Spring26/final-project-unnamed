@@ -134,7 +134,7 @@ extension Relationship {
         }
 
         var rel = Relationship()
-//        rel.objectId        = UUID().uuidString  // ParseCareKit uses allowCustomObjectId: true
+        rel.objectId        = UUID().uuidString     // ParseCareKit uses allowCustomObjectId: true
         rel.doctorObjectId  = clinicianObjectId
         rel.doctorUsername  = clinicianUsername
         rel.patientUsername = patientUsername
@@ -149,7 +149,21 @@ extension Relationship {
         rel.ACL = acl
 
         Logger.contact.info("Relationship.createRequest: saving for \(email, privacy: .private)")
+        Logger.contact.info("""
+        rel dump:
+          doctorObjectId:  \(rel.doctorObjectId ?? "nil", privacy: .public)
+          doctorUsername:  \(rel.doctorUsername ?? "nil", privacy: .public)
+          patientObjectId: \(rel.patientObjectId ?? "nil", privacy: .public)
+          patientUsername: \(rel.patientUsername ?? "nil", privacy: .public)
+          patientEmail:    \(rel.patientEmail ?? "nil", privacy: .public)
+          patientPhone:    \(rel.patientPhone ?? "nil", privacy: .public)
+          status:          \(rel.status ?? "nil", privacy: .public)
+          objectId:        \(rel.objectId ?? "nil", privacy: .public)
+          ACL:             \(String(describing: rel.ACL), privacy: .public)
+        """)
         let res = try await rel.save()
+
+        Logger.contact.info("Relationship.createRequest: saved")
         return res
 //        return try await rel.save()
     }

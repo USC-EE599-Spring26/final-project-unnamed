@@ -43,6 +43,10 @@ struct CarePlanAssignment: ParseObject {
 
     /// "pending" | "accepted" | "rejected"
     var status: String?
+
+    /// JSON-encoded CarePlanSnapshot — written by the clinician when assigning,
+    /// read by the patient when accepting to copy the care plan into their store.
+    var payload: String?
 }
 
 // MARK: - Merge
@@ -71,6 +75,9 @@ extension CarePlanAssignment {
         if updated.shouldRestoreKey(\.status, original: object) {
             updated.status = object.status
         }
+        if updated.shouldRestoreKey(\.payload, original: object) {
+            updated.payload = object.payload
+        }
         return updated
     }
 }
@@ -87,7 +94,8 @@ extension CarePlanAssignment {
         patientObjectId: String,
         patientUsername: String,
         carePlanId: String,
-        carePlanTitle: String
+        carePlanTitle: String,
+        payload: String? = nil
     ) async throws -> CarePlanAssignment? {
 
         // Idempotency: don't duplicate for the same (clinician, patient, carePlan) triple.
@@ -111,6 +119,7 @@ extension CarePlanAssignment {
         assignment.carePlanId        = carePlanId
         assignment.carePlanTitle     = carePlanTitle
         assignment.status            = statusPending
+        assignment.payload           = payload
 
         // Clinician read/write + patient read/write.
         var acl = ParseACL()
