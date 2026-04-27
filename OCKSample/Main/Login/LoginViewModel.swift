@@ -114,6 +114,12 @@ class LoginViewModel: ObservableObject {
 
         // Setup installation to receive push notifications
         await Utility.updateInstallationWithDeviceToken()
+
+        // Claim any pending Relationship rows addressed to this user's email
+        // or phone before they had an account. Each match has its patientObjectId
+        // / patientUsername filled in, ACL tightened, and the deferred
+        // connection-request notification dispatched. Idempotent.
+        await Relationship.linkPendingForCurrentUser()
     }
 
     private func savePatientAfterSignUp(

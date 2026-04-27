@@ -28,13 +28,13 @@ struct ClinicianTabView: View {
                 }
                 .tag(0)
 
-            InsightsView()
+            PatientManagementView()
                 .tabItem {
                     if selectedTab == 1 {
-                        Image(systemName: "chart.pie.fill")
+                        Image(systemName: "person.3.fill")
                             .renderingMode(.template)
                     } else {
-                        Image(systemName: "chart.pie")
+                        Image(systemName: "person.3")
                             .renderingMode(.template)
                     }
                 }

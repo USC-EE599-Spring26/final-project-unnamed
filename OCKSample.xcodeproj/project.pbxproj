@@ -238,6 +238,29 @@
 		BE7C487F2F9AF1B6003554A0 /* CarePlanManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C487D2F9AF1AD003554A0 /* CarePlanManagementView.swift */; };
 		BE7C48812F9AF1DB003554A0 /* CarePlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C48802F9AF1DA003554A0 /* CarePlanDetailView.swift */; };
 		BE7C48822F9AF1DB003554A0 /* CarePlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C48802F9AF1DA003554A0 /* CarePlanDetailView.swift */; };
+		BE7C49472F9DF46E003554A0 /* Relationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C49462F9DF46E003554A0 /* Relationship.swift */; };
+		BE7C49482F9DF46E003554A0 /* Relationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C49462F9DF46E003554A0 /* Relationship.swift */; };
+		BE7C49492F9DF46E003554A0 /* Relationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C49462F9DF46E003554A0 /* Relationship.swift */; };
+		BE7C4AB22F9DFD5C003554A0 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */; };
+		BE7C4AB32F9DFD5C003554A0 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */; };
+		BE7C4AB52F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */; };
+		BE7C4AB62F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */; };
+		BECC02012FAABB00CCDDEE01 /* Patient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01012FAABB00CCDDEE01 /* Patient.swift */; };
+		BECC02022FAABB00CCDDEE01 /* Clinician.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01022FAABB00CCDDEE01 /* Clinician.swift */; };
+		BECC02032FAABB00CCDDEE01 /* AppNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01032FAABB00CCDDEE01 /* AppNotification.swift */; };
+		BECC02042FAABB00CCDDEE01 /* CarePlanAssignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01042FAABB00CCDDEE01 /* CarePlanAssignment.swift */; };
+		BECC02072FAABB00CCDDEE01 /* PatientManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01072FAABB00CCDDEE01 /* PatientManagementView.swift */; };
+		BECC02082FAABB00CCDDEE01 /* PatientManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01082FAABB00CCDDEE01 /* PatientManagementViewModel.swift */; };
+		BECC02092FAABB00CCDDEE01 /* PatientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01092FAABB00CCDDEE01 /* PatientDetailView.swift */; };
+		BECC020A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC010A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift */; };
+		BECC03012FAABB00CCDDEE01 /* Patient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01012FAABB00CCDDEE01 /* Patient.swift */; };
+		BECC03022FAABB00CCDDEE01 /* Clinician.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01022FAABB00CCDDEE01 /* Clinician.swift */; };
+		BECC03032FAABB00CCDDEE01 /* AppNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01032FAABB00CCDDEE01 /* AppNotification.swift */; };
+		BECC03042FAABB00CCDDEE01 /* CarePlanAssignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01042FAABB00CCDDEE01 /* CarePlanAssignment.swift */; };
+		BECC04012FAABB00CCDDEE02 /* Patient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01012FAABB00CCDDEE01 /* Patient.swift */; };
+		BECC04022FAABB00CCDDEE02 /* Clinician.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01022FAABB00CCDDEE01 /* Clinician.swift */; };
+		BECC04032FAABB00CCDDEE02 /* AppNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01032FAABB00CCDDEE01 /* AppNotification.swift */; };
+		BECC04042FAABB00CCDDEE02 /* CarePlanAssignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01042FAABB00CCDDEE01 /* CarePlanAssignment.swift */; };
 		E72B2C0A226939E3009A9438 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72B2C09226939E3009A9438 /* AppDelegate.swift */; };
 		E72B2C14226939E4009A9438 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E72B2C12226939E4009A9438 /* LaunchScreen.storyboard */; };
 		E7440E4F229477F7007AD30A /* CareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7440E4E229477F7007AD30A /* CareViewController.swift */; };
@@ -466,6 +489,17 @@
 		BE7C487A2F9AF186003554A0 /* CarePlanManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanManagementViewModel.swift; sourceTree = "<group>"; };
 		BE7C487D2F9AF1AD003554A0 /* CarePlanManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanManagementView.swift; sourceTree = "<group>"; };
 		BE7C48802F9AF1DA003554A0 /* CarePlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanDetailView.swift; sourceTree = "<group>"; };
+		BE7C49462F9DF46E003554A0 /* Relationship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relationship.swift; sourceTree = "<group>"; };
+		BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
+		BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewModel.swift; sourceTree = "<group>"; };
+		BECC01012FAABB00CCDDEE01 /* Patient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patient.swift; sourceTree = "<group>"; };
+		BECC01022FAABB00CCDDEE01 /* Clinician.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clinician.swift; sourceTree = "<group>"; };
+		BECC01032FAABB00CCDDEE01 /* AppNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotification.swift; sourceTree = "<group>"; };
+		BECC01042FAABB00CCDDEE01 /* CarePlanAssignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanAssignment.swift; sourceTree = "<group>"; };
+		BECC01072FAABB00CCDDEE01 /* PatientManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientManagementView.swift; sourceTree = "<group>"; };
+		BECC01082FAABB00CCDDEE01 /* PatientManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientManagementViewModel.swift; sourceTree = "<group>"; };
+		BECC01092FAABB00CCDDEE01 /* PatientDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientDetailView.swift; sourceTree = "<group>"; };
+		BECC010A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientDetailViewModel.swift; sourceTree = "<group>"; };
 		E72B2C06226939E3009A9438 /* OCKSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OCKSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E72B2C09226939E3009A9438 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E72B2C13226939E4009A9438 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -627,6 +661,8 @@
 				7030887D258272F400FFABB6 /* Contact */,
 				7055723D2DC1E457008E5B0A /* Insights */,
 				7030887E2582731300FFABB6 /* Login */,
+				BE7C4AB82F9DFF3C003554A0 /* Notifications */,
+				BECC04012FAABB00CCDDEE01 /* Patients */,
 				7030887C258272E700FFABB6 /* Profile */,
 				91693819271B64CB00A634ED /* Stylers */,
 				BE24AC952F7354F100611424 /* Surveys */,
@@ -714,7 +750,12 @@
 		7099D1FD29E98D780037CD8E /* Parse */ = {
 			isa = PBXGroup;
 			children = (
+				BECC01032FAABB00CCDDEE01 /* AppNotification.swift */,
+				BECC01042FAABB00CCDDEE01 /* CarePlanAssignment.swift */,
+				BECC01022FAABB00CCDDEE01 /* Clinician.swift */,
 				918FDEB4271B40590045A0EF /* Installation.swift */,
+				BECC01012FAABB00CCDDEE01 /* Patient.swift */,
+				BE7C49462F9DF46E003554A0 /* Relationship.swift */,
 				70077596252228E900EC0EDA /* User.swift */,
 			);
 			path = Parse;
@@ -923,6 +964,26 @@
 				BE7C487A2F9AF186003554A0 /* CarePlanManagementViewModel.swift */,
 			);
 			path = Careplans;
+			sourceTree = "<group>";
+		};
+		BE7C4AB82F9DFF3C003554A0 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */,
+				BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		BECC04012FAABB00CCDDEE01 /* Patients */ = {
+			isa = PBXGroup;
+			children = (
+				BECC01072FAABB00CCDDEE01 /* PatientManagementView.swift */,
+				BECC01082FAABB00CCDDEE01 /* PatientManagementViewModel.swift */,
+				BECC01092FAABB00CCDDEE01 /* PatientDetailView.swift */,
+				BECC010A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift */,
+			);
+			path = Patients;
 			sourceTree = "<group>";
 		};
 		E72B2BFD226939E3009A9438 = {
@@ -1355,6 +1416,7 @@
 				3F32CD482F88D222004E8194 /* ContactView.swift in Sources */,
 				707D29512DCBE68500980253 /* CareView.swift in Sources */,
 				707D29522DCBE68500980253 /* AppDelegateKey.swift in Sources */,
+				BE7C4AB22F9DFD5C003554A0 /* NotificationView.swift in Sources */,
 				707D29532DCBE68500980253 /* Logger.swift in Sources */,
 				707D29542DCBE68500980253 /* TintColorFlipKey.swift in Sources */,
 				BE24ACA32F73558B00611424 /* Onboard.swift in Sources */,
@@ -1369,6 +1431,12 @@
 				BE24ACBC2F75F3D900611424 /* OCKAnyEvent+Custom.swift in Sources */,
 				707D295B2DCBE68500980253 /* LoginView.swift in Sources */,
 				707D295C2DCBE68500980253 /* AppDelegate.swift in Sources */,
+				BE7C49482F9DF46E003554A0 /* Relationship.swift in Sources */,
+				BECC04012FAABB00CCDDEE02 /* Patient.swift in Sources */,
+				BECC04022FAABB00CCDDEE02 /* Clinician.swift in Sources */,
+				BE7C4AB62F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */,
+				BECC04032FAABB00CCDDEE02 /* AppNotification.swift in Sources */,
+				BECC04042FAABB00CCDDEE02 /* CarePlanAssignment.swift in Sources */,
 				707D295D2DCBE68500980253 /* LoginViewModel.swift in Sources */,
 				BE4EAA822F511D2600CF7BF0 /* CareKitCard.swift in Sources */,
 				70B8E0A62F0EC1CA00440FCA /* Mutex.swift in Sources */,
@@ -1440,6 +1508,11 @@
 				7075152028DE1BB400A57A0C /* LoginView.swift in Sources */,
 				70E342292DB05813005124F9 /* ProfileView.swift in Sources */,
 				BE24ACAF2F7357BE00611424 /* RangeOfMotion.swift in Sources */,
+				BE7C49492F9DF46E003554A0 /* Relationship.swift in Sources */,
+				BECC03012FAABB00CCDDEE01 /* Patient.swift in Sources */,
+				BECC03022FAABB00CCDDEE01 /* Clinician.swift in Sources */,
+				BECC03032FAABB00CCDDEE01 /* AppNotification.swift in Sources */,
+				BECC03042FAABB00CCDDEE01 /* CarePlanAssignment.swift in Sources */,
 				BE24ACB02F7357BE00611424 /* Surveyable.swift in Sources */,
 				BE24ACB12F7357BE00611424 /* Survey.swift in Sources */,
 				70F921B227CAC16E00368CEC /* RemoteSessionDelegate.swift in Sources */,
@@ -1502,6 +1575,7 @@
 				707D28CF2DCA8AAB00980253 /* OCKStore+SampleData.swift in Sources */,
 				7055725B2DC33AB1008E5B0A /* SplashScreenView.swift in Sources */,
 				70F03AA827860E7700E5AFB4 /* FontColorKey.swift in Sources */,
+				BE7C4AB32F9DFD5C003554A0 /* NotificationView.swift in Sources */,
 				BE4EAAEA2F59611700CF7BF0 /* OCKHealthKitTask+CardTask.swift in Sources */,
 				9169381B271B64E100A634ED /* Styler.swift in Sources */,
 				70F921A827CA9A3A00368CEC /* CustomStylerKey.swift in Sources */,
@@ -1534,10 +1608,20 @@
 				BE24ACA92F7355D300611424 /* Survey.swift in Sources */,
 				3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */,
 				3F66978E2F86D16300D3E377 /* ProfileImageView.swift in Sources */,
+				BE7C49472F9DF46E003554A0 /* Relationship.swift in Sources */,
+				BECC02012FAABB00CCDDEE01 /* Patient.swift in Sources */,
+				BECC02022FAABB00CCDDEE01 /* Clinician.swift in Sources */,
+				BECC02032FAABB00CCDDEE01 /* AppNotification.swift in Sources */,
+				BECC02042FAABB00CCDDEE01 /* CarePlanAssignment.swift in Sources */,
+				BECC02072FAABB00CCDDEE01 /* PatientManagementView.swift in Sources */,
+				BECC02082FAABB00CCDDEE01 /* PatientManagementViewModel.swift in Sources */,
+				BECC02092FAABB00CCDDEE01 /* PatientDetailView.swift in Sources */,
+				BECC020A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift in Sources */,
 				BE7C48822F9AF1DB003554A0 /* CarePlanDetailView.swift in Sources */,
 				3F0412022F58A7E200A9641E /* AnimationStyler.swift in Sources */,
 				70077597252228E900EC0EDA /* User.swift in Sources */,
 				7036E4C9256E1A6F006E9A3C /* ProfileView.swift in Sources */,
+				BE7C4AB52F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */,
 				BE7C487E2F9AF1B6003554A0 /* CarePlanManagementView.swift in Sources */,
 				7083A856279CA40A00B3832E /* PCKUtility.swift in Sources */,
 				70B8E0A52F0EC1CA00440FCA /* Mutex.swift in Sources */,
