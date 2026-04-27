@@ -6,6 +6,7 @@
 //  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
 //
 
+import CareKitStore
 import Foundation
 import os.log
 import ParseSwift
@@ -23,6 +24,8 @@ class NotificationViewModel: ObservableObject {
         let relatedId: String
         let createdAt: Date?
         var isRead: Bool
+        /// "accepted" | "rejected" | nil (still pending)
+        var result: String?
     }
 
     // MARK: - Published
@@ -30,6 +33,10 @@ class NotificationViewModel: ObservableObject {
     @Published var notifications: [NotificationItem] = []
     @Published var isLoading     = false
     @Published var errorMessage: String?
+
+    // MARK: - Derived
+
+    var unreadCount: Int { notifications.filter { !$0.isRead }.count }
 
     // MARK: - Fetch
 
@@ -61,7 +68,8 @@ class NotificationViewModel: ObservableObject {
                 fromUsername: from,
                 relatedId: relatedId,
                 createdAt: notif.createdAt,
-                isRead: notif.isRead ?? false
+                isRead: notif.isRead ?? false,
+                result: notif.result
             )
         }
     }
@@ -74,6 +82,8 @@ class NotificationViewModel: ObservableObject {
             case AppNotification.typeConnectionRequest:
                 // Claims patientObjectId (if not yet set), tightens ACL, sets accepted.
                 try await Relationship.acceptRequest(objectId: item.relatedId)
+                // Auto-add the clinician to the patient's local contact list.
+                await addClinicianContactIfNeeded(username: item.fromUsername)
 
             case AppNotification.typeCarePlanAssignment:
                 var assignment = CarePlanAssignment()
@@ -85,7 +95,7 @@ class NotificationViewModel: ObservableObject {
             default:
                 break
             }
-            await markRead(item)
+            await markRead(item, result: AppNotification.resultAccepted)
         } catch {
             errorMessage = "Could not accept: \(error.localizedDescription)"
         }
@@ -110,27 +120,64 @@ class NotificationViewModel: ObservableObject {
             default:
                 break
             }
-            await markRead(item)
+            await markRead(item, result: AppNotification.resultRejected)
         } catch {
             errorMessage = "Could not reject: \(error.localizedDescription)"
         }
     }
 
+    // MARK: - Auto-add clinician contact
+
+    /// Adds the clinician as an OCKContact in the patient's local CareKit store
+    /// after they accept a connection request. Checks for an existing contact first
+    /// so repeated accepts (or re-logins) don't create duplicates.
+    private func addClinicianContactIfNeeded(username: String) async {
+        guard let store = AppDelegateKey.defaultValue?.store else { return }
+
+        let contactId = "clinician-\(username)"
+
+        // Existence check — skip if already in the local store.
+        var query = OCKContactQuery()
+        query.ids = [contactId]
+        let existing = (try? await store.fetchContacts(query: query)) ?? []
+        guard existing.isEmpty else {
+            Logger.contact.info("Clinician contact '\(contactId)' already exists — skipping.")
+            return
+        }
+
+        // Build a minimal contact from the username we already have.
+        var name = PersonNameComponents()
+        name.givenName = username.capitalized
+
+        var contact = OCKContact(id: contactId, name: name, carePlanUUID: nil)
+        contact.title = "Dr."
+        contact.role  = "Care Team"
+
+        do {
+            _ = try await store.addContact(contact)
+            Logger.contact.info("Added clinician contact: \(contactId)")
+        } catch {
+            Logger.contact.warning("Failed to add clinician contact: \(error)")
+        }
+    }
+
     // MARK: - Mark read
 
-    func markRead(_ item: NotificationItem) async {
+    func markRead(_ item: NotificationItem, result: String? = nil) async {
         do {
             var notif = AppNotification()
             notif.objectId = item.id
             var fetched  = try await notif.fetch()
             fetched.isRead = true
+            if let result { fetched.result = result }
             _ = try await fetched.save()
 
-            // Update local state.
+            // Update local state so UI reflects the change immediately.
             notifications = notifications.map { notification in
                 guard notification.id == item.id else { return notification }
                 var updated = notification
                 updated.isRead = true
+                updated.result = result
                 return updated
             }
         } catch {

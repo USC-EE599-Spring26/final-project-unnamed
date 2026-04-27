@@ -21,6 +21,11 @@ struct AppNotification: ParseObject {
     static let typeConnectionRequest  = "connection_request"
     static let typeCarePlanAssignment = "careplan_assignment"
 
+    // MARK: - Result constants
+
+    static let resultAccepted = "accepted"
+    static let resultRejected = "rejected"
+
     // MARK: - ParseObject required
 
     var objectId: String?
@@ -46,6 +51,10 @@ struct AppNotification: ParseObject {
 
     /// Recipient sets this to true once they have seen the notification.
     var isRead: Bool?
+
+    /// "accepted" | "rejected" — set by the recipient when they act on the notification.
+    /// nil means the notification is still pending (no action taken yet).
+    var result: String?
 }
 
 // MARK: - Merge
@@ -73,6 +82,9 @@ extension AppNotification {
         }
         if updated.shouldRestoreKey(\.isRead, original: object) {
             updated.isRead = object.isRead
+        }
+        if updated.shouldRestoreKey(\.result, original: object) {
+            updated.result = object.result
         }
         return updated
     }

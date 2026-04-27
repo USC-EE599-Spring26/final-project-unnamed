@@ -10,7 +10,9 @@ import SwiftUI
 
 struct NotificationView: View {
 
-    @StateObject private var viewModel = NotificationViewModel()
+    /// Owned by the parent (MainTabView) so the unread badge count
+    /// stays in sync with the tab bar without a second fetch.
+    @ObservedObject var viewModel: NotificationViewModel
 
     var body: some View {
         NavigationView {
@@ -71,7 +73,7 @@ private struct NotificationRow: View {
                         .font(.subheadline)
                         .fontWeight(item.isRead ? .regular : .semibold)
                     if let date = item.createdAt {
-                        Text(date, style: .relative)
+                        Text(Self.dateFormatter.string(from: date))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -100,11 +102,26 @@ private struct NotificationRow: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                 }
+            } else if let result = item.result {
+                // Acted — show result badge instead of buttons.
+                let accepted = result == AppNotification.resultAccepted
+                Label(
+                    accepted ? "Connected" : "Declined",
+                    systemImage: accepted ? "checkmark.seal.fill" : "xmark.seal.fill"
+                )
+                .font(.caption.weight(.medium))
+                .foregroundStyle(accepted ? .green : .secondary)
             }
         }
         .padding(.vertical, 4)
         .opacity(item.isRead ? 0.6 : 1.0)
     }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm MM/dd/yyyy"
+        return formatter
+    }()
 
     private var iconName: String {
         switch item.type {
