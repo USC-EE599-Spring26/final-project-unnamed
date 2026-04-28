@@ -40,7 +40,7 @@ final class HeartRateAnomalyDetector {
     private static let dismissDebounce: TimeInterval = 30 * 60
     /// Suppress if any exercise- or mood-related task has an outcome in this
     /// window (user is already tracking something).
-    private static let activeTaskSuppressionWindow: TimeInterval = 30 * 60
+    private static let activeTaskSuppressionWindow: TimeInterval = 8 * 60
     /// If the user never responds, write an unconfirmed record after this long.
     private static let unconfirmedTimeout: TimeInterval = 20 * 60
 
@@ -72,6 +72,10 @@ final class HeartRateAnomalyDetector {
     private var isEvaluating = false
 
     var onUserConfirmedToast: ((String) -> Void)?
+    /// Fired when the user confirms a mood spike from the notification.
+    /// AppDelegate uses this to ask the Care view to scroll to & highlight
+    /// the logMood card so the user can pick a specific emotion.
+    var onPromptLogMood: (() -> Void)?
 
     private var state: PersistedState {
         didSet { Self.persist(state) }
@@ -412,6 +416,7 @@ extension HeartRateAnomalyDetector: MoodNotificationHandler {
         resetToIdle()
         if ok {
             onUserConfirmedToast?(String(localized: "DETECTED_MOOD_TOAST_LOGGED"))
+            onPromptLogMood?()
         }
     }
 

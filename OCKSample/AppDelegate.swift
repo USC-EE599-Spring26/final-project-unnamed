@@ -53,6 +53,12 @@ final class AppDelegate: UIResponder, ObservableObject {
     /// Drives the persistent in-app "Tracking exercise" banner.
     @Published var detectionSessionActive: Bool = false
 
+    /// One-shot signal: ask CareView to scroll to and highlight a specific
+    /// task card. Set by HR mood-spike detection so the user can quickly
+    /// log their actual emotion. CareViewController observes this and
+    /// resets it back to nil after consuming.
+    @Published var pendingScrollToTaskID: String?
+
     // MARK: Public read private write properties
 
     @Published private(set) var storeCoordinator: OCKStoreCoordinator = .init() {
@@ -163,6 +169,9 @@ final class AppDelegate: UIResponder, ObservableObject {
         )
         hrDetector.onUserConfirmedToast = { [weak self] message in
             self?.detectionToast = message
+        }
+        hrDetector.onPromptLogMood = { [weak self] in
+            self?.pendingScrollToTaskID = TaskID.logMood
         }
         heartRateDetector = hrDetector
 
