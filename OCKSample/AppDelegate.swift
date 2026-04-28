@@ -129,6 +129,15 @@ final class AppDelegate: UIResponder, ObservableObject {
     private func startExerciseDetectionIfNeeded(store: OCKStore) async {
         Logger.detection.info("startExerciseDetectionIfNeeded called")
 
+        // Idempotently ensure detection tasks exist before either detector
+        // tries to write an outcome. Covers the case where the user's store
+        // was created before a new detection task was introduced.
+        do {
+            try await store.syncDetectionTasks()
+        } catch {
+            Logger.detection.error("syncDetectionTasks failed: \(error)")
+        }
+
         // Replace any existing detector — `setupRemotes` runs on every
         // login, and the previous detector holds a reference to the old
         // (now-deleted) OCKStore. Reusing it leads to "task not found"

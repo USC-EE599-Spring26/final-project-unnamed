@@ -113,6 +113,53 @@ extension OCKStore {
         return addedContacts
     }
 
+    /// Idempotent sync point for auto-detection tasks (`detectedExercise`,
+    /// `detectedMoodSpike`). Called on every app launch so users whose store
+    /// was created before a new detection task was introduced still get it
+    /// added without resetting their account.
+    ///
+    /// Why a separate method rather than relying on `populateDefault…`:
+    /// `populateDefault…` only runs on signup / specific onboarding paths.
+    /// Already-logged-in users wouldn't pick up newly-added detection tasks
+    /// without this sync hook.
+    func syncDetectionTasks() async throws {
+        let carePlanUUIDs = try await Self.getCarePlanUUIDs()
+
+        let allDay = OCKScheduleElement(
+            start: Calendar.current.startOfDay(for: Date()), end: nil,
+            interval: DateComponents(day: 1),
+            text: nil, targetValues: [], duration: .allDay
+        )
+        let dailySchedule = OCKSchedule(composing: [allDay])
+
+        var detectedExercise = OCKTask(
+            id: TaskID.detectedExercise,
+            title: String(localized: "DETECTED_EXERCISE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: dailySchedule
+        )
+        detectedExercise.impactsAdherence = false
+        detectedExercise.asset = "figure.walk.motion"
+        detectedExercise.card = .simple
+        detectedExercise.priority = 20
+
+        var detectedMoodSpike = OCKTask(
+            id: TaskID.detectedMoodSpike,
+            title: String(localized: "DETECTED_MOOD_SPIKE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: dailySchedule
+        )
+        detectedMoodSpike.impactsAdherence = false
+        detectedMoodSpike.asset = "heart.text.square"
+        detectedMoodSpike.card = .simple
+        detectedMoodSpike.priority = 21
+
+        let added = try await addTasksIfNotPresent([detectedExercise, detectedMoodSpike])
+        if !added.isEmpty {
+            Logger.detection.info("syncDetectionTasks: added \(added.map(\.id))")
+        }
+    }
+
     func populateCarePlans(patientUUID: UUID? = nil) async throws {
         let healthCarePlan = OCKCarePlan(
             id: CarePlanID.health.rawValue,
