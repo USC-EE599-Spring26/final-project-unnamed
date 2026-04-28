@@ -381,7 +381,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
             // detectedExercise stores auto-detected sessions but isn't a
             // "task to do" — hide it from the daily Care list.
-            let hiddenIDs: Set<String> = [TaskID.detectedExercise]
+            let hiddenIDs: Set<String> = [TaskID.detectedExercise, TaskID.detectedMoodSpike]
             let baseFiltered = tasks.filter { !hiddenIDs.contains($0.id) }
             let filteredTasks = onboardingComplete
                 ? baseFiltered.filter { $0.id != Onboard.identifier() }

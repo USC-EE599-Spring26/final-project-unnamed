@@ -20,6 +20,14 @@ protocol DetectionNotificationHandler: AnyObject {
     func userConfirmedExerciseEnded() async
 }
 
+/// Callback interface for HR-anomaly mood prompts. Separate from the exercise
+/// handler so each detector owns its own state machine.
+@MainActor
+protocol MoodNotificationHandler: AnyObject {
+    func userConfirmedMoodSpike() async
+    func userDismissedMoodSpike() async
+}
+
 /// Owns notification authorization, category registration, and tap routing for
 /// auto-detected activity prompts. One instance lives on AppDelegate.
 @MainActor
@@ -36,9 +44,15 @@ final class DetectionNotificationManager: NSObject {
         static let endNotification = "detected_exercise.end.prompt"
         static let actionStill = "detected_exercise.action.still"
         static let actionEnded = "detected_exercise.action.ended"
+        // Mood spike — "HR elevated, mood swing?"
+        static let moodCategory = "detected_mood.category"
+        static let moodNotification = "detected_mood.prompt"
+        static let actionMoodLog = "detected_mood.action.log"
+        static let actionMoodDismiss = "detected_mood.action.dismiss"
     }
 
     weak var handler: DetectionNotificationHandler?
+    weak var moodHandler: MoodNotificationHandler?
 
     private let center = UNUserNotificationCenter.current()
 
@@ -49,7 +63,8 @@ final class DetectionNotificationManager: NSObject {
         center.delegate = self
         center.setNotificationCategories([
             Self.buildStartCategory(),
-            Self.buildEndCategory()
+            Self.buildEndCategory(),
+            Self.buildMoodCategory()
         ])
     }
 
@@ -132,6 +147,33 @@ final class DetectionNotificationManager: NSObject {
         cancelExerciseEndedNotification()
     }
 
+    /// Post the "HR elevated, mood swing?" prompt.
+    func postMoodSpikeNotification() async {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "DETECTED_MOOD_NOTIF_TITLE")
+        content.body = String(localized: "DETECTED_MOOD_NOTIF_BODY")
+        content.categoryIdentifier = Identifier.moodCategory
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: Identifier.moodNotification,
+            content: content,
+            trigger: nil
+        )
+        do {
+            try await center.add(request)
+            Logger.detection.info("Mood spike notification posted")
+        } catch {
+            Logger.detection.error("Failed to post mood spike notification: \(error)")
+        }
+    }
+
+    func cancelMoodSpikeNotification() {
+        let ids = [Identifier.moodNotification]
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+        center.removeDeliveredNotifications(withIdentifiers: ids)
+    }
+
     private static func buildStartCategory() -> UNNotificationCategory {
         let log = UNNotificationAction(
             identifier: Identifier.actionLog,
@@ -145,6 +187,25 @@ final class DetectionNotificationManager: NSObject {
         )
         return UNNotificationCategory(
             identifier: Identifier.category,
+            actions: [log, dismiss],
+            intentIdentifiers: [],
+            options: []
+        )
+    }
+
+    private static func buildMoodCategory() -> UNNotificationCategory {
+        let log = UNNotificationAction(
+            identifier: Identifier.actionMoodLog,
+            title: String(localized: "DETECTED_MOOD_ACTION_LOG"),
+            options: [.foreground]
+        )
+        let dismiss = UNNotificationAction(
+            identifier: Identifier.actionMoodDismiss,
+            title: String(localized: "DETECTED_MOOD_ACTION_DISMISS"),
+            options: [.destructive]
+        )
+        return UNNotificationCategory(
+            identifier: Identifier.moodCategory,
             actions: [log, dismiss],
             intentIdentifiers: [],
             options: []
@@ -208,6 +269,13 @@ extension DetectionNotificationManager: UNUserNotificationCenterDelegate {
             case (Identifier.endCategory, Identifier.actionEnded),
                  (Identifier.endCategory, UNNotificationDefaultActionIdentifier):
                 await self.handler?.userConfirmedExerciseEnded()
+            // Mood spike
+            case (Identifier.moodCategory, Identifier.actionMoodLog),
+                 (Identifier.moodCategory, UNNotificationDefaultActionIdentifier):
+                await self.moodHandler?.userConfirmedMoodSpike()
+            case (Identifier.moodCategory, Identifier.actionMoodDismiss),
+                 (Identifier.moodCategory, UNNotificationDismissActionIdentifier):
+                await self.moodHandler?.userDismissedMoodSpike()
             default:
                 break
             }

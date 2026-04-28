@@ -96,6 +96,7 @@ final class AppDelegate: UIResponder, ObservableObject {
     // Auto-detected activity feature.
     let detectionNotifications = DetectionNotificationManager()
     private(set) var exerciseDetector: ExerciseDetector?
+    private(set) var heartRateDetector: HeartRateAnomalyDetector?
 
 	fileprivate var _sessionDelegate: SessionDelegate!
 	fileprivate var sessionDelegate: SessionDelegate! {
@@ -133,6 +134,7 @@ final class AppDelegate: UIResponder, ObservableObject {
         // (now-deleted) OCKStore. Reusing it leads to "task not found"
         // errors when writing outcomes after a logout/re-login cycle.
         exerciseDetector = nil
+        heartRateDetector = nil
 
         let detector = ExerciseDetector(
             ockStore: store,
@@ -146,10 +148,20 @@ final class AppDelegate: UIResponder, ObservableObject {
         }
         exerciseDetector = detector
 
-        // Always start the observer. Detector internally bails out if
+        let hrDetector = HeartRateAnomalyDetector(
+            ockStore: store,
+            notifications: detectionNotifications
+        )
+        hrDetector.onUserConfirmedToast = { [weak self] message in
+            self?.detectionToast = message
+        }
+        heartRateDetector = hrDetector
+
+        // Always start the observers. Detectors internally bail out if
         // onboarding hasn't completed yet, so no alerts pop and no work runs
         // until the user has gone through ORKRequestPermissionsStep.
         await detector.start()
+        await hrDetector.start()
     }
 
     func resetAppToInitialState() {

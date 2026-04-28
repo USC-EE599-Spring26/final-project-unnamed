@@ -432,6 +432,27 @@ extension OCKStore {
         detectedExercise.priority = 20
         detectedExercise.carePlanUUID = carePlanUUIDs[.wellness]
 
+        // MARK: - Auto-detected mood spike (inferred from HR vs. step patterns)
+        // All-day container for records written by HeartRateAnomalyDetector.
+        let detectedMoodSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: nil, targetValues: [], duration: .allDay
+            )
+        ])
+        var detectedMoodSpike = OCKTask(
+            id: TaskID.detectedMoodSpike,
+            title: String(localized: "DETECTED_MOOD_SPIKE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: detectedMoodSchedule
+        )
+        detectedMoodSpike.impactsAdherence = false
+        detectedMoodSpike.asset = "heart.text.square"
+        detectedMoodSpike.card = .simple
+        detectedMoodSpike.priority = 21
+        detectedMoodSpike.carePlanUUID = carePlanUUIDs[.wellness]
+
         // MARK: - Add All Tasks
         #if os(iOS)
         let qualityOfLife = createQualityOfLifeSurveyTask(
@@ -451,7 +472,8 @@ extension OCKStore {
             breathingExercise,
             takeBreak,
             weeklyReflection,
-            detectedExercise
+            detectedExercise,
+            detectedMoodSpike
         ]
         #if os(iOS)
         tasksToAdd.append(qualityOfLife)
