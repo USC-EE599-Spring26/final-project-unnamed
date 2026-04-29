@@ -11,6 +11,7 @@ import CareKitEssentials
 import CareKitStore
 import CareKitUI
 import SwiftUI
+import Charts
 
 struct InsightsView: View {
 
@@ -26,105 +27,19 @@ struct InsightsView: View {
 			dateIntervalSegmentView
 				.padding()
 			ScrollView {
-				VStack {
-					// This is for loop is useful when you want a chart for
-					// for every task which may not always be the case.
+				VStack(spacing: 16) {
 					ForEach(orderedEvents) { event in
 						let eventResult = event.result
-						let dataStrategy = determineDataStrategy(for: eventResult.task.id)
 						if eventResult.task.id != TaskID.methylphenidate
 							&& eventResult.task.id != TaskID.inattention {
-
-							// dynamic gradient colors
-							let meanGradientStart = Color(TintColorFlipKey.defaultValue)
-							let meanGradientEnd = Color.accentColor
-
-							// Can add muliple plots on a single
-							// chart by adding multiple configurations.
-							let meanConfiguration = CKEDataSeriesConfiguration(
+							chartCard(
 								taskID: eventResult.task.id,
-								dataStrategy: dataStrategy,
-								mark: .bar,
-								legendTitle: String(localized: "AVERAGE"),
-								showMarkWhenHighlighted: true,
-								showMeanMark: false,
-								showMedianMark: false,
-								color: meanGradientEnd,
-								gradientStartColor: meanGradientStart
-							) { event in
-								event.computeProgress(by: .maxOutcomeValue())
-							}
-
-							let sumConfiguration = CKEDataSeriesConfiguration(
-								taskID: eventResult.task.id,
-								dataStrategy: .sum,
-								mark: .bar,
-								legendTitle: String(localized: "TOTAL"),
-								color: Color(TintColorFlipKey.defaultValue) // Set to app color.
-							) { event in
-								event.computeProgress(by: .maxOutcomeValue())
-							}
-
-							CareKitEssentialChartView(
-								title: eventResult.title,
-								subtitle: subtitle,
-								dateInterval: $chartInterval,
-								period: $period,
-								configurations: [
-									meanConfiguration,
-									sumConfiguration
-								]
+								title: eventResult.title
 							)
-
 						} else if eventResult.task.id == TaskID.methylphenidate {
-							// Example of showing inattention vs methylphenidate intake
-
-							// dynamic gradient colors
-							let inattentionGradientStart = Color(TintColorFlipKey.defaultValue)
-							let inattentionGradientEnd = Color.accentColor
-
-							let inattentionConfiguration = CKEDataSeriesConfiguration(
-								taskID: TaskID.inattention,
-								dataStrategy: .sum,
-								mark: .bar,
-								legendTitle: String(localized: "INATTENTION"),
-								showMarkWhenHighlighted: true,
-								showMeanMark: true,
-								showMedianMark: false,
-								color: inattentionGradientEnd,
-								gradientStartColor: inattentionGradientStart,
-								stackingMethod: .unstacked
-							) { event in
-								// This event occurs all-day and can be submitted
-								// multiple times, since we want to understand
-								// the "total" amount of times a patient experiences
-								// inattention, we sum the outcomes for each event.
-								event.computeProgress(by: .summingOutcomeValues())
-							}
-
-							let methylphenidateConfiguration = CKEDataSeriesConfiguration(
-								taskID: eventResult.task.id,
-								dataStrategy: .sum,
-								mark: .bar,
-								legendTitle: String(localized: "METHYLPHENIDATE"),
-								color: .gray,
-								gradientStartColor: .gray.opacity(0.3),
-								stackingMethod: .unstacked,
-								symbol: .diamond,
-								interpolation: .catmullRom
-							) { event in
-								event.computeProgress(by: .averagingOutcomeValues())
-							}
-
-							CareKitEssentialChartView(
-								title: String(localized: "INATTENTION_METHYLPHENIDATE_INTAKE"),
-								subtitle: subtitle,
-								dateInterval: $chartInterval,
-								period: $period,
-								configurations: [
-									inattentionConfiguration,
-                                    methylphenidateConfiguration
-								]
+							chartCard(
+								taskIDs: [TaskID.inattention, TaskID.methylphenidate],
+								title: String(localized: "INATTENTION_METHYLPHENIDATE_INTAKE")
 							)
 						}
 					}
@@ -205,6 +120,36 @@ struct InsightsView: View {
 			for: Date()
 		)!
 		return interval
+	}
+
+	private var binComponent: Calendar.Component {
+		switch intervalSelected {
+		case 0: return .hour
+		case 3: return .month
+		default: return .day
+		}
+	}
+
+	@ViewBuilder
+	private func chartCard(taskID: String, title: String) -> some View {
+		ChartCardView(
+			title: title,
+			subtitle: subtitle,
+			taskIDs: [taskID],
+			dateInterval: chartInterval,
+			binComponent: binComponent
+		)
+	}
+
+	@ViewBuilder
+	private func chartCard(taskIDs: [String], title: String) -> some View {
+		ChartCardView(
+			title: title,
+			subtitle: subtitle,
+			taskIDs: taskIDs,
+			dateInterval: chartInterval,
+			binComponent: binComponent
+		)
 	}
 
 	private func determineDataStrategy(for taskID: String) -> CKEDataSeriesConfiguration.DataStrategy {
@@ -292,4 +237,90 @@ struct InsightsView: View {
     InsightsView()
 		.environment(\.careStore, Utility.createPreviewStore())
 		.careKitStyle(Styler())
+}
+
+private struct ChartPoint: Identifiable {
+	let id = UUID()
+	let date: Date
+	let value: Double
+	let series: String
+}
+
+private struct ChartCardView: View {
+	let title: String
+	let subtitle: String
+	let taskIDs: [String]
+	let dateInterval: DateInterval
+	let binComponent: Calendar.Component
+
+	@CareStoreFetchRequest(query: Self.makeQuery()) private var events
+
+	static func makeQuery() -> OCKEventQuery {
+		OCKEventQuery(dateInterval: .init())
+	}
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 8) {
+			Text(title)
+				.font(.headline)
+			Text(subtitle)
+				.font(.caption)
+				.foregroundStyle(.secondary)
+			Chart(chartData) { point in
+				BarMark(
+					x: .value("Date", point.date, unit: binComponent),
+					y: .value("Value", point.value)
+				)
+				.foregroundStyle(by: .value("Series", point.series))
+			}
+			.chartYAxis {
+				AxisMarks(position: .leading)
+			}
+			.chartXAxis {
+				AxisMarks()
+			}
+			.frame(height: 220)
+		}
+		.padding()
+		.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+		.onAppear { updateQuery() }
+		.onChange(of: dateInterval) { updateQuery() }
+		.onChange(of: taskIDs) { updateQuery() }
+	}
+
+	private func updateQuery() {
+		let desired = Set(taskIDs)
+		if Set(events.query.taskIDs) != desired {
+			events.query.taskIDs = Array(desired)
+		}
+		if events.query.dateInterval != dateInterval {
+			events.query.dateInterval = dateInterval
+		}
+	}
+
+	private var chartData: [ChartPoint] {
+		let calendar = Calendar.current
+		var points: [ChartPoint] = []
+		for taskID in taskIDs {
+			let filtered = events.filter { $0.result.task.id == taskID }
+			let grouped = Dictionary(grouping: filtered) { result -> Date in
+				calendar.dateInterval(of: binComponent, for: result.result.scheduleEvent.start)?.start
+					?? result.result.scheduleEvent.start
+			}
+			for (date, evts) in grouped {
+				let total = evts.reduce(0.0) { sum, evt in
+					sum + (evt.result.outcome?.values.map(Self.extractValue).reduce(0, +) ?? 0)
+				}
+				points.append(ChartPoint(date: date, value: total, series: taskID))
+			}
+		}
+		return points.sorted { $0.date < $1.date }
+	}
+
+	private static func extractValue(_ value: OCKOutcomeValue) -> Double {
+		if let double = value.doubleValue { return double }
+		if let integer = value.integerValue { return Double(integer) }
+		if let boolean = value.booleanValue { return boolean ? 1 : 0 }
+		return 1
+	}
 }
