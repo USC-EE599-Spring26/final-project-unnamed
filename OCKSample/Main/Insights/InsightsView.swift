@@ -10,6 +10,7 @@ import CareKit
 import CareKitEssentials
 import CareKitStore
 import CareKitUI
+import HealthKit
 import SwiftUI
 import Charts
 
@@ -168,22 +169,16 @@ struct InsightsView: View {
 		// shown in the graph.
 		switch segmentValue {
 		case 0:
-			let startOfDay = Calendar.current.startOfDay(
-				for: now
-			)
-			let interval = DateInterval(
-				start: startOfDay,
-				end: now
-			)
-
+			let startOfDay = calendar.startOfDay(for: now)
+			let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? now
 			period = .day
-			chartInterval = interval
+			chartInterval = DateInterval(start: startOfDay, end: endOfDay)
 
 		case 1:
 			let startDate = calendar.date(
-				byAdding: .weekday,
-				value: -7,
-				to: now
+				byAdding: .day,
+				value: -6,
+				to: calendar.startOfDay(for: now)
 			)!
 			period = .week
 			chartInterval = DateInterval(start: startDate, end: now)
@@ -208,9 +203,9 @@ struct InsightsView: View {
 
 		default:
 			let startDate = calendar.date(
-				byAdding: .weekday,
-				value: -7,
-				to: now
+				byAdding: .day,
+				value: -6,
+				to: calendar.startOfDay(for: now)
 			)!
 			period = .week
 			chartInterval = DateInterval(start: startDate, end: now)
@@ -254,9 +249,21 @@ private struct ChartCardView: View {
 	let binComponent: Calendar.Component
 
 	@CareStoreFetchRequest(query: Self.makeQuery()) private var events
+	@State private var healthKitData: [ChartPoint]?
 
 	static func makeQuery() -> OCKEventQuery {
 		OCKEventQuery(dateInterval: .init())
+	}
+
+	private var isHealthKitBacked: Bool {
+		taskIDs == [TaskID.steps]
+	}
+
+	private var displayData: [ChartPoint] {
+		if isHealthKitBacked, let healthKitData {
+			return healthKitData
+		}
+		return chartData
 	}
 
 	var body: some View {
@@ -266,26 +273,48 @@ private struct ChartCardView: View {
 			Text(subtitle)
 				.font(.caption)
 				.foregroundStyle(.secondary)
-			Chart(chartData) { point in
+			Chart(displayData) { point in
 				BarMark(
 					x: .value("Date", point.date, unit: binComponent),
 					y: .value("Value", point.value)
 				)
 				.foregroundStyle(by: .value("Series", point.series))
 			}
+			.chartXScale(domain: dateInterval.start ... paddedEnd)
+			.chartYScale(domain: .automatic(includesZero: true))
 			.chartYAxis {
-				AxisMarks(position: .leading)
+				AxisMarks(position: .leading) { _ in
+					AxisGridLine()
+					AxisTick()
+					AxisValueLabel()
+				}
 			}
 			.chartXAxis {
-				AxisMarks()
+				AxisMarks(values: .stride(by: binComponent)) { _ in
+					AxisGridLine()
+					AxisTick()
+					AxisValueLabel(format: xAxisFormat, centered: true)
+				}
 			}
 			.frame(height: 220)
 		}
 		.padding()
 		.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-		.onAppear { updateQuery() }
-		.onChange(of: dateInterval) { updateQuery() }
-		.onChange(of: taskIDs) { updateQuery() }
+		.onAppear {
+			updateQuery()
+			refreshHealthKitIfNeeded()
+		}
+		.onChange(of: dateInterval) {
+			updateQuery()
+			refreshHealthKitIfNeeded()
+		}
+		.onChange(of: taskIDs) {
+			updateQuery()
+			refreshHealthKitIfNeeded()
+		}
+		.onChange(of: binComponent) {
+			refreshHealthKitIfNeeded()
+		}
 	}
 
 	private func updateQuery() {
@@ -298,23 +327,116 @@ private struct ChartCardView: View {
 		}
 	}
 
+	private func refreshHealthKitIfNeeded() {
+		guard isHealthKitBacked else {
+			healthKitData = nil
+			return
+		}
+		let interval = dateInterval
+		let bin = binComponent
+		Task { @MainActor in
+			let points = await Self.queryHealthKitSteps(in: interval, bin: bin)
+			self.healthKitData = points
+		}
+	}
+
+	private static func queryHealthKitSteps(
+		in interval: DateInterval,
+		bin: Calendar.Component
+	) async -> [ChartPoint] {
+		guard HKHealthStore.isHealthDataAvailable(),
+			  let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)
+		else { return [] }
+		let store = HKHealthStore()
+		do {
+			try await store.requestAuthorization(toShare: [], read: [stepType])
+		} catch {
+			return []
+		}
+		let intervalComponents: DateComponents
+		switch bin {
+		case .hour: intervalComponents = DateComponents(hour: 1)
+		case .month: intervalComponents = DateComponents(month: 1)
+		default: intervalComponents = DateComponents(day: 1)
+		}
+		let predicate = HKQuery.predicateForSamples(
+			withStart: interval.start,
+			end: interval.end,
+			options: .strictStartDate
+		)
+		return await withCheckedContinuation { continuation in
+			let query = HKStatisticsCollectionQuery(
+				quantityType: stepType,
+				quantitySamplePredicate: predicate,
+				options: .cumulativeSum,
+				anchorDate: interval.start,
+				intervalComponents: intervalComponents
+			)
+			query.initialResultsHandler = { _, results, _ in
+				var points: [ChartPoint] = []
+				results?.enumerateStatistics(
+					from: interval.start,
+					to: interval.end
+				) { statistics, _ in
+					let count = statistics.sumQuantity()?.doubleValue(for: .count()) ?? 0
+					if count > 0 {
+						points.append(
+							ChartPoint(
+								date: statistics.startDate,
+								value: count,
+								series: TaskID.steps
+							)
+						)
+					}
+				}
+				continuation.resume(returning: points)
+			}
+			store.execute(query)
+		}
+	}
+
 	private var chartData: [ChartPoint] {
 		let calendar = Calendar.current
 		var points: [ChartPoint] = []
 		for taskID in taskIDs {
 			let filtered = events.filter { $0.result.task.id == taskID }
-			let grouped = Dictionary(grouping: filtered) { result -> Date in
-				calendar.dateInterval(of: binComponent, for: result.result.scheduleEvent.start)?.start
-					?? result.result.scheduleEvent.start
-			}
-			for (date, evts) in grouped {
-				let total = evts.reduce(0.0) { sum, evt in
-					sum + (evt.result.outcome?.values.map(Self.extractValue).reduce(0, +) ?? 0)
+			// Bin per outcome value (using its createdDate) so all-day tasks
+			// don't collapse all logs into the schedule's start hour.
+			var bucketed: [Date: Double] = [:]
+			for entry in filtered {
+				let event = entry.result
+				guard let values = event.outcome?.values, !values.isEmpty else { continue }
+				for value in values {
+					let referenceDate = value.createdDate
+					let binDate: Date
+					if let interval = calendar.dateInterval(of: binComponent, for: referenceDate) {
+						binDate = interval.start
+					} else {
+						binDate = referenceDate
+					}
+					bucketed[binDate, default: 0] += Self.extractValue(value)
 				}
+			}
+			for (date, total) in bucketed {
 				points.append(ChartPoint(date: date, value: total, series: taskID))
 			}
 		}
 		return points.sorted { $0.date < $1.date }
+	}
+
+	private var paddedEnd: Date {
+		let calendar = Calendar.current
+		let anchor = calendar.dateInterval(of: binComponent, for: dateInterval.end)?.start
+			?? dateInterval.end
+		return calendar.date(byAdding: binComponent, value: 1, to: anchor) ?? dateInterval.end
+	}
+
+	private var xAxisFormat: Date.FormatStyle {
+		switch binComponent {
+		case .hour: return .dateTime.hour()
+		case .month: return .dateTime.month(.abbreviated)
+		default: return .dateTime.month(.abbreviated).day()
+		}
 	}
 
 	private static func extractValue(_ value: OCKOutcomeValue) -> Double {
