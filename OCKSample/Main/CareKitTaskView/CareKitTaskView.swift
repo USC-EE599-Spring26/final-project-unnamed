@@ -11,6 +11,8 @@ import CareKitStore
 
 struct CareKitTaskView: View {
 
+    var initialCarePlanUUID: UUID?
+
     // MARK: Navigation
     @State var isShowingAlert = false
     @State var isAddingTask = false
@@ -169,7 +171,11 @@ struct CareKitTaskView: View {
         let query = OCKCarePlanQuery(for: Date())
         carePlans = (try? await store.fetchCarePlans(query: query)) ?? []
 
-        selectedCarePlan = carePlans.first(where: { $0.id == CarePlanID.custom.rawValue })
-            ?? carePlans.first
+        if let uuid = initialCarePlanUUID {
+            selectedCarePlan = carePlans.first { $0.uuid == uuid }
+        } else {
+            selectedCarePlan = carePlans.first { $0.id == CarePlanID.custom.rawValue }
+                ?? carePlans.first
+        }
     }
 }

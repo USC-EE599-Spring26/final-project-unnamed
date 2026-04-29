@@ -15,6 +15,8 @@ import SwiftUI
 struct MainTabView: View {
     @ObservedObject var loginViewModel: LoginViewModel
     @State private var selectedTab = 0
+    /// Owned here so the tab badge reflects the live unread count.
+    @StateObject private var notifViewModel = NotificationViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -42,9 +44,22 @@ struct MainTabView: View {
 				}
 				.tag(1)
 
+            NotificationView(viewModel: notifViewModel)
+                .tabItem {
+                    if selectedTab == 2 {
+                        Image(systemName: "bell.fill")
+                            .renderingMode(.template)
+                    } else {
+                        Image(systemName: "bell")
+                            .renderingMode(.template)
+                    }
+                }
+                .badge(notifViewModel.unreadCount)
+                .tag(2)
+
 			ContactView()
 				.tabItem {
-					if selectedTab == 2 {
+					if selectedTab == 3 {
 						Image(systemName: "phone.bubble.fill")
 							.renderingMode(.template)
 					} else {
@@ -52,11 +67,11 @@ struct MainTabView: View {
 							.renderingMode(.template)
 					}
 				}
-				.tag(2)
+				.tag(3)
 
 			ProfileView(loginViewModel: loginViewModel)
 				.tabItem {
-					if selectedTab == 3 {
+					if selectedTab == 4 {
 						Image(systemName: "person.circle.fill")
 							.renderingMode(.template)
 					} else {
@@ -64,7 +79,7 @@ struct MainTabView: View {
 							.renderingMode(.template)
 					}
 				}
-				.tag(3)
+				.tag(4)
         }
     }
 }
