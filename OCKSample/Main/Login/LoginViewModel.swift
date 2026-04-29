@@ -14,12 +14,11 @@ import os.log
 import WatchConnectivity
 
 // swiftlint:disable function_parameter_count
-
 @MainActor
 class LoginViewModel: ObservableObject {
 
     // MARK: Public read, private write properties
-	@Published private(set) var isLoggedIn: Bool? {
+    @Published private(set) var isLoggedIn: Bool? {
         willSet {
             /*
              Publishes a notification to subscribers whenever this value changes.
@@ -35,8 +34,8 @@ class LoginViewModel: ObservableObject {
     @Published private(set) var loginError: ParseError?
 
     init() {
-		Task {
-			await checkStatus()
+        Task {
+            await checkStatus()
         }
     }
 
@@ -44,9 +43,9 @@ class LoginViewModel: ObservableObject {
     func checkStatus() async {
         do {
             _ = try await User.current()
-			self.isLoggedIn = true
+            self.isLoggedIn = true
         } catch {
-			self.isLoggedIn = false
+            self.isLoggedIn = false
         }
     }
 
@@ -54,17 +53,17 @@ class LoginViewModel: ObservableObject {
         Task {
             do {
                 let message = try await Utility.getUserSessionForWatch()
-				DispatchQueue.global(qos: .default).async {
-					// WCSession.default.sendMessage crashes when sending on MainActor
-					// so we call on a less important queue.
-					WCSession.default.sendMessage(
-						message,
-						replyHandler: nil,
-						errorHandler: { error in
-							Logger.remoteSessionDelegate.info("Could not send updated session token to watch: \(error)")
-						}
-					)
-				}
+                DispatchQueue.global(qos: .default).async {
+                    // WCSession.default.sendMessage crashes when sending on MainActor
+                    // so we call on a less important queue.
+                    WCSession.default.sendMessage(
+                        message,
+                        replyHandler: nil,
+                        errorHandler: { error in
+                            Logger.remoteSessionDelegate.info("Could not send updated session token to watch: \(error)")
+                        }
+                    )
+                }
             } catch {
                 Logger.login.info("Could not get session token for watch: \(error)")
                 return
@@ -73,8 +72,8 @@ class LoginViewModel: ObservableObject {
     }
 
     private func finishCompletingSignIn(
-		_ careKitPatient: OCKPatient? = nil
-	) async throws {
+        _ careKitPatient: OCKPatient? = nil
+    ) async throws {
         if let careKitUser = careKitPatient {
             var user = try await User.current()
             guard let userType = careKitUser.userType,
@@ -115,13 +114,19 @@ class LoginViewModel: ObservableObject {
 
         // Setup installation to receive push notifications
         await Utility.updateInstallationWithDeviceToken()
+
+        // Claim any pending Relationship rows addressed to this user's email
+        // or phone before they had an account. Each match has its patientObjectId
+        // / patientUsername filled in, ACL tightened, and the deferred
+        // connection-request notification dispatched. Idempotent.
+        await Relationship.linkPendingForCurrentUser()
     }
 
     private func savePatientAfterSignUp(
-		_ type: UserType,
-		firstName: String,
-		lastName: String, email: String?
-	) async throws -> OCKPatient {
+        _ type: UserType,
+        firstName: String,
+        lastName: String, email: String?
+    ) async throws -> OCKPatient {
 
         let remoteUUID = UUID()
         do {
@@ -166,25 +171,25 @@ class LoginViewModel: ObservableObject {
         _ = try await appDelegate.store.addContactsIfNotPresent([newContact])
 
         let currentDate = Date()
-		let startDate = daysInThePastToGenerateSampleData < 0 ? Calendar.current.date(
-			byAdding: .day,
-			value: daysInThePastToGenerateSampleData,
-			to: currentDate
-		)! : currentDate
+        let startDate = daysInThePastToGenerateSampleData < 0 ? Calendar.current.date(
+            byAdding: .day,
+            value: daysInThePastToGenerateSampleData,
+            to: currentDate
+        )! : currentDate
         // Pass savedPatient.uuid so care plans are tied to this patient
         try await appDelegate.store.populateDefaultCarePlansTasksContacts(
             savedPatient.uuid,
-			startDate: startDate
-		)
+            startDate: startDate
+        )
         try await appDelegate.healthKitStore.populateDefaultHealthKitTasks(
             savedPatient.uuid,
-			startDate: startDate
-		)
-		if startDate < currentDate {
-			try await appDelegate.store.populateSampleOutcomes(
-				startDate: startDate
-			)
-		}
+            startDate: startDate
+        )
+        if startDate < currentDate {
+            try await appDelegate.store.populateSampleOutcomes(
+                startDate: startDate
+            )
+        }
         appDelegate.parseRemote.automaticallySynchronizes = true
 
         // Post notification to sync
@@ -205,12 +210,12 @@ class LoginViewModel: ObservableObject {
      - parameter lastName: The last name of the person signing up.
     */
     func signup(
-		_ type: UserType,
-		username: String,
-		password: String,
-		firstName: String,
-		lastName: String, email: String
-	) async {
+        _ type: UserType,
+        username: String,
+        password: String,
+        firstName: String,
+        lastName: String, email: String
+    ) async {
         // swiftlint:disable:next line_length
         guard username.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.union(.init(charactersIn: "_")).contains($0) }) else {
             // swiftlint:disable:next line_length
@@ -287,17 +292,16 @@ class LoginViewModel: ObservableObject {
                 try await Utility.setupRemoteAfterLogin()
                 try await finishCompletingSignIn()
             } catch {
-                Logger.login.error("Error saving the patient after signup: \(error, privacy: .public)")
+                Logger.login.error("Error saving the patient after login: \(error, privacy: .public)")
             }
         } catch {
             // swiftlint:disable:next line_length
             Logger.login.error("*** Error logging into Parse Server. If you are still having problems check for help here: https://github.com/netreconlab/parse-hipaa#getting-started ***")
             Logger.login.error("Error details: \(error)")
             guard let parseError = error as? ParseError else {
-                // Handle unknow error, right now it's silent
                 return
             }
-            self.loginError = parseError // Notify the SwiftUI view that there's an error
+            self.loginError = parseError
         }
     }
 
@@ -334,7 +338,7 @@ class LoginViewModel: ObservableObject {
     */
     func logout() async {
         self.loginError = nil
-		await Utility.logoutAndResetAppState()
+        await Utility.logoutAndResetAppState()
         await self.checkStatus()
     }
 }

@@ -50,7 +50,6 @@ extension OCKHealthKitPassthroughStore {
         steps.impactsAdherence = true
 
         // Primary: HRV (higher = less stress, target >= 40ms)
-        // Supporting: restingHeartRate, heartRate (tracked via observer in AppDelegate)
         let hrvUnit = HKUnit.secondUnit(with: .milli)
         let hrvTarget = OCKOutcomeValue(40.0, units: hrvUnit.unitString) // 40ms HRV = healthy baseline
         let hrvSchedule = OCKSchedule.dailyAtTime(

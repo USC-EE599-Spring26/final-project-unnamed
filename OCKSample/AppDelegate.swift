@@ -44,6 +44,21 @@ final class AppDelegate: UIResponder, ObservableObject {
 
     @Published var isFirstTimeLogin = false
 
+    /// Set when the detector confirms a detected-exercise action so the UI can
+    /// show a transient toast. Cleared by the toast view after auto-dismiss.
+    @Published var detectionToast: String?
+
+    /// True while a detected-exercise session is being tracked (after the user
+    /// tapped Yes on the start prompt, until the end is confirmed/cancelled).
+    /// Drives the persistent in-app "Tracking exercise" banner.
+    @Published var detectionSessionActive: Bool = false
+
+    /// One-shot signal: ask CareView to scroll to and highlight a specific
+    /// task card. Set by HR mood-spike detection so the user can quickly
+    /// log their actual emotion. CareViewController observes this and
+    /// resets it back to nil after consuming.
+    @Published var pendingScrollToTaskID: String?
+
     // MARK: Public read private write properties
 
     @Published private(set) var storeCoordinator: OCKStoreCoordinator = .init() {
@@ -84,6 +99,11 @@ final class AppDelegate: UIResponder, ObservableObject {
 		}
 	}
 
+    // Auto-detected activity feature.
+    let detectionNotifications = DetectionNotificationManager()
+    private(set) var exerciseDetector: ExerciseDetector?
+    private(set) var heartRateDetector: HeartRateAnomalyDetector?
+
 	fileprivate var _sessionDelegate: SessionDelegate!
 	fileprivate var sessionDelegate: SessionDelegate! {
 		get {
@@ -111,6 +131,56 @@ final class AppDelegate: UIResponder, ObservableObject {
 	func setFirstTimeLogin(_ isFirstTimeLogin: Bool) {
 		self.isFirstTimeLogin = isFirstTimeLogin
 	}
+
+    private func startExerciseDetectionIfNeeded(store: OCKStore) async {
+        Logger.detection.info("startExerciseDetectionIfNeeded called")
+
+        // Idempotently ensure detection tasks exist before either detector
+        // tries to write an outcome. Covers the case where the user's store
+        // was created before a new detection task was introduced.
+        do {
+            try await store.syncDetectionTasks()
+        } catch {
+            Logger.detection.error("syncDetectionTasks failed: \(error)")
+        }
+
+        // Replace any existing detector — `setupRemotes` runs on every
+        // login, and the previous detector holds a reference to the old
+        // (now-deleted) OCKStore. Reusing it leads to "task not found"
+        // errors when writing outcomes after a logout/re-login cycle.
+        exerciseDetector = nil
+        heartRateDetector = nil
+
+        let detector = ExerciseDetector(
+            ockStore: store,
+            notifications: detectionNotifications
+        )
+        detector.onUserConfirmedToast = { [weak self] message in
+            self?.detectionToast = message
+        }
+        detector.onSessionActiveChanged = { [weak self] active in
+            self?.detectionSessionActive = active
+        }
+        exerciseDetector = detector
+
+        let hrDetector = HeartRateAnomalyDetector(
+            ockStore: store,
+            notifications: detectionNotifications
+        )
+        hrDetector.onUserConfirmedToast = { [weak self] message in
+            self?.detectionToast = message
+        }
+        hrDetector.onPromptLogMood = { [weak self] in
+            self?.pendingScrollToTaskID = TaskID.logMood
+        }
+        heartRateDetector = hrDetector
+
+        // Always start the observers. Detectors internally bail out if
+        // onboarding hasn't completed yet, so no alerts pop and no work runs
+        // until the user has gone through ORKRequestPermissionsStep.
+        await detector.start()
+        await hrDetector.start()
+    }
 
     func resetAppToInitialState() {
         do {
@@ -178,6 +248,8 @@ final class AppDelegate: UIResponder, ObservableObject {
             storeCoordinator.attach(store: store)
             storeCoordinator.attach(eventStore: healthKitStore)
             self.storeCoordinator = storeCoordinator
+
+            await startExerciseDetectionIfNeeded(store: store)
         } catch {
             Logger.appDelegate.error("Could not setup remote: \(error)")
             throw error

@@ -33,6 +33,7 @@ import CareKit
 import CareKitEssentials
 import CareKitStore
 import CareKitUI
+import Combine
 import os.log
 #if canImport(ResearchKit) && canImport(ResearchKitUI)
 import ResearchKit
@@ -62,6 +63,12 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     private var syncFailed = false
     private var savedLeftBarButtonItem: UIBarButtonItem?
     private static let selectionOverlayTag = 99887766
+    private var pendingScrollCancellable: AnyCancellable?
+    /// Set when the scroll-to request arrives before the target card has
+    /// been laid out (e.g. user is on Insights tab when the notification
+    /// fires; cards rebuild when Care tab becomes visible). Consumed on
+    /// the next successful card layout.
+    private var deferredScrollTaskID: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,6 +99,58 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             name: Notification.Name(rawValue: Constants.shouldRefreshView),
             object: nil
         )
+        observePendingScrollRequests()
+    }
+
+    /// Subscribe to AppDelegate.pendingScrollToTaskID. Fired by detectors
+    /// (e.g. HR mood spike → logMood) to bring a specific card into view.
+    private func observePendingScrollRequests() {
+        guard let appDelegate = AppDelegateKey.defaultValue else { return }
+        pendingScrollCancellable = appDelegate.$pendingScrollToTaskID
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] taskID in
+                guard let self else { return }
+                self.handleScrollRequest(taskID: taskID)
+                AppDelegateKey.defaultValue?.pendingScrollToTaskID = nil
+            }
+    }
+
+    private func handleScrollRequest(taskID: String) {
+        if taskCards.contains(where: { $0.id == taskID }) {
+            scrollToAndHighlight(taskID: taskID)
+        } else {
+            // Cards may not be built yet (other tab active, mid-reload).
+            // Stash and let appendTasks consume on next layout.
+            deferredScrollTaskID = taskID
+            Logger.feed.info("Deferred scroll-to: \(taskID) — cards not laid out yet")
+        }
+    }
+
+    private func scrollToAndHighlight(taskID: String) {
+        guard let entry = taskCards.first(where: { $0.id == taskID }) else { return }
+        let cardView = entry.view
+
+        // Walk up to the nearest UIScrollView and scroll the card into view.
+        var ancestor: UIView? = cardView.superview
+        while let current = ancestor {
+            if let scrollView = current as? UIScrollView {
+                let target = cardView.convert(cardView.bounds, to: scrollView)
+                let padded = target.insetBy(dx: 0, dy: -40)
+                scrollView.scrollRectToVisible(padded, animated: true)
+                break
+            }
+            ancestor = current.superview
+        }
+
+        // Brief border pulse so the user notices the card.
+        cardView.layer.borderColor = UIColor.systemBlue.cgColor
+        cardView.layer.borderWidth = 3
+        cardView.layer.cornerRadius = 12
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak cardView] in
+            cardView?.layer.borderWidth = 0
+        }
+        Logger.feed.info("Scrolled to & highlighted task card: \(taskID)")
     }
 
     @objc private func updateSynchronizationProgress(
@@ -379,9 +438,16 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             let tasks = try await store.fetchAnyTasks(query: query)
             let onboardingComplete = await Utility.checkIfOnboardingIsComplete()
 
+            // detectedMoodSpike is surfaced via routing to logMood (so the
+            // user picks a specific emotion); the spike task itself stays
+            // hidden as a research/audit log only.
+            // detectedExercise IS shown — auto-detected sessions are first-
+            // class evidence in the daily Care list.
+            let hiddenIDs: Set<String> = [TaskID.detectedMoodSpike]
+            let baseFiltered = tasks.filter { !hiddenIDs.contains($0.id) }
             let filteredTasks = onboardingComplete
-                ? tasks.filter { $0.id != Onboard.identifier() }
-                : tasks
+                ? baseFiltered.filter { $0.id != Onboard.identifier() }
+                : baseFiltered
 
             guard let tasksWithPriority = filteredTasks as? [CareTask] else {
                 Logger.feed.warning("Could not cast all tasks to \"CareTask\"")
@@ -590,6 +656,15 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
         self.refreshSelectionOverlays()
         self.isLoading = false
+
+        // Consume any deferred scroll request now that cards are laid out.
+        if let pending = deferredScrollTaskID,
+           taskCards.contains(where: { $0.id == pending }) {
+            deferredScrollTaskID = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                self?.scrollToAndHighlight(taskID: pending)
+            }
+        }
     }
     func deleteTask(_ task: any OCKAnyTask) async {
         do {

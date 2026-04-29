@@ -43,6 +43,29 @@ enum TaskID {
     static let attention = "attention"
     static let routine = "routine"
 
+    // Auto-detected activity (inferred from HealthKit, not user-logged)
+    static let detectedExercise = "detected_exercise"
+    static let detectedMoodSpike = "detected_mood_spike"
+
+    // Tasks that represent exercise/movement — used to suppress duplicate
+    // auto-detection prompts when the user is already logging something.
+    static var exerciseRelated: [String] {
+        [
+            Self.cardios,
+            Self.stretch,
+            Self.detectedExercise
+        ]
+    }
+
+    // Mood-related tasks — used to suppress duplicate HR-anomaly prompts
+    // when the user has just logged a mood entry.
+    static var moodRelated: [String] {
+        [
+            Self.logMood,
+            Self.detectedMoodSpike
+        ]
+    }
+
     static var ordered: [String] {
         orderedObjective + orderedSubjective
     }
