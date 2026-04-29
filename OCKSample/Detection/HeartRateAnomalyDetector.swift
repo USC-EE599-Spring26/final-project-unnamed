@@ -40,7 +40,7 @@ final class HeartRateAnomalyDetector {
     private static let dismissDebounce: TimeInterval = 30 * 60
     /// Suppress if any exercise- or mood-related task has an outcome in this
     /// window (user is already tracking something).
-    private static let activeTaskSuppressionWindow: TimeInterval = 8 * 60
+    private static let activeTaskSuppressionWindow: TimeInterval = 10 * 60
     /// If the user never responds, write an unconfirmed record after this long.
     private static let unconfirmedTimeout: TimeInterval = 20 * 60
 
