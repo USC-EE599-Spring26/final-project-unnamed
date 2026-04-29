@@ -263,6 +263,10 @@
 		BEB2F93B2F9F474A005B043C /* CarePlanSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */; };
 		BEB2F93C2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */; };
 		BEB2F93D2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */; };
+		BEB2F96C2FA1EEC4005B043C /* PatientManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01072FAABB00CCDDEE01 /* PatientManagementView.swift */; };
+		BEB2F9742FA1EEC8005B043C /* PatientManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01082FAABB00CCDDEE01 /* PatientManagementViewModel.swift */; };
+		BEB2F9752FA1EECD005B043C /* PatientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01092FAABB00CCDDEE01 /* PatientDetailView.swift */; };
+		BEB2F9762FA1EED1005B043C /* PatientDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC010A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift */; };
 		BECC02012FAABB00CCDDEE01 /* Patient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01012FAABB00CCDDEE01 /* Patient.swift */; };
 		BECC02022FAABB00CCDDEE01 /* Clinician.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01022FAABB00CCDDEE01 /* Clinician.swift */; };
 		BECC02032FAABB00CCDDEE01 /* AppNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01032FAABB00CCDDEE01 /* AppNotification.swift */; };
@@ -1439,6 +1443,7 @@
 				707D29482DCBE68500980253 /* FontColorKey.swift in Sources */,
 				BE4EAB022F5962E100CF7BF0 /* AppearanceStyler.swift in Sources */,
 				707D29492DCBE68500980253 /* MainView.swift in Sources */,
+				BEB2F9742FA1EEC8005B043C /* PatientManagementViewModel.swift in Sources */,
 				707D294A2DCBE68500980253 /* CustomStylerKey.swift in Sources */,
 				707D294B2DCBE68500980253 /* TipView.swift in Sources */,
 				707D29712DCBE6A000980253 /* OCKLocalization.swift in Sources */,
@@ -1477,6 +1482,7 @@
 				BECC04022FAABB00CCDDEE02 /* Clinician.swift in Sources */,
 				BE7C4AB62F9DFD7A003554A0 /* NotificationViewModel.swift in Sources */,
 				BECC04032FAABB00CCDDEE02 /* AppNotification.swift in Sources */,
+				BEB2F9762FA1EED1005B043C /* PatientDetailViewModel.swift in Sources */,
 				BECC04042FAABB00CCDDEE02 /* CarePlanAssignment.swift in Sources */,
 				707D295D2DCBE68500980253 /* LoginViewModel.swift in Sources */,
 				BE4EAA822F511D2600CF7BF0 /* CareKitCard.swift in Sources */,
@@ -1508,8 +1514,10 @@
 				3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
 				3F471C9D2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */,
 				BE24ACC32F75F43C00611424 /* SurveyViewSynchronizer.swift in Sources */,
+				BEB2F96C2FA1EEC4005B043C /* PatientManagementView.swift in Sources */,
 				707D296B2DCBE68500980253 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
 				707D296C2DCBE68500980253 /* RemoteSessionDelegate.swift in Sources */,
+				BEB2F9752FA1EECD005B043C /* PatientDetailView.swift in Sources */,
 				BE24ACA82F7355D300611424 /* Survey.swift in Sources */,
 				707D296D2DCBE68500980253 /* OCKPatient+Parse.swift in Sources */,
 				707D296E2DCBE68500980253 /* ColorStyler.swift in Sources */,
