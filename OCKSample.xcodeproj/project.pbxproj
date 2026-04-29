@@ -14,12 +14,27 @@
 		3F0412032F58A7E200A9641E /* AnimationStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412012F58A7DE00A9641E /* AnimationStyler.swift */; };
 		3F0412042F58A7E200A9641E /* AnimationStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412012F58A7DE00A9641E /* AnimationStyler.swift */; };
 		3F0412062F58A81600A9641E /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
+		3F283A4D2FA01A200071225F /* DetectedMoodRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F283A452FA01A1F0071225F /* DetectedMoodRecorder.swift */; };
+		3F283A4E2FA01A200071225F /* DetectedMoodRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F283A452FA01A1F0071225F /* DetectedMoodRecorder.swift */; };
+		3F283A4F2FA01A200071225F /* DetectedMoodRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F283A452FA01A1F0071225F /* DetectedMoodRecorder.swift */; };
+		3F283A512FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F283A502FA01A2E0071225F /* HeartRateAnomalyDetector.swift */; };
+		3F283A522FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F283A502FA01A2E0071225F /* HeartRateAnomalyDetector.swift */; };
+		3F283A532FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F283A502FA01A2E0071225F /* HeartRateAnomalyDetector.swift */; };
 		3F32CD482F88D222004E8194 /* ContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7036E4CD256E9A0C006E9A3C /* ContactView.swift */; };
 		3F32CD492F88D227004E8194 /* CustomContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6696B82F85D74600D3E377 /* CustomContactViewController.swift */; };
 		3F32CD4A2F88D22D004E8194 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697892F86D15200D3E377 /* ImagePicker.swift */; };
 		3F32CD4B2F88D232004E8194 /* MyContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697832F86D13C00D3E377 /* MyContactView.swift */; };
 		3F32CD4C2F88D237004E8194 /* MyContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6697862F86D14400D3E377 /* MyContactViewController.swift */; };
 		3F32CD4D2F88D23B004E8194 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7036E4C8256E1A6F006E9A3C /* ProfileView.swift */; };
+		3F471C942F9AF37300A6607A /* ExerciseDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C932F9AF36700A6607A /* ExerciseDetector.swift */; };
+		3F471C952F9AF37300A6607A /* ExerciseDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C932F9AF36700A6607A /* ExerciseDetector.swift */; };
+		3F471C962F9AF37300A6607A /* ExerciseDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C932F9AF36700A6607A /* ExerciseDetector.swift */; };
+		3F471C982F9AF37D00A6607A /* DetectionNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C972F9AF37C00A6607A /* DetectionNotificationManager.swift */; };
+		3F471C992F9AF37D00A6607A /* DetectionNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C972F9AF37C00A6607A /* DetectionNotificationManager.swift */; };
+		3F471C9A2F9AF37D00A6607A /* DetectionNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C972F9AF37C00A6607A /* DetectionNotificationManager.swift */; };
+		3F471C9C2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C9B2F9AF38800A6607A /* DetectedExerciseRecorder.swift */; };
+		3F471C9D2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C9B2F9AF38800A6607A /* DetectedExerciseRecorder.swift */; };
+		3F471C9E2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F471C9B2F9AF38800A6607A /* DetectedExerciseRecorder.swift */; };
 		3F5956A42F60F56C00B2BFFA /* ResearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F5956682F60F09A00B2BFFA /* ResearchKit.framework */; platformFilter = ios; };
 		3F5956A52F60F56C00B2BFFA /* ResearchKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F5956682F60F09A00B2BFFA /* ResearchKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3F5956A62F60F56C00B2BFFA /* ResearchKitActiveTask.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59566E2F60F09A00B2BFFA /* ResearchKitActiveTask.framework */; platformFilter = ios; };
@@ -393,6 +408,11 @@
 		3F0411FD2F58A76D00A9641E /* DimensionStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DimensionStyler.swift; sourceTree = "<group>"; };
 		3F0412012F58A7DE00A9641E /* AnimationStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationStyler.swift; sourceTree = "<group>"; };
 		3F0412052F58A81000A9641E /* AppearanceStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceStyler.swift; sourceTree = "<group>"; };
+		3F283A452FA01A1F0071225F /* DetectedMoodRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedMoodRecorder.swift; sourceTree = "<group>"; };
+		3F283A502FA01A2E0071225F /* HeartRateAnomalyDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateAnomalyDetector.swift; sourceTree = "<group>"; };
+		3F471C932F9AF36700A6607A /* ExerciseDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseDetector.swift; sourceTree = "<group>"; };
+		3F471C972F9AF37C00A6607A /* DetectionNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionNotificationManager.swift; sourceTree = "<group>"; };
+		3F471C9B2F9AF38800A6607A /* DetectedExerciseRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedExerciseRecorder.swift; sourceTree = "<group>"; };
 		3F59564D2F60F09A00B2BFFA /* ResearchKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKit.xcodeproj; path = ResearchKit/ResearchKit.xcodeproj; sourceTree = "<group>"; };
 		3F6696B82F85D74600D3E377 /* CustomContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomContactViewController.swift; sourceTree = "<group>"; };
 		3F6697832F86D13C00D3E377 /* MyContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyContactView.swift; sourceTree = "<group>"; };
@@ -579,6 +599,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3F471C8B2F9AF36100A6607A /* Detection */ = {
+			isa = PBXGroup;
+			children = (
+				3F283A502FA01A2E0071225F /* HeartRateAnomalyDetector.swift */,
+				3F283A452FA01A1F0071225F /* DetectedMoodRecorder.swift */,
+				3F471C932F9AF36700A6607A /* ExerciseDetector.swift */,
+				3F471C9B2F9AF38800A6607A /* DetectedExerciseRecorder.swift */,
+				3F471C972F9AF37C00A6607A /* DetectionNotificationManager.swift */,
+			);
+			path = Detection;
+			sourceTree = "<group>";
+		};
 		3F59564E2F60F09A00B2BFFA /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -1026,6 +1058,7 @@
 		E72B2C08226939E3009A9438 /* OCKSample */ = {
 			isa = PBXGroup;
 			children = (
+				3F471C8B2F9AF36100A6607A /* Detection */,
 				03580E3E23CFA2E400A57818 /* OCKSample.entitlements */,
 				E72B2C09226939E3009A9438 /* AppDelegate.swift */,
 				7036E63F25717F85006E9A3C /* Constants.swift */,
@@ -1410,16 +1443,19 @@
 				707D294B2DCBE68500980253 /* TipView.swift in Sources */,
 				707D29712DCBE6A000980253 /* OCKLocalization.swift in Sources */,
 				BE7C487B2F9AF187003554A0 /* CarePlanManagementViewModel.swift in Sources */,
+				3F471C952F9AF37300A6607A /* ExerciseDetector.swift in Sources */,
 				BE24ACAC2F7355E100611424 /* Surveyable.swift in Sources */,
 				BE7C487F2F9AF1B6003554A0 /* CarePlanManagementView.swift in Sources */,
 				BE24ACB82F73613A00611424 /* OCKTask+ResearchKit.swift in Sources */,
 				707D294C2DCBE68500980253 /* StoreCoordinatorKey.swift in Sources */,
+				3F471C9A2F9AF37D00A6607A /* DetectionNotificationManager.swift in Sources */,
 				707D294D2DCBE68500980253 /* InsightsView.swift in Sources */,
 				707D294E2DCBE68500980253 /* OCKHealthKitPassthroughStore.swift in Sources */,
 				707D294F2DCBE68500980253 /* OCKStore+SampleData.swift in Sources */,
 				707D29502DCBE68500980253 /* TaskID.swift in Sources */,
 				3F32CD482F88D222004E8194 /* ContactView.swift in Sources */,
 				707D29512DCBE68500980253 /* CareView.swift in Sources */,
+				3F283A532FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */,
 				707D29522DCBE68500980253 /* AppDelegateKey.swift in Sources */,
 				BE7C4AB22F9DFD5C003554A0 /* NotificationView.swift in Sources */,
 				707D29532DCBE68500980253 /* Logger.swift in Sources */,
@@ -1465,10 +1501,12 @@
 				3F9D8BB42F67CC5300DED222 /* CardEnabledEnvironmentKey.swift in Sources */,
 				707D29682DCBE68500980253 /* NoHighlightStyle.swift in Sources */,
 				BE4EAA922F51281600CF7BF0 /* CareKitTaskView.swift in Sources */,
+				3F283A4E2FA01A200071225F /* DetectedMoodRecorder.swift in Sources */,
 				3F6D2DFD2F6627A700560AD8 /* CareTask.swift in Sources */,
 				707D29692DCBE68500980253 /* LocalSyncSessionDelegate.swift in Sources */,
 				707D296A2DCBE68500980253 /* Constants.swift in Sources */,
 				3F8C225C2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
+				3F471C9D2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */,
 				BE24ACC32F75F43C00611424 /* SurveyViewSynchronizer.swift in Sources */,
 				707D296B2DCBE68500980253 /* AppDelegate+ParseRemoteDelegate.swift in Sources */,
 				707D296C2DCBE68500980253 /* RemoteSessionDelegate.swift in Sources */,
@@ -1502,6 +1540,7 @@
 				BE24ACB52F735F5200611424 /* CarePlanID.swift in Sources */,
 				91AD923B24A4C42D00925D4D /* CareView.swift in Sources */,
 				70F921A927CA9A4000368CEC /* CustomStylerKey.swift in Sources */,
+				3F471C962F9AF37300A6607A /* ExerciseDetector.swift in Sources */,
 				BE4EAA8A2F5126C100CF7BF0 /* OCKHealthKitTask+CardTask.swift in Sources */,
 				3F6D2DFC2F6627A700560AD8 /* CareTask.swift in Sources */,
 				7099D20629E98DFF0037CD8E /* TaskID.swift in Sources */,
@@ -1513,6 +1552,7 @@
 				70E3422B2DB0581C005124F9 /* MainTabView.swift in Sources */,
 				7075152028DE1BB400A57A0C /* LoginView.swift in Sources */,
 				70E342292DB05813005124F9 /* ProfileView.swift in Sources */,
+				3F471C992F9AF37D00A6607A /* DetectionNotificationManager.swift in Sources */,
 				BE24ACAF2F7357BE00611424 /* RangeOfMotion.swift in Sources */,
 				BE7C49492F9DF46E003554A0 /* Relationship.swift in Sources */,
 				BECC03012FAABB00CCDDEE01 /* Patient.swift in Sources */,
@@ -1520,6 +1560,7 @@
 				BECC03032FAABB00CCDDEE01 /* AppNotification.swift in Sources */,
 				BECC03042FAABB00CCDDEE01 /* CarePlanAssignment.swift in Sources */,
 				BE24ACB02F7357BE00611424 /* Surveyable.swift in Sources */,
+				3F283A4F2FA01A200071225F /* DetectedMoodRecorder.swift in Sources */,
 				BE24ACB12F7357BE00611424 /* Survey.swift in Sources */,
 				70F921B227CAC16E00368CEC /* RemoteSessionDelegate.swift in Sources */,
 				70E342302DB062F8005124F9 /* NoHighlightStyle.swift in Sources */,
@@ -1535,6 +1576,7 @@
 				9103AA5227B8C913002C921E /* FontColorKey.swift in Sources */,
 				3F0412002F58A76E00A9641E /* DimensionStyler.swift in Sources */,
 				707CC719254DA91900116728 /* OCKLocalization.swift in Sources */,
+				3F471C9C2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */,
 				7007759B252229C900EC0EDA /* User.swift in Sources */,
 				BEB2F93C2F9F474B005B043C /* CarePlanSnapshot.swift in Sources */,
 				7099D20929E98E200037CD8E /* UserType.swift in Sources */,
@@ -1549,6 +1591,7 @@
 				7099D20C29E98E400037CD8E /* InstallationChannel.swift in Sources */,
 				BE24ACBB2F75F3D900611424 /* OCKAnyEvent+Custom.swift in Sources */,
 				70308886258273D400FFABB6 /* LoginViewModel.swift in Sources */,
+				3F283A512FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */,
 				70F921B127CAC16E00368CEC /* SessionDelegate.swift in Sources */,
 				BE24ACAD2F73571000611424 /* Consent.swift in Sources */,
 				BE24ACAE2F73571000611424 /* Onboard.swift in Sources */,
@@ -1578,8 +1621,10 @@
 				BE4EAA902F51280300CF7BF0 /* CareKitTaskViewModel.swift in Sources */,
 				7036E4CE256E9A0C006E9A3C /* ContactView.swift in Sources */,
 				70F03A972786098F00E5AFB4 /* OCKStore.swift in Sources */,
+				3F471C982F9AF37D00A6607A /* DetectionNotificationManager.swift in Sources */,
 				70DFD80B2567074500B9DB12 /* LoginView.swift in Sources */,
 				707D28CF2DCA8AAB00980253 /* OCKStore+SampleData.swift in Sources */,
+				3F471C942F9AF37300A6607A /* ExerciseDetector.swift in Sources */,
 				7055725B2DC33AB1008E5B0A /* SplashScreenView.swift in Sources */,
 				70F03AA827860E7700E5AFB4 /* FontColorKey.swift in Sources */,
 				BE7C4AB32F9DFD5C003554A0 /* NotificationView.swift in Sources */,
@@ -1594,6 +1639,7 @@
 				BE24ACB72F73613A00611424 /* OCKTask+ResearchKit.swift in Sources */,
 				E72B2C0A226939E3009A9438 /* AppDelegate.swift in Sources */,
 				BE7C487C2F9AF187003554A0 /* CarePlanManagementViewModel.swift in Sources */,
+				3F283A522FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */,
 				7036E4C4256E0A48006E9A3C /* CareView.swift in Sources */,
 				3F6697842F86D14000D3E377 /* MyContactView.swift in Sources */,
 				70F921B027CABED600368CEC /* LocalSyncSessionDelegate.swift in Sources */,
@@ -1633,6 +1679,7 @@
 				BE7C487E2F9AF1B6003554A0 /* CarePlanManagementView.swift in Sources */,
 				7083A856279CA40A00B3832E /* PCKUtility.swift in Sources */,
 				70B8E0A52F0EC1CA00440FCA /* Mutex.swift in Sources */,
+				3F471C9E2F9AF38B00A6607A /* DetectedExerciseRecorder.swift in Sources */,
 				BE24ACC22F75F43C00611424 /* SurveyViewSynchronizer.swift in Sources */,
 				70F921AE27CABE7700368CEC /* RemoteSessionDelegate.swift in Sources */,
 				BE24AC9F2F73555000611424 /* Consent.swift in Sources */,
@@ -1640,6 +1687,7 @@
 				3F8C225D2F63889900E02F4D /* MyCustomCardView.swift in Sources */,
 				7036E4BF256DA089006E9A3C /* LoginViewModel.swift in Sources */,
 				BE4EAA812F511D2600CF7BF0 /* CareKitCard.swift in Sources */,
+				3F283A4D2FA01A200071225F /* DetectedMoodRecorder.swift in Sources */,
 				7036E517256F2413006E9A3C /* ProfileViewModel.swift in Sources */,
 				BE24ACB32F735F5200611424 /* CarePlanID.swift in Sources */,
 				7099D20B29E98E400037CD8E /* InstallationChannel.swift in Sources */,

@@ -1,0 +1,107 @@
+//
+//  DetectedExerciseRecorder.swift
+//  OCKSample
+//
+//  Created by Student on 4/23/26.
+//  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
+//
+
+import CareKitStore
+import Foundation
+import os.log
+
+/// Writes auto-detected exercise sessions into OCKStore.
+///
+/// Design note: `detectedExercise` is an all-day daily task, so CareKit
+/// allocates exactly one outcome slot per day (occurrence 0). Multiple detected
+/// sessions on the same day therefore can't each be a separate OCKOutcome —
+/// they'd collide on (taskUUID, occurrenceIndex). Instead, each session is one
+/// `OCKOutcomeValue` appended to that day's single outcome. Per-session
+/// metadata (start/end/unconfirmed) is JSON-encoded into the value's `kind`.
+@MainActor
+struct DetectedExerciseRecorder {
+
+    struct SessionMetadata: Codable {
+        let start: Date
+        let end: Date
+        let isUnconfirmed: Bool
+        let source: String  // "user_confirmed" | "auto_recorded"
+    }
+
+    let store: OCKStore
+
+    func record(
+        start: Date,
+        end: Date,
+        isUnconfirmed: Bool
+    ) async throws {
+        let task = try await fetchTask()
+
+        let metadata = SessionMetadata(
+            start: start,
+            end: end,
+            isUnconfirmed: isUnconfirmed,
+            source: isUnconfirmed ? "auto_recorded" : "user_confirmed"
+        )
+        let kindJSON = try encode(metadata)
+
+        let duration = end.timeIntervalSince(start)
+        var value = OCKOutcomeValue(duration, units: "seconds")
+        value.createdDate = end
+        value.kind = kindJSON
+
+        // Occurrence is always 0 for an all-day daily task on a given day.
+        let occurrence = 0
+
+        if let existing = try await fetchTodaysOutcome(taskUUID: task.uuid, occurrence: occurrence) {
+            var updated = existing
+            updated.values.append(value)
+            updated.effectiveDate = end
+            _ = try await store.updateOutcome(updated)
+            Logger.detection.info(
+                "Appended session to existing outcome: \(start) → \(end), unconfirmed=\(isUnconfirmed)"
+            )
+        } else {
+            var outcome = OCKOutcome(
+                taskUUID: task.uuid,
+                taskOccurrenceIndex: occurrence,
+                values: [value]
+            )
+            outcome.effectiveDate = end
+            _ = try await store.addOutcome(outcome)
+            Logger.detection.info(
+                "Created outcome for detected exercise: \(start) → \(end), unconfirmed=\(isUnconfirmed)"
+            )
+        }
+    }
+
+    private func fetchTask() async throws -> OCKTask {
+        var query = OCKTaskQuery(for: Date())
+        query.ids = [TaskID.detectedExercise]
+        let tasks = try await store.fetchTasks(query: query)
+        guard let task = tasks.first else {
+            throw AppError.errorString("detectedExercise task not found in store")
+        }
+        return task
+    }
+
+    private func fetchTodaysOutcome(
+        taskUUID: UUID,
+        occurrence: Int
+    ) async throws -> OCKOutcome? {
+        let calendar = Calendar.current
+        let dayStart = calendar.startOfDay(for: Date())
+        let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
+        var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: dayEnd))
+        query.taskUUIDs = [taskUUID]
+        let outcomes = try await store.fetchOutcomes(query: query)
+        return outcomes.first { $0.taskOccurrenceIndex == occurrence }
+    }
+
+    private func encode(_ metadata: SessionMetadata) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(metadata)
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+}
