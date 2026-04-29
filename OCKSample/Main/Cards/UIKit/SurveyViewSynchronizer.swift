@@ -41,7 +41,7 @@ final class SurveyViewSynchronizer: OCKSurveyTaskViewSynchronizer {
                 let range: Double = event.answer(kind: "range")
                 view.instructionsLabel.text = "Your Range of Motion Result: \(range)"
             case StroopTask.identifier():
-                view.instructionsLabel.text = StroopTask().displayText(for: event)  // "Avg reaction time: 0.432 s"
+                view.instructionsLabel.text = StroopTask().displayText(for: event)
             default:
                 view.instructionsLabel.isHidden = false
             }
