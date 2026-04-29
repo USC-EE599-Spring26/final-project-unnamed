@@ -15,6 +15,7 @@ enum TaskID {
     static let stretch = "stretch"
     static let cardios = "cardios"
     static let qualityOfLife = "qualityOfLife"
+    static let adhdCheckIn   = "adhd-daily-checkin"
 
     // Behavioral tracking
     static let logFocus = "log_focus"
