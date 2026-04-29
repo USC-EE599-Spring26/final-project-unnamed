@@ -13,6 +13,10 @@ import os.log
 extension AppDelegate: UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Register notification category + delegate early so taps on a detection
+        // prompt route correctly even if the app was cold-launched by the tap.
+        detectionNotifications.configure()
+
         Task {
             if isSyncingWithRemote {
                 do {
