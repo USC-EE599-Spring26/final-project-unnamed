@@ -394,6 +394,16 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                     tipView.customStyle = CustomStylerKey.defaultValue
 
                     listViewController.appendView(tipView, animated: false)
+
+                    // TODOx: 5 - Need to use correct initializer instead of setting properties
+
+                    let customFeaturedView = CustomFeaturedContentViewController()
+                    customFeaturedView.url = URL(string: "https://dornsife.usc.edu/phed/")
+                    customFeaturedView.imageView.image = UIImage(named: "exercise.jpg")
+                    customFeaturedView.label.text = tipTitle
+                    customFeaturedView.label.textColor = .white
+                    customFeaturedView.customStyle = CustomStylerKey.defaultValue
+                    listViewController.appendView(customFeaturedView, animated: false)
                 }
             }
             #endif
