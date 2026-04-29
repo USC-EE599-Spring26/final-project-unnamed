@@ -838,6 +838,30 @@ extension OCKStore {
         rangeOfMotionTask.card = .uiKitSurvey
         rangeOfMotionTask.uiKitSurvey = .rangeOfMotion
 
-        return try await addTasksIfNotPresent([rangeOfMotionTask])
+        // MARK: - Stroop Focus Test (daily active task)
+        let stroopSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: thisMorning,
+                end: nil,
+                interval: DateComponents(day: 1),
+                text: nil,
+                targetValues: [],
+                duration: .allDay
+            )
+        ])
+
+        var stroopTask = OCKTask(
+            id: StroopTask.identifier(),
+            title: String(localized: "STROOP"),
+            carePlanUUID: carePlanUUID,
+            schedule: stroopSchedule
+        )
+        stroopTask.instructions = String(localized: "STROOP_INSTRUCTIONS")
+        stroopTask.priority     = 3
+        stroopTask.asset        = "brain.head.profile"
+        stroopTask.card         = .uiKitSurvey
+        stroopTask.uiKitSurvey  = .stroop
+
+        return try await addTasksIfNotPresent([rangeOfMotionTask, stroopTask])
     }
 }
