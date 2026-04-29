@@ -10,8 +10,6 @@ import SwiftUI
 
 struct NotificationView: View {
 
-    /// Owned by the parent (MainTabView) so the unread badge count
-    /// stays in sync with the tab bar without a second fetch.
     @ObservedObject var viewModel: NotificationViewModel
 
     var body: some View {
@@ -104,7 +102,7 @@ private struct NotificationRow: View {
                 }
             } else if let result = item.result {
                 // Acted — show result badge instead of buttons.
-                let accepted = result == AppNotification.resultAccepted
+                let accepted = result == .accepted
                 Label(
                     accepted ? "Connected" : "Declined",
                     systemImage: accepted ? "checkmark.seal.fill" : "xmark.seal.fill"
@@ -125,17 +123,17 @@ private struct NotificationRow: View {
 
     private var iconName: String {
         switch item.type {
-        case AppNotification.typeConnectionRequest:  return "person.badge.plus"
-        case AppNotification.typeCarePlanAssignment: return "list.clipboard"
-        default: return "bell"
+        case .connectionRequest:  return "person.badge.plus"
+        case .carePlanAssignment: return "list.clipboard"
+        case .none:               return "bell"
         }
     }
 
     private var iconColor: Color {
         switch item.type {
-        case AppNotification.typeConnectionRequest:  return .blue
-        case AppNotification.typeCarePlanAssignment: return .green
-        default: return .secondary
+        case .connectionRequest:  return .blue
+        case .carePlanAssignment: return .green
+        case .none:               return .secondary
         }
     }
 }

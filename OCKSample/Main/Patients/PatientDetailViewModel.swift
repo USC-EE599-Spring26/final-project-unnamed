@@ -40,8 +40,6 @@ class PatientDetailViewModel: ObservableObject {
         self.patient = patient
     }
 
-    // MARK: - Fetch
-
     func fetchCarePlans() async {
         guard let store = AppDelegateKey.defaultValue?.store else { return }
         isLoading = true
@@ -50,7 +48,6 @@ class PatientDetailViewModel: ObservableObject {
         guard let currentUser = try? await User.current(),
               let myObjectId = currentUser.objectId else { return }
 
-        // 1. Existing CarePlanAssignment records for this (clinician, patient) pair
         let assignments = (try? await CarePlanAssignment
             .query(
                 "clinicianObjectId" == myObjectId,
@@ -65,7 +62,6 @@ class PatientDetailViewModel: ObservableObject {
             }
         )
 
-        // 2. Clinician's own care plans from local CareKit store
         let query = OCKCarePlanQuery(for: Date())
         let plans = (try? await store.fetchCarePlans(query: query)) ?? []
 
@@ -99,7 +95,6 @@ class PatientDetailViewModel: ObservableObject {
 
                 if existingStatus == CarePlanAssignment.statusAccepted
                     || existingStatus == CarePlanAssignment.statusPending {
-                    // Revoke: mark as rejected
                     var assignment = CarePlanAssignment()
                     assignment.objectId = existingId
                     var fetched = try await assignment.fetch()
@@ -109,7 +104,6 @@ class PatientDetailViewModel: ObservableObject {
                     updateLocalItem(id: item.id, status: CarePlanAssignment.statusRejected,
                                     objId: existingId)
                 } else {
-                    // Re-assign (was rejected): rebuild snapshot in case plan changed
                     let payload = await buildSnapshot(for: item)
                     var assignment = CarePlanAssignment()
                     assignment.objectId = existingId
@@ -118,12 +112,11 @@ class PatientDetailViewModel: ObservableObject {
                     fetched.payload = payload
                     _ = try await fetched.save()
 
-                    // Re-notify patient
                     try await AppNotification.send(
                         toUserObjectId: patient.patientObjectId,
                         fromUserObjectId: myObjectId,
                         fromUsername: myUsername,
-                        type: AppNotification.typeCarePlanAssignment,
+                        type: .carePlanAssignment,
                         relatedId: existingId,
                         message: "\(myUsername.capitalized) assigned care plan: \(item.title)"
                     )
@@ -132,7 +125,6 @@ class PatientDetailViewModel: ObservableObject {
                 }
 
             } else {
-                // First-time assignment — build snapshot of the care plan + tasks
                 let payload = await buildSnapshot(for: item)
                 let saved = try await CarePlanAssignment.create(
                     clinicianObjectId: myObjectId,
@@ -152,7 +144,7 @@ class PatientDetailViewModel: ObservableObject {
                     toUserObjectId: patient.patientObjectId,
                     fromUserObjectId: myObjectId,
                     fromUsername: myUsername,
-                    type: AppNotification.typeCarePlanAssignment,
+                    type: AppNotification.NotificationType.carePlanAssignment,
                     relatedId: objId,
                     message: "\(myUsername.capitalized) assigned you a care plan: \(item.title)"
                 )
@@ -166,13 +158,9 @@ class PatientDetailViewModel: ObservableObject {
 
     // MARK: - Private helpers
 
-    /// Serialises the care plan and all its tasks into a JSON string for storage
-    /// in CarePlanAssignment.payload. Returns nil if the store is unavailable or
-    /// the plan cannot be found (assignment still works — patient just won't get tasks).
     private func buildSnapshot(for item: CarePlanItem) async -> String? {
         guard let store = AppDelegateKey.defaultValue?.store else { return nil }
 
-        // Fetch the full OCKCarePlan so we have its UUID.
         var planQuery = OCKCarePlanQuery(for: Date())
         planQuery.ids = [item.id]
         guard let plan = (try? await store.fetchCarePlans(query: planQuery))?.first else {
@@ -180,7 +168,6 @@ class PatientDetailViewModel: ObservableObject {
             return nil
         }
 
-        // Fetch all tasks that belong to this care plan.
         var taskQuery = OCKTaskQuery(for: Date())
         taskQuery.carePlanUUIDs = [plan.uuid]
         let tasks = (try? await store.fetchTasks(query: taskQuery)) ?? []

@@ -116,13 +116,11 @@ extension Relationship {
         patientEmail: String?
     ) async throws -> Relationship? {
 
-        // Require at least one identifier.
         guard let email = patientEmail, !email.isEmpty else {
             Logger.contact.info("Relationship.createRequest: no email — skipped.")
             return nil
         }
 
-        // Idempotency: don't create a duplicate pending row for the same email.
         let dupCheck = Relationship.query(
             "doctorObjectId" == clinicianObjectId,
             "patientEmail"   == email,
@@ -141,49 +139,23 @@ extension Relationship {
         rel.patientEmail    = email
         rel.status          = statusPending
 
-        // Always publicRead + publicWrite.
-        // The patient claims the row in acceptRequest() and tightens the ACL then.
         var acl = ParseACL()
         acl.publicRead  = true
         acl.publicWrite = true
         rel.ACL = acl
 
-        Logger.contact.info("Relationship.createRequest: saving for \(email, privacy: .private)")
-        Logger.contact.info("""
-        rel dump:
-          doctorObjectId:  \(rel.doctorObjectId ?? "nil", privacy: .public)
-          doctorUsername:  \(rel.doctorUsername ?? "nil", privacy: .public)
-          patientObjectId: \(rel.patientObjectId ?? "nil", privacy: .public)
-          patientUsername: \(rel.patientUsername ?? "nil", privacy: .public)
-          patientEmail:    \(rel.patientEmail ?? "nil", privacy: .public)
-          patientPhone:    \(rel.patientPhone ?? "nil", privacy: .public)
-          status:          \(rel.status ?? "nil", privacy: .public)
-          objectId:        \(rel.objectId ?? "nil", privacy: .public)
-          ACL:             \(String(describing: rel.ACL), privacy: .public)
-        """)
         let res = try await rel.save()
-
-        Logger.contact.info("Relationship.createRequest: saved")
         return res
-//        return try await rel.save()
     }
 }
 
-// MARK: - Link-on-login
-
 extension Relationship {
-    /// Runs after every successful login.
-    /// Finds pending rows addressed to this user's email, claims each one
-    /// by filling in patientObjectId/patientUsername + tightening the ACL,
-    /// then dispatches the deferred connection-request notification.
-    /// Idempotent — rows that are already linked are skipped.
     static func linkPendingForCurrentUser() async {
         guard let user = try? await User.current(),
               let myObjectId = user.objectId,
               let myUsername = user.username,
               let email = user.email, !email.isEmpty else { return }
 
-        // Match by email only.
         let candidates = (try? await Relationship.query(
             "patientEmail" == email,
             "status"       == statusPending
@@ -195,10 +167,8 @@ extension Relationship {
         for rel in candidates {
             guard let relId = rel.objectId else { continue }
 
-            // Idempotent: skip rows already linked.
             if let existing = rel.patientObjectId, !existing.isEmpty { continue }
 
-            // Safety: don't self-connect.
             guard rel.doctorObjectId != myObjectId else { continue }
 
             var updated = rel
@@ -213,14 +183,13 @@ extension Relationship {
                 _ = try await updated.save()
                 Logger.login.info("Relationship \(relId) linked to \(myUsername, privacy: .private)")
 
-                // Dispatch the deferred notification now that we know the patient.
                 if let docId = rel.doctorObjectId,
                    let docUsername = rel.doctorUsername {
                     try await AppNotification.send(
                         toUserObjectId: myObjectId,
                         fromUserObjectId: docId,
                         fromUsername: docUsername,
-                        type: AppNotification.typeConnectionRequest,
+                        type: .connectionRequest,
                         relatedId: relId,
                         message: "Dr. \(docUsername.capitalized) wants to connect with you."
                     )
@@ -232,16 +201,7 @@ extension Relationship {
     }
 }
 
-// MARK: - Patient accept / reject
-
 extension Relationship {
-    /// Called by the patient to accept a connection request.
-    ///
-    /// Works in two scenarios:
-    ///   1. Row is still unlinked (publicWrite) — claims it and accepts in one save.
-    ///   2. Row was already claimed by `linkPendingForCurrentUser` (patient has write) — just flips status.
-    ///
-    /// In both cases the ACL is tightened to clinician + patient only.
     static func acceptRequest(objectId: String) async throws {
         let currentUser = try await User.current()
         guard let myObjectId = currentUser.objectId,
@@ -251,7 +211,6 @@ extension Relationship {
         stub.objectId = objectId
         var row = try await stub.fetch()
 
-        // Claim if not yet linked (public-ACL path).
         if row.patientObjectId == nil || row.patientObjectId!.isEmpty {  // swiftlint:disable:this force_unwrapping
             row.patientObjectId = myObjectId
             row.patientUsername = myUsername
@@ -269,8 +228,6 @@ extension Relationship {
         Logger.contact.info("Relationship \(objectId) accepted by \(myUsername, privacy: .private)")
     }
 
-    /// Called by the patient to reject a connection request.
-    /// Sets status = rejected and tightens ACL so the row is no longer public.
     static func rejectRequest(objectId: String) async throws {
         let currentUser = try await User.current()
         guard let myObjectId = currentUser.objectId else { return }
@@ -279,7 +236,6 @@ extension Relationship {
         stub.objectId = objectId
         var row = try await stub.fetch()
 
-        // Claim objectId so we can set a proper ACL even on rejection.
         if row.patientObjectId == nil || row.patientObjectId!.isEmpty {  // swiftlint:disable:this force_unwrapping
             row.patientObjectId = myObjectId
         }

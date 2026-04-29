@@ -67,7 +67,6 @@ struct PatientManagementView: View {
 
     private var patientList: some View {
         List {
-            // ── Accepted connections ───────────────────────────────────
             if !viewModel.acceptedPatients.isEmpty {
                 Section("Connected Patients") {
                     ForEach(viewModel.acceptedPatients) { row in
@@ -80,7 +79,6 @@ struct PatientManagementView: View {
                 }
             }
 
-            // ── Pending outgoing requests (linked) ─────────────────────
             if !viewModel.pendingPatients.isEmpty {
                 Section("Pending Requests") {
                     ForEach(viewModel.pendingPatients) { row in
@@ -108,7 +106,6 @@ struct PatientManagementView: View {
                 }
             }
 
-            // ── Unlinked pending (target hasn't signed up yet) ─────────
             if !viewModel.pendingUnlinked.isEmpty {
                 Section {
                     ForEach(viewModel.pendingUnlinked) { row in

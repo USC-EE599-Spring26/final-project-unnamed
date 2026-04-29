@@ -23,7 +23,6 @@ struct PatientDetailView: View {
 
     var body: some View {
         List {
-            // ── Patient info ────────────────────────────────────────────
             Section("Patient Info") {
                 LabeledContent("Username", value: patient.username)
                 if let email = patient.email {
@@ -34,7 +33,6 @@ struct PatientDetailView: View {
                 }
             }
 
-            // ── Care plan assignment ────────────────────────────────────
             Section {
                 if viewModel.isLoading {
                     HStack {

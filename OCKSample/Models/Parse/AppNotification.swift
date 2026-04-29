@@ -5,10 +5,6 @@
 //  Created by Yu-Chieh on 2026/4/23.
 //  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
 //
-//  Parse table for in-app notifications (connection requests, care plan assignments).
-//
-//  ACL: sender read, recipient read+write (so recipient can mark isRead / act on it).
-//
 
 import Foundation
 import os.log
@@ -16,15 +12,19 @@ import ParseSwift
 
 struct AppNotification: ParseObject {
 
-    // MARK: - Type constants
+    // MARK: - Nested enums
 
-    static let typeConnectionRequest  = "connection_request"
-    static let typeCarePlanAssignment = "careplan_assignment"
+    enum NotificationType: String, Codable, CaseIterable, Identifiable {
+        var id: Self { self }
+        case connectionRequest  = "connection_request"
+        case carePlanAssignment = "careplan_assignment"
+    }
 
-    // MARK: - Result constants
-
-    static let resultAccepted = "accepted"
-    static let resultRejected = "rejected"
+    enum NotificationResult: String, Codable, CaseIterable, Identifiable {
+        var id: Self { self }
+        case accepted
+        case rejected
+    }
 
     // MARK: - ParseObject required
 
@@ -40,21 +40,12 @@ struct AppNotification: ParseObject {
     var fromUserObjectId: String?
     var fromUsername: String?
 
-    /// "connection_request" | "careplan_assignment"
-    var type: String?
-
-    /// objectId of the related Relationship or CarePlanAssignment row.
+    var type: NotificationType?
     var relatedId: String?
-
-    /// Human-readable notification body shown in the UI.
     var message: String?
-
-    /// Recipient sets this to true once they have seen the notification.
     var isRead: Bool?
 
-    /// "accepted" | "rejected" — set by the recipient when they act on the notification.
-    /// nil means the notification is still pending (no action taken yet).
-    var result: String?
+    var result: NotificationResult?
 }
 
 // MARK: - Merge
@@ -90,7 +81,7 @@ extension AppNotification {
     }
 }
 
-// MARK: - Send helper
+// MARK: - Send
 
 extension AppNotification {
 
@@ -100,7 +91,7 @@ extension AppNotification {
         toUserObjectId: String,
         fromUserObjectId: String,
         fromUsername: String,
-        type: String,
+        type: NotificationType,
         relatedId: String,
         message: String
     ) async throws -> AppNotification {
@@ -114,7 +105,6 @@ extension AppNotification {
         notification.message          = message
         notification.isRead           = false
 
-        // Sender can read; recipient can read + write (to mark isRead and act on it).
         var acl = ParseACL()
         acl.setReadAccess(objectId: fromUserObjectId, value: true)
         acl.setReadAccess(objectId: toUserObjectId, value: true)
@@ -123,7 +113,7 @@ extension AppNotification {
 
         let saved = try await notification.save()
         Logger.contact.info(
-            "AppNotification sent type=\(type) to=\(toUserObjectId, privacy: .private)"
+            "AppNotification sent type=\(type.rawValue) to=\(toUserObjectId, privacy: .private)"
         )
         return saved
     }

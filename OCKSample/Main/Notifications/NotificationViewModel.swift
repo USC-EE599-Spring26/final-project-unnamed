@@ -17,14 +17,14 @@ class NotificationViewModel: ObservableObject {
     // MARK: - Display model
 
     struct NotificationItem: Identifiable {
-        let id: String                  // AppNotification.objectId
-        let type: String                // typeConnectionRequest | typeCarePlanAssignment
+        let id: String                              // AppNotification.objectId
+        let type: AppNotification.NotificationType?
         let message: String
         let fromUsername: String
         let relatedId: String
         let createdAt: Date?
         var isRead: Bool
-        var result: String?
+        var result: AppNotification.NotificationResult?
     }
 
     // MARK: - Published
@@ -56,13 +56,12 @@ class NotificationViewModel: ObservableObject {
 
         notifications = raw.compactMap { notif -> NotificationItem? in
             guard let objId    = notif.objectId,
-                  let type     = notif.type,
                   let message  = notif.message,
                   let relatedId = notif.relatedId,
                   let from     = notif.fromUsername else { return nil }
             return NotificationItem(
                 id: objId,
-                type: type,
+                type: notif.type,
                 message: message,
                 fromUsername: from,
                 relatedId: relatedId,
@@ -78,23 +77,22 @@ class NotificationViewModel: ObservableObject {
     func accept(_ item: NotificationItem) async {
         do {
             switch item.type {
-            case AppNotification.typeConnectionRequest:
+            case .connectionRequest:
                 try await Relationship.acceptRequest(objectId: item.relatedId)
                 await addClinicianContactIfNeeded(username: item.fromUsername)
 
-            case AppNotification.typeCarePlanAssignment:
+            case .carePlanAssignment:
                 var assignment = CarePlanAssignment()
                 assignment.objectId = item.relatedId
                 var fetched  = try await assignment.fetch()
                 fetched.status = CarePlanAssignment.statusAccepted
                 _ = try await fetched.save()
-                // Copy the care plan and its tasks into the patient's local store.
                 await copyCarePlanToPatientStore(from: fetched)
 
-            default:
+            case .none:
                 break
             }
-            await markRead(item, result: AppNotification.resultAccepted)
+            await markRead(item, result: .accepted)
         } catch {
             errorMessage = "Could not accept: \(error.localizedDescription)"
         }
@@ -105,21 +103,20 @@ class NotificationViewModel: ObservableObject {
     func reject(_ item: NotificationItem) async {
         do {
             switch item.type {
-            case AppNotification.typeConnectionRequest:
-                // Claims patientObjectId (if not yet set), tightens ACL, sets rejected.
+            case .connectionRequest:
                 try await Relationship.rejectRequest(objectId: item.relatedId)
 
-            case AppNotification.typeCarePlanAssignment:
+            case .carePlanAssignment:
                 var assignment = CarePlanAssignment()
                 assignment.objectId = item.relatedId
                 var fetched  = try await assignment.fetch()
                 fetched.status = CarePlanAssignment.statusRejected
                 _ = try await fetched.save()
 
-            default:
+            case .none:
                 break
             }
-            await markRead(item, result: AppNotification.resultRejected)
+            await markRead(item, result: .rejected)
         } catch {
             errorMessage = "Could not reject: \(error.localizedDescription)"
         }
@@ -127,9 +124,6 @@ class NotificationViewModel: ObservableObject {
 
     // MARK: - Copy care plan to patient's store
 
-    /// Decodes the CarePlanSnapshot from CarePlanAssignment.payload and
-    /// creates the OCKCarePlan + OCKTasks in the patient's local CareKit store.
-    /// Skips tasks that already exist (idempotent — safe on re-accept).
     private func copyCarePlanToPatientStore(from assignment: CarePlanAssignment) async {
         guard let store   = AppDelegateKey.defaultValue?.store,
               let payload = assignment.payload else {
@@ -139,13 +133,9 @@ class NotificationViewModel: ObservableObject {
 
         do {
             let snapshot = try CarePlanSnapshot.from(jsonString: payload)
-
-            // ── 1. Care plan ─────────────────────────────────────────────
-            // Fetch the patient's own UUID to link the care plan to their profile.
             let patientUUID = (try? await store
                 .fetchPatients(query: OCKPatientQuery(for: Date())))?.first?.uuid
 
-            // Check if this care plan was already copied (idempotent).
             var planQuery = OCKCarePlanQuery(for: Date())
             planQuery.ids = [snapshot.carePlanId]
             let existingPlan = (try? await store.fetchCarePlans(query: planQuery))?.first
@@ -166,7 +156,6 @@ class NotificationViewModel: ObservableObject {
                 Logger.contact.info("copyCarePlan: created plan '\(titleForLog)'")
             }
 
-            // ── 2. Tasks ─────────────────────────────────────────────────
             let taskIds = snapshot.tasks.map { $0.id }
             var taskQuery = OCKTaskQuery(for: Date())
             taskQuery.ids = taskIds
@@ -185,7 +174,6 @@ class NotificationViewModel: ObservableObject {
                 )
             }
         } catch {
-            // Non-fatal — assignment is already marked accepted; log and continue.
             Logger.contact.warning("copyCarePlanToPatientStore failed: \(error)")
         }
     }
@@ -222,7 +210,7 @@ class NotificationViewModel: ObservableObject {
 
     // MARK: - Mark read
 
-    func markRead(_ item: NotificationItem, result: String? = nil) async {
+    func markRead(_ item: NotificationItem, result: AppNotification.NotificationResult? = nil) async {
         do {
             var found = try await AppNotification
                 .query("objectId" == item.id)
