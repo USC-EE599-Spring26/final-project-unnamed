@@ -245,6 +245,8 @@
 		BE4EAB022F5962E100CF7BF0 /* AppearanceStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0412052F58A81000A9641E /* AppearanceStyler.swift */; };
 		BE4EAB132F59735200CF7BF0 /* CareKitTaskViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EAA8E2F5127F400CF7BF0 /* CareKitTaskViewModel.swift */; };
 		BE6A48C82F7E4ED700C25E90 /* CareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7440E4E229477F7007AD30A /* CareViewController.swift */; };
+		BEB2F9C32FA1F0EA005B043C /* CustomFeaturedContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F9BB2FA1F0D9005B043C /* CustomFeaturedContentViewController.swift */; };
+		BEB2F9C42FA1F0EA005B043C /* CustomFeaturedContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2F9BB2FA1F0D9005B043C /* CustomFeaturedContentViewController.swift */; };
 		BE7C48742F9AF10E003554A0 /* ClinicianTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C486C2F9AF10D003554A0 /* ClinicianTabView.swift */; };
 		BE7C48752F9AF10E003554A0 /* ClinicianTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C486C2F9AF10D003554A0 /* ClinicianTabView.swift */; };
 		BE7C487B2F9AF187003554A0 /* CarePlanManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C487A2F9AF186003554A0 /* CarePlanManagementViewModel.swift */; };
@@ -515,6 +517,7 @@
 		BE4EAA882F5126B700CF7BF0 /* OCKHealthKitTask+CardTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OCKHealthKitTask+CardTask.swift"; sourceTree = "<group>"; };
 		BE4EAA8E2F5127F400CF7BF0 /* CareKitTaskViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareKitTaskViewModel.swift; sourceTree = "<group>"; };
 		BE4EAA912F51281600CF7BF0 /* CareKitTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareKitTaskView.swift; sourceTree = "<group>"; };
+		BEB2F9BB2FA1F0D9005B043C /* CustomFeaturedContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomFeaturedContentViewController.swift; sourceTree = "<group>"; };
 		BE7C486C2F9AF10D003554A0 /* ClinicianTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianTabView.swift; sourceTree = "<group>"; };
 		BE7C487A2F9AF186003554A0 /* CarePlanManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanManagementViewModel.swift; sourceTree = "<group>"; };
 		BE7C487D2F9AF1AD003554A0 /* CarePlanManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanManagementView.swift; sourceTree = "<group>"; };
@@ -987,6 +990,7 @@
 		BE24ACC02F75F42400611424 /* UIKit */ = {
 			isa = PBXGroup;
 			children = (
+				BEB2F9BB2FA1F0D9005B043C /* CustomFeaturedContentViewController.swift */,
 				BE24ACC12F75F43400611424 /* SurveyViewSynchronizer.swift */,
 				E7C37848228F887800E982D8 /* TipView.swift */,
 			);
@@ -1476,6 +1480,7 @@
 				707D29552DCBE68500980253 /* Installation.swift in Sources */,
 				707D29562DCBE68500980253 /* SplashScreenView.swift in Sources */,
 				3F32CD4B2F88D232004E8194 /* MyContactView.swift in Sources */,
+				BEB2F9C42FA1F0EA005B043C /* CustomFeaturedContentViewController.swift in Sources */,
 				707D29572DCBE68500980253 /* OCKStore.swift in Sources */,
 				707D29592DCBE68500980253 /* AppError.swift in Sources */,
 				707D295A2DCBE68500980253 /* InstallationChannel.swift in Sources */,
@@ -1674,6 +1679,7 @@
 				707CC718254DA91900116728 /* OCKLocalization.swift in Sources */,
 				BE4EAA862F51214400CF7BF0 /* OCKTask+CardTask.swift in Sources */,
 				E7C37849228F887800E982D8 /* TipView.swift in Sources */,
+				BEB2F9C32FA1F0EA005B043C /* CustomFeaturedContentViewController.swift in Sources */,
 				BE24ACA92F7355D300611424 /* Survey.swift in Sources */,
 				3F6D2DFB2F6627A700560AD8 /* CareTask.swift in Sources */,
 				3F66978E2F86D16300D3E377 /* ProfileImageView.swift in Sources */,
