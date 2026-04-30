@@ -393,17 +393,26 @@ extension ExerciseDetector {
     }
 
     fileprivate func userIsAlreadyLoggingExercise(now: Date) async -> Bool {
+        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled
+        // interval — for daily tasks the event covers the whole day, so a
+        // narrow window here would always match any same-day outcome. Query
+        // the full day, then filter by the outcome's / values' actual
+        // createdDate to enforce the real suppression window.
+        let dayStart = Calendar.current.startOfDay(for: now)
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
-        var query = OCKOutcomeQuery(
-            dateInterval: DateInterval(start: windowStart, end: now)
-        )
+        var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: now))
         query.taskIDs = TaskID.exerciseRelated.filter { $0 != TaskID.detectedExercise }
         do {
             let outcomes = try await ockStore.fetchOutcomes(query: query)
-            if !outcomes.isEmpty {
-                Logger.detection.info("Found \(outcomes.count) recent exercise-related outcome(s) — suppressing")
+            let recent = outcomes.filter { outcome in
+                let outcomeCreated = outcome.createdDate ?? .distantPast
+                let latestValue = outcome.values.map(\.createdDate).max() ?? .distantPast
+                return max(outcomeCreated, latestValue) >= windowStart
             }
-            return !outcomes.isEmpty
+            if !recent.isEmpty {
+                Logger.detection.info("Found \(recent.count) recent exercise-related outcome(s) — suppressing")
+            }
+            return !recent.isEmpty
         } catch {
             Logger.detection.error("Outcome fetch for suppression failed: \(error)")
             return false

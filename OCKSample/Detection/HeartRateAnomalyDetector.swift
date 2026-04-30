@@ -37,7 +37,7 @@ final class HeartRateAnomalyDetector {
     /// Steps in the same HR window above which we suppress (treat as exercise).
     private static let stepSuppressionThreshold: Double = 50
     /// After a dismissed prompt, suppress new prompts for this long.
-    private static let dismissDebounce: TimeInterval = 30 * 60
+    private static let dismissDebounce: TimeInterval = 10 * 60
     /// Suppress if any exercise- or mood-related task has an outcome in this
     /// window (user is already tracking something).
     private static let activeTaskSuppressionWindow: TimeInterval = 10 * 60
@@ -356,15 +356,24 @@ extension HeartRateAnomalyDetector {
     }
 
     fileprivate func userHasRecentRelatedActivity(now: Date) async -> Bool {
+        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled
+        // interval — for daily tasks the event covers the whole day, so a
+        // narrow window here would always match any same-day outcome. Query
+        // the full day, then filter by the outcome's / values' actual
+        // createdDate to enforce the real suppression window.
+        let dayStart = Calendar.current.startOfDay(for: now)
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
-        var query = OCKOutcomeQuery(
-            dateInterval: DateInterval(start: windowStart, end: now)
-        )
+        var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: now))
         query.taskIDs = (TaskID.exerciseRelated + TaskID.moodRelated)
             .filter { $0 != TaskID.detectedMoodSpike }
         do {
             let outcomes = try await ockStore.fetchOutcomes(query: query)
-            return !outcomes.isEmpty
+            let hasRecent = outcomes.contains { outcome in
+                let outcomeCreated = outcome.createdDate ?? .distantPast
+                let latestValue = outcome.values.map(\.createdDate).max() ?? .distantPast
+                return max(outcomeCreated, latestValue) >= windowStart
+            }
+            return hasRecent
         } catch {
             Logger.detection.error("HR suppression outcome fetch failed: \(error)")
             return false
