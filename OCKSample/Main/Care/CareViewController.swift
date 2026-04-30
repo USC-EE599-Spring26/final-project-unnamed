@@ -237,7 +237,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         }
         if isSameDay(as: currentDisplayDate) {
             let select = UIBarButtonItem(
-                title: "Select",
+                image: UIImage(systemName: "checkmark.circle"),
                 style: .plain,
                 target: self,
                 action: #selector(enterSelectionMode)

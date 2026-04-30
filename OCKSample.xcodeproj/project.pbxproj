@@ -269,6 +269,9 @@
 		BEB2F9742FA1EEC8005B043C /* PatientManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01082FAABB00CCDDEE01 /* PatientManagementViewModel.swift */; };
 		BEB2F9752FA1EECD005B043C /* PatientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01092FAABB00CCDDEE01 /* PatientDetailView.swift */; };
 		BEB2F9762FA1EED1005B043C /* PatientDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC010A2FAABB00CCDDEE01 /* PatientDetailViewModel.swift */; };
+		BEB2FAB42FA20D0F005B043C /* StroopTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2FAB32FA20D0F005B043C /* StroopTask.swift */; };
+		BEB2FAB52FA20D0F005B043C /* StroopTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2FAB32FA20D0F005B043C /* StroopTask.swift */; };
+		BEB2FABD2FA20D1E005B043C /* StroopTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB2FAB32FA20D0F005B043C /* StroopTask.swift */; };
 		BECC02012FAABB00CCDDEE01 /* Patient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01012FAABB00CCDDEE01 /* Patient.swift */; };
 		BECC02022FAABB00CCDDEE01 /* Clinician.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01022FAABB00CCDDEE01 /* Clinician.swift */; };
 		BECC02032FAABB00CCDDEE01 /* AppNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECC01032FAABB00CCDDEE01 /* AppNotification.swift */; };
@@ -523,6 +526,7 @@
 		BE7C4AB12F9DFD5C003554A0 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
 		BE7C4AB42F9DFD77003554A0 /* NotificationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewModel.swift; sourceTree = "<group>"; };
 		BEB2F93A2F9F474A005B043C /* CarePlanSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanSnapshot.swift; sourceTree = "<group>"; };
+		BEB2FAB32FA20D0F005B043C /* StroopTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StroopTask.swift; sourceTree = "<group>"; };
 		BECC01012FAABB00CCDDEE01 /* Patient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patient.swift; sourceTree = "<group>"; };
 		BECC01022FAABB00CCDDEE01 /* Clinician.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clinician.swift; sourceTree = "<group>"; };
 		BECC01032FAABB00CCDDEE01 /* AppNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotification.swift; sourceTree = "<group>"; };
@@ -967,6 +971,7 @@
 			children = (
 				BE24ACAA2F7355D900611424 /* Surveyable.swift */,
 				BE24ACA72F7355CA00611424 /* Survey.swift */,
+				BEB2FAB32FA20D0F005B043C /* StroopTask.swift */,
 				BE24ACA42F7355B600611424 /* RangeOfMotion.swift */,
 				BE24AC9D2F73550C00611424 /* OnBoard */,
 			);
@@ -1467,6 +1472,7 @@
 				3F283A532FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */,
 				707D29522DCBE68500980253 /* AppDelegateKey.swift in Sources */,
 				BE7C4AB22F9DFD5C003554A0 /* NotificationView.swift in Sources */,
+				BEB2FAB42FA20D0F005B043C /* StroopTask.swift in Sources */,
 				707D29532DCBE68500980253 /* Logger.swift in Sources */,
 				707D29542DCBE68500980253 /* TintColorFlipKey.swift in Sources */,
 				BE24ACA32F73558B00611424 /* Onboard.swift in Sources */,
@@ -1603,6 +1609,7 @@
 				91AD924124A4C42D00925D4D /* NotificationView.swift in Sources */,
 				7099D20C29E98E400037CD8E /* InstallationChannel.swift in Sources */,
 				BE24ACBB2F75F3D900611424 /* OCKAnyEvent+Custom.swift in Sources */,
+				BEB2FABD2FA20D1E005B043C /* StroopTask.swift in Sources */,
 				70308886258273D400FFABB6 /* LoginViewModel.swift in Sources */,
 				3F283A512FA01A310071225F /* HeartRateAnomalyDetector.swift in Sources */,
 				70F921B127CAC16E00368CEC /* SessionDelegate.swift in Sources */,
@@ -1668,6 +1675,7 @@
 				918FDEC5271B4EA70045A0EF /* StoreCoordinatorKey.swift in Sources */,
 				91693822271B897200A634ED /* Utility.swift in Sources */,
 				BE4EAB012F5962CE00CF7BF0 /* AppearanceStyler.swift in Sources */,
+				BEB2FAB52FA20D0F005B043C /* StroopTask.swift in Sources */,
 				707CC718254DA91900116728 /* OCKLocalization.swift in Sources */,
 				BE4EAA862F51214400CF7BF0 /* OCKTask+CardTask.swift in Sources */,
 				E7C37849228F887800E982D8 /* TipView.swift in Sources */,
