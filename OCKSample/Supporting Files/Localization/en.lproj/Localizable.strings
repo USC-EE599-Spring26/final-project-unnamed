@@ -159,6 +159,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "WEEKLY_REFLECTION" = "Weekly Reflection";
 "WEEKLY_REFLECTION_INSTRUCTIONS" = "Review your week: What went well? What was challenging? Identifying patterns helps adjust your care plan for next week.";
 
+"ADHD_Check_IN" = "ADHD Daily Check-In";
+"ADHD_Check_IN_INSTRUCTIONS" = "A quick 3-question check-in to track your focus, progress, and distractions throughout the day.";
+
+"STROOP" = "Focus & Attention Test";
+"STROOP_INSTRUCTIONS" = "Tap the INK COLOR of each word — not the word itself. People with ADHD often find this harder due to cognitive interference. A higher score means stronger focus control.";
+
+
 // MARK: ResearchKit SwiftUI
 "BUTTON_CANCEL" = "Cancel";
 "BUTTON_NEXT" = "Next";
