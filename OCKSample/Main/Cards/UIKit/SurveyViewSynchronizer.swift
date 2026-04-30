@@ -6,12 +6,14 @@
 //  Copyright © 2026 Network Reconnaissance Lab. All rights reserved.
 //
 
-#if canImport(ResearchKit)
+#if canImport(ResearchKit) && canImport(ResearchKitUI)
 
 import CareKit
 import CareKitStore
 import CareKitUI
 import ResearchKit
+import ResearchKitActiveTask
+import ResearchKitUI
 import UIKit
 import os.log
 
@@ -38,13 +40,10 @@ final class SurveyViewSynchronizer: OCKSurveyTaskViewSynchronizer {
             case RangeOfMotion.identifier():
                 let range: Double = event.answer(kind: "range")
                 view.instructionsLabel.text = "Your Range of Motion Result: \(range)"
+            case StroopTask.identifier():
+                view.instructionsLabel.text = StroopTask().displayText(for: event)
             default:
                 view.instructionsLabel.isHidden = false
-            }
-
-            guard let task = event.task as? OCKTask else {
-                view.instructionsLabel.text = nil
-                return
             }
         } else {
             DispatchQueue.main.async {
@@ -54,4 +53,4 @@ final class SurveyViewSynchronizer: OCKSurveyTaskViewSynchronizer {
     }
 }
 
-#endif
+#endif // canImport(ResearchKit) && canImport(ResearchKitUI)
