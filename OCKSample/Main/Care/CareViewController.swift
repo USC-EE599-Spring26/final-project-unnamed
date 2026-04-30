@@ -387,16 +387,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
                 await MainActor.run {
                     let tipTitle = "Stay Focused with Short Tasks"
                     let tipText = "Exercises promote your focus."
-                    let tipView = TipView()
-                    tipView.headerView.titleLabel.text = tipTitle
-                    tipView.headerView.detailLabel.text = tipText
-                    tipView.imageView.image = UIImage(named: "exercise.jpg")
-                    tipView.customStyle = CustomStylerKey.defaultValue
-
-                    listViewController.appendView(tipView, animated: false)
-
                     let customFeaturedView = CustomFeaturedContentViewController(
-                        url: "https://dornsife.usc.edu/phed/",
+                        url: "https://viterbischool.usc.edu/",
                         image: UIImage(named: "exercise.jpg"),
                         text: tipTitle,
                         textColor: .white
