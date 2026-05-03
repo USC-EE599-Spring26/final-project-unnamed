@@ -113,6 +113,53 @@ extension OCKStore {
         return addedContacts
     }
 
+    /// Idempotent sync point for auto-detection tasks (`detectedExercise`,
+    /// `detectedMoodSpike`). Called on every app launch so users whose store
+    /// was created before a new detection task was introduced still get it
+    /// added without resetting their account.
+    ///
+    /// Why a separate method rather than relying on `populateDefault…`:
+    /// `populateDefault…` only runs on signup / specific onboarding paths.
+    /// Already-logged-in users wouldn't pick up newly-added detection tasks
+    /// without this sync hook.
+    func syncDetectionTasks() async throws {
+        let carePlanUUIDs = try await Self.getCarePlanUUIDs()
+
+        let allDay = OCKScheduleElement(
+            start: Calendar.current.startOfDay(for: Date()), end: nil,
+            interval: DateComponents(day: 1),
+            text: nil, targetValues: [], duration: .allDay
+        )
+        let dailySchedule = OCKSchedule(composing: [allDay])
+
+        var detectedExercise = OCKTask(
+            id: TaskID.detectedExercise,
+            title: String(localized: "DETECTED_EXERCISE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: dailySchedule
+        )
+        detectedExercise.impactsAdherence = false
+        detectedExercise.asset = "figure.walk.motion"
+        detectedExercise.card = .simple
+        detectedExercise.priority = 20
+
+        var detectedMoodSpike = OCKTask(
+            id: TaskID.detectedMoodSpike,
+            title: String(localized: "DETECTED_MOOD_SPIKE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: dailySchedule
+        )
+        detectedMoodSpike.impactsAdherence = false
+        detectedMoodSpike.asset = "heart.text.square"
+        detectedMoodSpike.card = .simple
+        detectedMoodSpike.priority = 21
+
+        let added = try await addTasksIfNotPresent([detectedExercise, detectedMoodSpike])
+        if !added.isEmpty {
+            Logger.detection.info("syncDetectionTasks: added \(added.map(\.id))")
+        }
+    }
+
     func populateCarePlans(patientUUID: UUID? = nil) async throws {
         let healthCarePlan = OCKCarePlan(
             id: CarePlanID.health.rawValue,
@@ -410,10 +457,56 @@ extension OCKStore {
         weeklyReflection.priority = 17
         weeklyReflection.carePlanUUID = carePlanUUIDs[.clinicalAssessment]
 
+        // MARK: - Auto-detected exercise (inferred from HealthKit step patterns)
+        // Wellness — all-day container for records written by ExerciseDetector.
+        // Not user-facing as a "do this" task; outcomes represent detected sessions.
+        let detectedExerciseSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: nil, targetValues: [], duration: .allDay
+            )
+        ])
+        var detectedExercise = OCKTask(
+            id: TaskID.detectedExercise,
+            title: String(localized: "DETECTED_EXERCISE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: detectedExerciseSchedule
+        )
+        detectedExercise.impactsAdherence = false
+        detectedExercise.asset = "figure.walk.motion"
+        detectedExercise.card = .simple
+        detectedExercise.priority = 20
+        detectedExercise.carePlanUUID = carePlanUUIDs[.wellness]
+
+        // MARK: - Auto-detected mood spike (inferred from HR vs. step patterns)
+        // All-day container for records written by HeartRateAnomalyDetector.
+        let detectedMoodSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: beforeBreakfast, end: nil,
+                interval: DateComponents(day: 1),
+                text: nil, targetValues: [], duration: .allDay
+            )
+        ])
+        var detectedMoodSpike = OCKTask(
+            id: TaskID.detectedMoodSpike,
+            title: String(localized: "DETECTED_MOOD_SPIKE"),
+            carePlanUUID: carePlanUUIDs[.wellness],
+            schedule: detectedMoodSchedule
+        )
+        detectedMoodSpike.impactsAdherence = false
+        detectedMoodSpike.asset = "heart.text.square"
+        detectedMoodSpike.card = .simple
+        detectedMoodSpike.priority = 21
+        detectedMoodSpike.carePlanUUID = carePlanUUIDs[.wellness]
+
         // MARK: - Add All Tasks
         #if os(iOS)
         let qualityOfLife = createQualityOfLifeSurveyTask(
             carePlanUUID: carePlanUUIDs[.clinicalAssessment]
+        )
+        let adhdCheckIn = createADHDCheckInTask(
+            carePlanUUID: carePlanUUIDs[.behavioralTracking]
         )
         #endif
 
@@ -428,10 +521,13 @@ extension OCKStore {
             refocusPrompt,
             breathingExercise,
             takeBreak,
-            weeklyReflection
+            weeklyReflection,
+            detectedExercise,
+            detectedMoodSpike
         ]
         #if os(iOS)
         tasksToAdd.append(qualityOfLife)
+        tasksToAdd.append(adhdCheckIn)
         #endif
         _ = try await addTasksIfNotPresent(tasksToAdd)
 
@@ -561,6 +657,115 @@ extension OCKStore {
 
             return qualityOfLife
         }
+
+    func createADHDCheckInTask(carePlanUUID: UUID?) -> OCKTask {
+
+        let taskID = TaskID.adhdCheckIn
+
+        // MARK: - Schedule (3 times per day)
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        let morning   = Calendar.current.date(byAdding: .hour, value: 9, to: startOfToday)!
+        let afternoon = Calendar.current.date(byAdding: .hour, value: 14, to: startOfToday)!
+        let evening   = Calendar.current.date(byAdding: .hour, value: 20, to: startOfToday)!
+
+        let elements = [
+            OCKScheduleElement(start: morning, end: nil, interval: DateComponents(day: 1)),
+            OCKScheduleElement(start: afternoon, end: nil, interval: DateComponents(day: 1)),
+            OCKScheduleElement(start: evening, end: nil, interval: DateComponents(day: 1))
+        ]
+        let schedule = OCKSchedule(composing: elements)
+
+        // MARK: - Question 1: Focus Level
+        let focusChoices: [TextChoice] = [
+            .init(id: "\(taskID)_focus_0", choiceText: "Very focused", value: "4"),
+            .init(id: "\(taskID)_focus_1", choiceText: "Mostly focused", value: "3"),
+            .init(id: "\(taskID)_focus_2", choiceText: "Neutral", value: "2"),
+            .init(id: "\(taskID)_focus_3", choiceText: "Easily distracted", value: "1"),
+            .init(id: "\(taskID)_focus_4", choiceText: "Very distracted", value: "0")
+        ]
+        let focusQuestion = SurveyQuestion(
+            id: "\(taskID)-focus",
+            type: .multipleChoice,
+            required: true,
+            title: "How is your focus right now?",
+            detail: "Pick the option that feels closest.",
+            textChoices: focusChoices,
+            choiceSelectionLimit: .single
+        )
+
+        // MARK: - Question 2: Task Initiation
+        let startTaskChoices: [TextChoice] = [
+            .init(id: "\(taskID)_start_0", choiceText: "Didn't start anything", value: "0"),
+            .init(id: "\(taskID)_start_1", choiceText: "Started a little", value: "1"),
+            .init(id: "\(taskID)_start_2", choiceText: "Made good progress", value: "2")
+        ]
+        let startTaskQuestion = SurveyQuestion(
+            id: "\(taskID)-task-initiation",
+            type: .multipleChoice,
+            required: false,
+            title: "Have you started something you've been putting off?",
+            detail: "Even a small step counts.",
+            textChoices: startTaskChoices,
+            choiceSelectionLimit: .single
+        )
+
+        // MARK: - Question 3: Distraction Source
+        let distractionChoices: [TextChoice] = [
+            .init(id: "\(taskID)_distract_0", choiceText: "Phone / apps", value: "phone"),
+            .init(id: "\(taskID)_distract_1", choiceText: "Thoughts / overthinking", value: "thoughts"),
+            .init(id: "\(taskID)_distract_2", choiceText: "Noise / environment", value: "environment"),
+            .init(id: "\(taskID)_distract_3", choiceText: "Low energy", value: "energy"),
+            .init(id: "\(taskID)_distract_4", choiceText: "Not sure", value: "unknown")
+        ]
+        let distractionQuestion = SurveyQuestion(
+            id: "\(taskID)-distraction",
+            type: .multipleChoice,
+            required: false,
+            title: "What is distracting you the most?",
+            detail: "Optional",
+            textChoices: distractionChoices,
+            choiceSelectionLimit: .single
+        )
+
+        // MARK: - Steps (1 question per step → lower cognitive load)
+        let step1 = SurveyStep(
+            id: "\(taskID)-step-1",
+            questions: [focusQuestion],
+            asset: "brain.head.profile",
+            title: "Quick Check-In",
+            subtitle: "Takes less than 10 seconds"
+        )
+        let step2 = SurveyStep(
+            id: "\(taskID)-step-2",
+            questions: [startTaskQuestion],
+            asset: "checkmark.circle",
+            title: "Small Wins",
+            subtitle: "Progress, not perfection"
+        )
+        let step3 = SurveyStep(
+            id: "\(taskID)-step-3",
+            questions: [distractionQuestion],
+            asset: "exclamationmark.triangle",
+            title: "Distractions",
+            subtitle: "Optional"
+        )
+
+        // MARK: - Task
+        var checkIn = OCKTask(
+            id: taskID,
+            title: String(localized: "ADHD_Check_IN"),
+            carePlanUUID: carePlanUUID,
+            schedule: schedule
+        )
+        checkIn.impactsAdherence = true
+        checkIn.card = .survey
+        checkIn.asset = "brain.head.profile"
+        checkIn.surveySteps = [step1, step2, step3]
+        checkIn.priority = 1
+        checkIn.instructions = String(localized: "ADHD_Check_IN_INSTRUCTIONS")
+
+        return checkIn
+    }
 #endif
     func addOnboardingTask(_ carePlanUUID: UUID? = nil) async throws -> [OCKTask] {
 
@@ -633,6 +838,30 @@ extension OCKStore {
         rangeOfMotionTask.card = .uiKitSurvey
         rangeOfMotionTask.uiKitSurvey = .rangeOfMotion
 
-        return try await addTasksIfNotPresent([rangeOfMotionTask])
+        // MARK: - Stroop Focus Test (daily active task)
+        let stroopSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(
+                start: thisMorning,
+                end: nil,
+                interval: DateComponents(day: 1),
+                text: nil,
+                targetValues: [],
+                duration: .allDay
+            )
+        ])
+
+        var stroopTask = OCKTask(
+            id: StroopTask.identifier(),
+            title: String(localized: "STROOP"),
+            carePlanUUID: carePlanUUID,
+            schedule: stroopSchedule
+        )
+        stroopTask.instructions = String(localized: "STROOP_INSTRUCTIONS")
+        stroopTask.priority     = 3
+        stroopTask.asset        = "brain.head.profile"
+        stroopTask.card         = .uiKitSurvey
+        stroopTask.uiKitSurvey  = .stroop
+
+        return try await addTasksIfNotPresent([rangeOfMotionTask, stroopTask])
     }
 }

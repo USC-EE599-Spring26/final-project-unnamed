@@ -98,6 +98,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "CARDIO_INSTRUCTIONS" = "Perform cardio exercises";
 "STRETCH" = "Stretch";
 "STEPS" = "Steps";
+"DETECTED_EXERCISE" = "Detected Activity";
+"DETECTED_EXERCISE_NOTIF_TITLE" = "Are you exercising?";
+"DETECTED_EXERCISE_NOTIF_BODY" = "Long-press to choose Log or Dismiss.";
+"DETECTED_EXERCISE_ACTION_LOG" = "Log";
+"DETECTED_EXERCISE_ACTION_DISMISS" = "Dismiss";
+"DETECTED_EXERCISE_END_NOTIF_TITLE" = "Did you finish exercising?";
+"DETECTED_EXERCISE_END_NOTIF_BODY" = "Long-press to choose.";
+"DETECTED_EXERCISE_END_ACTION_STILL" = "Still going";
+"DETECTED_EXERCISE_END_ACTION_ENDED" = "Yes, ended";
+"DETECTED_EXERCISE_TOAST_TRACKING" = "Got it — we'll prompt you when it looks like you stopped.";
+"DETECTED_EXERCISE_TOAST_STILL" = "OK — we'll keep tracking.";
+"DETECTED_EXERCISE_TOAST_LOGGED" = "Logged your exercise — nice work.";
+"DETECTED_EXERCISE_TRACKING_BANNER" = "Tracking exercise";
+"DETECTED_EXERCISE_TRACKING_BANNER_DISMISS" = "Dismiss";
+"DETECTED_MOOD_SPIKE" = "Detected Mood Spike";
+"DETECTED_MOOD_NOTIF_TITLE" = "Heart rate elevated";
+"DETECTED_MOOD_NOTIF_BODY" = "Your heart rate spiked but you don't seem to be moving. Strong emotion? Long-press to log.";
+"DETECTED_MOOD_ACTION_LOG" = "Log feeling";
+"DETECTED_MOOD_ACTION_DISMISS" = "Dismiss";
+"DETECTED_MOOD_TOAST_LOGGED" = "Spike noted — pick how you're feeling ↓";
 //"OVULATION_TEST_RESULT" = "Ovulation Test Result";
 "QUALITY_OF_LIFE" = "Quality of Life";
 "QUALITY_OF_LIFE_TIME" = "Since using the app, have you felt more flexible in managing your time?";
@@ -138,6 +158,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 "WEEKLY_REFLECTION" = "Weekly Reflection";
 "WEEKLY_REFLECTION_INSTRUCTIONS" = "Review your week: What went well? What was challenging? Identifying patterns helps adjust your care plan for next week.";
+
+"ADHD_Check_IN" = "ADHD Daily Check-In";
+"ADHD_Check_IN_INSTRUCTIONS" = "A quick 3-question check-in to track your focus, progress, and distractions throughout the day.";
+
+"STROOP" = "Focus & Attention Test";
+"STROOP_INSTRUCTIONS" = "Tap the INK COLOR of each word — not the word itself. People with ADHD often find this harder due to cognitive interference. A higher score means stronger focus control.";
+
 
 // MARK: ResearchKit SwiftUI
 "BUTTON_CANCEL" = "Cancel";
