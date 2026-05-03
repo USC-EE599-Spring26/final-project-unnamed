@@ -53,7 +53,7 @@ struct DetectedExerciseRecorder {
         // Occurrence is always 0 for an all-day daily task on a given day.
         let occurrence = 0
 
-        if let existing = try await fetchTodaysOutcome(taskUUID: task.uuid, occurrence: occurrence) {
+        if let existing = try await fetchTodaysOutcome(occurrence: occurrence) {
             var updated = existing
             updated.values.append(value)
             updated.effectiveDate = end
@@ -85,15 +85,18 @@ struct DetectedExerciseRecorder {
         return task
     }
 
-    private func fetchTodaysOutcome(
-        taskUUID: UUID,
-        occurrence: Int
-    ) async throws -> OCKOutcome? {
+    /// Look up today's outcome by task ID (not version UUID) so we find rows
+    /// even when CareKit has re-versioned the task — e.g. after a Parse sync
+    /// pulls a different cloud-side version. Querying by UUID would miss the
+    /// historical outcome and we'd fall through to addOutcome → CareKit
+    /// rejects with "A duplicate outcome exists" since uniqueness is checked
+    /// on (taskID, occurrenceIndex) across versions.
+    private func fetchTodaysOutcome(occurrence: Int) async throws -> OCKOutcome? {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: Date())
         let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
         var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: dayEnd))
-        query.taskUUIDs = [taskUUID]
+        query.taskIDs = [TaskID.detectedExercise]
         let outcomes = try await store.fetchOutcomes(query: query)
         return outcomes.first { $0.taskOccurrenceIndex == occurrence }
     }
