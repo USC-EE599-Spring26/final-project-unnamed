@@ -109,6 +109,14 @@ class LoginViewModel: ObservableObject {
             appDelegate.parseRemote.automaticallySynchronizes = true
         }
 
+        // Detection setup is intentionally deferred until here, AFTER any
+        // initial sync above. Doing it earlier (e.g. inside setupRemotes)
+        // races the cloud pull and can produce orphan outcomes that crash
+        // CareKit when displayed.
+        if let appDelegate = AppDelegateKey.defaultValue, let store = appDelegate.store {
+            await appDelegate.startExerciseDetectionIfNeeded(store: store)
+        }
+
         // Notify the SwiftUI view that the user is correctly logged in and to transition screens
         await checkStatus()
 

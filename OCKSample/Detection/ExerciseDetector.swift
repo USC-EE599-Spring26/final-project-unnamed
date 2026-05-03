@@ -40,11 +40,14 @@ final class ExerciseDetector {
     private static let stepEndedThreshold: Double = 30
     /// Window used for the end check.
     private static let endWindow: TimeInterval = 3 * 60
-    /// After a dismissed prompt, suppress re-prompts for this long.
-    private static let dismissDebounce: TimeInterval = 30 * 60
+    /// After a session is logged (or written as unconfirmed), suppress
+    /// re-prompts for this long. NOT triggered by user-driven dismiss —
+    /// dismiss means the prompt was a false positive, so there's no session
+    /// to cool down from.
+    private static let dismissDebounce: TimeInterval = 10 * 60
     /// If the user never responds and movement has ended, still write an
     /// unconfirmed record once the prompt has been outstanding this long.
-    private static let unconfirmedTimeout: TimeInterval = 20 * 60
+    private static let unconfirmedTimeout: TimeInterval = 15 * 60
     /// Suppress triggering if any exercise-related task has an outcome within
     /// this window (user is already logging manually).
     private static let activeTaskSuppressionWindow: TimeInterval = 30 * 60
@@ -321,10 +324,10 @@ final class ExerciseDetector {
     }
 
     /// In-app card "Dismiss" — user says "this isn't real exercise, abort."
+    /// No after-session debounce: a dismissed session never happened.
     func dismissActiveSession() async {
         Logger.detection.info("dismissActiveSession called (phase=\(self.state.phase.rawValue))")
         notifications.cancelAllDetectionNotifications()
-        state.lastDismissAt = Date()
         resetToIdle()
     }
 
@@ -497,7 +500,6 @@ extension ExerciseDetector: DetectionNotificationHandler {
 
     func userDismissedDetectedExercise() async {
         Logger.detection.info("User dismissed start notification")
-        state.lastDismissAt = Date()
         resetToIdle()
     }
 

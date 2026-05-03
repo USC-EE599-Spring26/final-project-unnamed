@@ -36,13 +36,15 @@ final class HeartRateAnomalyDetector {
     private static let hrDetectionWindow: TimeInterval = 5 * 60
     /// Steps in the same HR window above which we suppress (treat as exercise).
     private static let stepSuppressionThreshold: Double = 50
-    /// After a dismissed prompt, suppress new prompts for this long.
+    /// After a mood spike is logged (or written as unconfirmed), suppress
+    /// new prompts for this long. NOT triggered by user-driven dismiss —
+    /// dismiss means the prompt was a false positive.
     private static let dismissDebounce: TimeInterval = 10 * 60
     /// Suppress if any exercise- or mood-related task has an outcome in this
     /// window (user is already tracking something).
     private static let activeTaskSuppressionWindow: TimeInterval = 10 * 60
     /// If the user never responds, write an unconfirmed record after this long.
-    private static let unconfirmedTimeout: TimeInterval = 20 * 60
+    private static let unconfirmedTimeout: TimeInterval = 7 * 60
 
     // MARK: State machine
 
@@ -431,7 +433,6 @@ extension HeartRateAnomalyDetector: MoodNotificationHandler {
 
     func userDismissedMoodSpike() async {
         Logger.detection.info("User dismissed mood spike prompt")
-        state.lastDismissAt = Date()
         resetToIdle()
     }
 }
