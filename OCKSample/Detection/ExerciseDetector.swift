@@ -257,7 +257,11 @@ final class ExerciseDetector {
 
         await writeRecord(end: now, isUnconfirmed: true)
         notifications.cancelExerciseDetectedNotification()
-        state.lastDismissAt = Date()
+        // No after-session debounce here: user never engaged with the prompt,
+        // so there was no real "session" to cool down from. If activity
+        // resumes we should detect it again. (Contrast with
+        // `evaluateAwaitingEnd`, where the user did confirm stage-1 and a
+        // real session was tracked — that path still sets lastDismissAt.)
         resetToIdle()
     }
 
