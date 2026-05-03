@@ -50,7 +50,7 @@ struct DetectedMoodRecorder {
         value.createdDate = detectedAt
         value.kind = kindJSON
 
-        let occurrence = 0
+        let occurrence = try todaysOccurrence(for: task)
 
         if let existing = try await fetchTodaysOutcome(occurrence: occurrence) {
             var updated = existing
@@ -72,6 +72,19 @@ struct DetectedMoodRecorder {
                 "Created mood spike outcome at \(detectedAt), hr=\(hrAvg) baseline=\(hrBaseline)"
             )
         }
+    }
+
+    /// Compute today's occurrence index from the task's schedule. CareKit's
+    /// `taskOccurrenceIndex` counts from schedule start, not per-day, so this
+    /// is non-zero on any day after the schedule's first.
+    private func todaysOccurrence(for task: OCKTask) throws -> Int {
+        let dayStart = Calendar.current.startOfDay(for: Date())
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
+        let todaysEvents = task.schedule.events(from: dayStart, to: dayEnd)
+        guard let occurrence = todaysEvents.first?.occurrence else {
+            throw AppError.errorString("No schedule event for today on detectedMoodSpike")
+        }
+        return occurrence
     }
 
     private func fetchTask() async throws -> OCKTask {

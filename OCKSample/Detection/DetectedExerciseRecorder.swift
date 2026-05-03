@@ -12,12 +12,17 @@ import os.log
 
 /// Writes auto-detected exercise sessions into OCKStore.
 ///
-/// Design note: `detectedExercise` is an all-day daily task, so CareKit
-/// allocates exactly one outcome slot per day (occurrence 0). Multiple detected
-/// sessions on the same day therefore can't each be a separate OCKOutcome —
-/// they'd collide on (taskUUID, occurrenceIndex). Instead, each session is one
-/// `OCKOutcomeValue` appended to that day's single outcome. Per-session
-/// metadata (start/end/unconfirmed) is JSON-encoded into the value's `kind`.
+/// Design note: `detectedExercise` is an all-day daily task. CareKit allocates
+/// one outcome slot per scheduled event (per day). Multiple detected sessions
+/// on the same day can't each be a separate OCKOutcome — they'd collide on
+/// (taskUUID, occurrenceIndex). Instead, each session is one `OCKOutcomeValue`
+/// appended to that day's single outcome. Per-session metadata
+/// (start/end/unconfirmed) is JSON-encoded into the value's `kind`.
+///
+/// IMPORTANT: `taskOccurrenceIndex` is the position of the event in the
+/// ENTIRE schedule (counting from `schedule.start`), NOT a per-day index. For
+/// a schedule started on day 1, today on day N has occurrence N-1. Hardcoding
+/// 0 means "the schedule's first day" — every write would collide there.
 @MainActor
 struct DetectedExerciseRecorder {
 
@@ -50,8 +55,7 @@ struct DetectedExerciseRecorder {
         value.createdDate = end
         value.kind = kindJSON
 
-        // Occurrence is always 0 for an all-day daily task on a given day.
-        let occurrence = 0
+        let occurrence = try todaysOccurrence(for: task)
 
         if let existing = try await fetchTodaysOutcome(occurrence: occurrence) {
             var updated = existing
@@ -73,6 +77,19 @@ struct DetectedExerciseRecorder {
                 "Created outcome for detected exercise: \(start) → \(end), unconfirmed=\(isUnconfirmed)"
             )
         }
+    }
+
+    /// Compute the occurrence index for today's event on this task's schedule.
+    /// For a daily allDay task with schedule starting at day D, today (day D+N)
+    /// has occurrence N. This is NOT always 0.
+    private func todaysOccurrence(for task: OCKTask) throws -> Int {
+        let dayStart = Calendar.current.startOfDay(for: Date())
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
+        let todaysEvents = task.schedule.events(from: dayStart, to: dayEnd)
+        guard let occurrence = todaysEvents.first?.occurrence else {
+            throw AppError.errorString("No schedule event for today on detectedExercise")
+        }
+        return occurrence
     }
 
     private func fetchTask() async throws -> OCKTask {
