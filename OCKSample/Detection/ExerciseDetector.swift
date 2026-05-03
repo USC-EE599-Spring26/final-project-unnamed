@@ -50,7 +50,7 @@ final class ExerciseDetector {
     private static let unconfirmedTimeout: TimeInterval = 15 * 60
     /// Suppress triggering if any exercise-related task has an outcome within
     /// this window (user is already logging manually).
-    private static let activeTaskSuppressionWindow: TimeInterval = 30 * 60
+    private static let activeTaskSuppressionWindow: TimeInterval = 20 * 60
 
     // MARK: State machine
 
