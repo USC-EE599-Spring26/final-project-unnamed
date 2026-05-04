@@ -349,8 +349,10 @@ extension HeartRateAnomalyDetector {
     }
 
     fileprivate func userHasRecentRelatedActivity(now: Date) async -> Bool {
-        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled interval — for daily tasks the event covers the whole day
-        // -> Query the full day, then filter by outcomt's actual createdDate to enforce real suppression window
+        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled interval
+        // for daily tasks the event covers the whole day
+        // -> Query the full day, then filter by outcomt's actual createdDate to enforce
+        // real suppression window
         let dayStart = Calendar.current.startOfDay(for: now)
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
         var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: now))

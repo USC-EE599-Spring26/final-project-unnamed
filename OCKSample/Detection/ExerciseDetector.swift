@@ -150,7 +150,8 @@ final class ExerciseDetector {
         observeAppForeground()
 
         let query = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, completion, error in
-            // HKObserverQuery's completion isn't Sendable, but Apple documents it as thread-safe — wrap it to cross the async boundary.
+            // HKObserverQuery's completion isn't Sendable, but Apple documents it
+            // as thread-safe — wrap it to cross the async boundary.
             let safeCompletion = UncheckedSendableBox(completion)
             if let error {
                 Logger.detection.error("Observer query error: \(error)")
@@ -379,8 +380,10 @@ extension ExerciseDetector {
     }
 
     fileprivate func userIsAlreadyLoggingExercise(now: Date) async -> Bool {
-        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled interval — for daily tasks the event covers the whole day
-        // -> Query the full day, then filter by outcomt's actual createdDate to enforce real suppression window
+        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled interval
+        // for daily tasks the event covers the whole day
+        // -> Query the full day, then filter by outcomt's actual createdDate to enforce
+        // real suppression window
         let dayStart = Calendar.current.startOfDay(for: now)
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
         var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: now))
