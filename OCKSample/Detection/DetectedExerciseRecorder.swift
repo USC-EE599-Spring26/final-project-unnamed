@@ -12,12 +12,13 @@ import os.log
 
 /// Writes auto-detected exercise sessions into OCKStore.
 ///
-/// Design note: `detectedExercise` is an all-day daily task, so CareKit
-/// allocates exactly one outcome slot per day (occurrence 0). Multiple detected
-/// sessions on the same day therefore can't each be a separate OCKOutcome —
-/// they'd collide on (taskUUID, occurrenceIndex). Instead, each session is one
-/// `OCKOutcomeValue` appended to that day's single outcome. Per-session
-/// metadata (start/end/unconfirmed) is JSON-encoded into the value's `kind`.
+/// `detectedExercise` is an all-day daily task — CareKit gives it one outcome
+/// per day. Multiple sessions can't each be a separate OCKOutcome (they'd
+/// collide on taskUUID + occurrenceIndex), so each session is an OCKOutcomeValue
+/// appended to that day's single outcome, with metadata JSON-encoded into `kind`.
+///
+/// NOTE: `taskOccurrenceIndex` counts from schedule start across all days —
+/// hardcoding 0 always means "day 1" and causes collisions.
 @MainActor
 struct DetectedExerciseRecorder {
 
@@ -50,10 +51,9 @@ struct DetectedExerciseRecorder {
         value.createdDate = end
         value.kind = kindJSON
 
-        // Occurrence is always 0 for an all-day daily task on a given day.
-        let occurrence = 0
+        let occurrence = try todaysOccurrence(for: task)
 
-        if let existing = try await fetchTodaysOutcome(taskUUID: task.uuid, occurrence: occurrence) {
+        if let existing = try await fetchTodaysOutcome(occurrence: occurrence) {
             var updated = existing
             updated.values.append(value)
             updated.effectiveDate = end
@@ -75,6 +75,17 @@ struct DetectedExerciseRecorder {
         }
     }
 
+    /// Occurrence index for today's event — NOT always 0 for a daily task.
+    private func todaysOccurrence(for task: OCKTask) throws -> Int {
+        let dayStart = Calendar.current.startOfDay(for: Date())
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
+        let todaysEvents = task.schedule.events(from: dayStart, to: dayEnd)
+        guard let occurrence = todaysEvents.first?.occurrence else {
+            throw AppError.errorString("No schedule event for today on detectedExercise")
+        }
+        return occurrence
+    }
+
     private func fetchTask() async throws -> OCKTask {
         var query = OCKTaskQuery(for: Date())
         query.ids = [TaskID.detectedExercise]
@@ -85,15 +96,15 @@ struct DetectedExerciseRecorder {
         return task
     }
 
-    private func fetchTodaysOutcome(
-        taskUUID: UUID,
-        occurrence: Int
-    ) async throws -> OCKOutcome? {
+    /// Query by task ID (not UUID) so we find the outcome even if CareKit
+    /// re-versioned the task after a Parse sync — querying by UUID would miss it
+    /// and addOutcome would fail with "duplicate outcome exists".
+    private func fetchTodaysOutcome(occurrence: Int) async throws -> OCKOutcome? {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: Date())
         let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
         var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: dayEnd))
-        query.taskUUIDs = [taskUUID]
+        query.taskIDs = [TaskID.detectedExercise]
         let outcomes = try await store.fetchOutcomes(query: query)
         return outcomes.first { $0.taskOccurrenceIndex == occurrence }
     }

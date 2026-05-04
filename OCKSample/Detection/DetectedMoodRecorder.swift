@@ -50,9 +50,9 @@ struct DetectedMoodRecorder {
         value.createdDate = detectedAt
         value.kind = kindJSON
 
-        let occurrence = 0
+        let occurrence = try todaysOccurrence(for: task)
 
-        if let existing = try await fetchTodaysOutcome(taskUUID: task.uuid, occurrence: occurrence) {
+        if let existing = try await fetchTodaysOutcome(occurrence: occurrence) {
             var updated = existing
             updated.values.append(value)
             updated.effectiveDate = detectedAt
@@ -74,6 +74,17 @@ struct DetectedMoodRecorder {
         }
     }
 
+    /// Today's occurrence index from schedule start (non-zero after day 1).
+    private func todaysOccurrence(for task: OCKTask) throws -> Int {
+        let dayStart = Calendar.current.startOfDay(for: Date())
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
+        let todaysEvents = task.schedule.events(from: dayStart, to: dayEnd)
+        guard let occurrence = todaysEvents.first?.occurrence else {
+            throw AppError.errorString("No schedule event for today on detectedMoodSpike")
+        }
+        return occurrence
+    }
+
     private func fetchTask() async throws -> OCKTask {
         var query = OCKTaskQuery(for: Date())
         query.ids = [TaskID.detectedMoodSpike]
@@ -84,15 +95,15 @@ struct DetectedMoodRecorder {
         return task
     }
 
-    private func fetchTodaysOutcome(
-        taskUUID: UUID,
-        occurrence: Int
-    ) async throws -> OCKOutcome? {
+    /// Query by task ID (not UUID) so we find the outcome even if CareKit
+    /// re-versioned the task after a Parse sync — querying by UUID would miss it
+    /// and addOutcome would fail with "duplicate outcome exists".
+    private func fetchTodaysOutcome(occurrence: Int) async throws -> OCKOutcome? {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: Date())
         let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
         var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: dayEnd))
-        query.taskUUIDs = [taskUUID]
+        query.taskIDs = [TaskID.detectedMoodSpike]
         let outcomes = try await store.fetchOutcomes(query: query)
         return outcomes.first { $0.taskOccurrenceIndex == occurrence }
     }

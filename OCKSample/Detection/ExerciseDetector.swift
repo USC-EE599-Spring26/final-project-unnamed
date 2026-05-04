@@ -12,16 +12,14 @@ import HealthKit
 import os.log
 // swiftlint:disable identifier_name
 
-/// Watches step data in the background and prompts the user to log exercise
-/// when it looks like they're being active without having started a task.
+/// Watches step data and prompts the user to log exercise when active without a task running.
 ///
 /// Lifecycle:
 ///   1. `start()` registers an HKObserverQuery with background delivery.
-///      iOS wakes the app whenever new step samples arrive (~few min cadence).
-///   2. Each wake-up runs `evaluate()` which looks at the past 5 min of steps.
-///   3. A tiny state machine decides whether to prompt, wait for end, or idle.
-/// Unsafe escape hatch for closures that Apple frameworks hand us without
-/// `@Sendable`, but which are documented safe to call across threads.
+///   2. Each wake-up runs `evaluate()` — checks the past 5 min of steps.
+///   3. A state machine decides whether to prompt, wait for end, or idle.
+
+/// Unsafe sendable wrapper for callbacks that Apple documents as thread-safe but don't conform to `@Sendable`
 private struct UncheckedSendableBox<T>: @unchecked Sendable {
     let value: T
     init(_ value: T) { self.value = value }
@@ -40,14 +38,12 @@ final class ExerciseDetector {
     private static let stepEndedThreshold: Double = 30
     /// Window used for the end check.
     private static let endWindow: TimeInterval = 3 * 60
-    /// After a dismissed prompt, suppress re-prompts for this long.
-    private static let dismissDebounce: TimeInterval = 30 * 60
-    /// If the user never responds and movement has ended, still write an
-    /// unconfirmed record once the prompt has been outstanding this long.
-    private static let unconfirmedTimeout: TimeInterval = 20 * 60
-    /// Suppress triggering if any exercise-related task has an outcome within
-    /// this window (user is already logging manually).
-    private static let activeTaskSuppressionWindow: TimeInterval = 30 * 60
+    /// Cool-down after a session is logged. Not applied on dismiss (false positive — no session to cool down from).
+    private static let dismissDebounce: TimeInterval = 10 * 60
+    /// If user never responds and movement ends, write unconfirmed record after this long.
+    private static let unconfirmedTimeout: TimeInterval = 15 * 60
+    /// Suppress trigger if any exercise-related task has an outcome within this window (user already logging manually).
+    private static let activeTaskSuppressionWindow: TimeInterval = 20 * 60
 
     // MARK: State machine
 
@@ -63,9 +59,7 @@ final class ExerciseDetector {
         var sessionStart: Date?
         var notificationPostedAt: Date?
         var lastDismissAt: Date?
-        // When we last posted the stage-2 "did you finish?" prompt. Prevents
-        // re-posting too quickly if the user picks "still going" and then
-        // immediately drops below the end threshold again.
+        // Prevents re-prompting too soon if user taps "still going" then drops below end threshold again.
         var endPromptPostedAt: Date?
     }
 
@@ -135,15 +129,11 @@ final class ExerciseDetector {
             return
         }
 
-        // HealthKit + notification authorization are requested by onboarding's
-        // ORKRequestPermissionsStep. We deliberately do NOT request here so no
-        // alerts pop at signup time. If the user hasn't yet authorized step
-        // data, enableBackgroundDelivery / observer queries will simply yield
-        // no samples — no crash.
+        // Auth is handled by onboarding's ORKRequestPermissionsStep — not here.
+        // Unauthorized state just yields no samples; no crash.
         let stepType = HKQuantityType(.stepCount)
 
-        // Tear down any previous observer so we can re-register against the
-        // (possibly newly-authorized) HealthKit state.
+        // Tear down previous observer before re-registering.
         if let existing = observerQuery {
             healthStore.stop(existing)
             observerQuery = nil
@@ -160,9 +150,8 @@ final class ExerciseDetector {
         observeAppForeground()
 
         let query = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, completion, error in
-            // HealthKit's completion handler type isn't Sendable, but Apple
-            // documents it as safe to call from any thread. Wrap it so we can
-            // invoke it after awaiting on MainActor.
+            // HKObserverQuery's completion isn't Sendable, but Apple documents it
+            // as thread-safe — wrap it to cross the async boundary.
             let safeCompletion = UncheckedSendableBox(completion)
             if let error {
                 Logger.detection.error("Observer query error: \(error)")
@@ -177,7 +166,7 @@ final class ExerciseDetector {
         healthStore.execute(query)
         self.observerQuery = query
 
-        // Also run once on start so we don't wait for the first HK update.
+        // Run once immediately; don't wait for the first HK update
         await evaluate()
     }
 
@@ -191,10 +180,7 @@ final class ExerciseDetector {
         isEvaluating = true
         defer { isEvaluating = false }
 
-        // Gate everything on onboarding: until ORKRequestPermissionsStep has
-        // run, we have no notification permission and likely no HealthKit
-        // permission, so any work we do here is wasted (and any notification
-        // post would silently drop).
+        // Skip until onboarding is complete — no notification/HealthKit permission yet
         let onboarded = await Utility.checkIfOnboardingIsComplete()
         let onboardOutcomes = await debugCountOnboardOutcomes()
         Logger.detection.info("evaluate: onboarded=\(onboarded), onboardOutcomes=\(onboardOutcomes)")
@@ -254,7 +240,8 @@ final class ExerciseDetector {
 
         await writeRecord(end: now, isUnconfirmed: true)
         notifications.cancelExerciseDetectedNotification()
-        state.lastDismissAt = Date()
+        // No after-session debounce here: user never engaged with the prompt,
+        // so there was no real "session" to cool down from
         resetToIdle()
     }
 
@@ -321,10 +308,10 @@ final class ExerciseDetector {
     }
 
     /// In-app card "Dismiss" — user says "this isn't real exercise, abort."
+    /// No after-session debounce: a dismissed session never happened.
     func dismissActiveSession() async {
         Logger.detection.info("dismissActiveSession called (phase=\(self.state.phase.rawValue))")
         notifications.cancelAllDetectionNotifications()
-        state.lastDismissAt = Date()
         resetToIdle()
     }
 
@@ -393,17 +380,25 @@ extension ExerciseDetector {
     }
 
     fileprivate func userIsAlreadyLoggingExercise(now: Date) async -> Bool {
+        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled interval
+        // for daily tasks the event covers the whole day
+        // -> Query the full day, then filter by outcomt's actual createdDate to enforce
+        // real suppression window
+        let dayStart = Calendar.current.startOfDay(for: now)
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
-        var query = OCKOutcomeQuery(
-            dateInterval: DateInterval(start: windowStart, end: now)
-        )
+        var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: now))
         query.taskIDs = TaskID.exerciseRelated.filter { $0 != TaskID.detectedExercise }
         do {
             let outcomes = try await ockStore.fetchOutcomes(query: query)
-            if !outcomes.isEmpty {
-                Logger.detection.info("Found \(outcomes.count) recent exercise-related outcome(s) — suppressing")
+            let recent = outcomes.filter { outcome in
+                let outcomeCreated = outcome.createdDate ?? .distantPast
+                let latestValue = outcome.values.map(\.createdDate).max() ?? .distantPast
+                return max(outcomeCreated, latestValue) >= windowStart
             }
-            return !outcomes.isEmpty
+            if !recent.isEmpty {
+                Logger.detection.info("Found \(recent.count) recent exercise-related outcome(s) — suppressing")
+            }
+            return !recent.isEmpty
         } catch {
             Logger.detection.error("Outcome fetch for suppression failed: \(error)")
             return false
@@ -413,8 +408,6 @@ extension ExerciseDetector {
     fileprivate func observeAppForeground() {
         guard !didRegisterForegroundObserver else { return }
         didRegisterForegroundObserver = true
-        // Use the raw notification name string so we don't pull in UIKit
-        // (which is unavailable on watchOS targets that share this file).
         let foregroundName = Notification.Name("UIApplicationWillEnterForegroundNotification")
         NotificationCenter.default.addObserver(
             forName: foregroundName,
@@ -488,7 +481,6 @@ extension ExerciseDetector: DetectionNotificationHandler {
 
     func userDismissedDetectedExercise() async {
         Logger.detection.info("User dismissed start notification")
-        state.lastDismissAt = Date()
         resetToIdle()
     }
 

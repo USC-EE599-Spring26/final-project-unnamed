@@ -342,7 +342,7 @@ extension OCKStore {
         logMood.impactsAdherence = true
         logMood.instructions = String(localized: "LOG_MOOD_INSTRUCTIONS")
         logMood.asset = "face.smiling"
-        logMood.card = .grid
+        logMood.card = .button
         logMood.priority = 12
         logMood.carePlanUUID = carePlanUUIDs[.behavioralTracking]
 
