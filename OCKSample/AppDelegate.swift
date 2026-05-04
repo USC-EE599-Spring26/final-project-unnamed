@@ -132,7 +132,32 @@ final class AppDelegate: UIResponder, ObservableObject {
 		self.isFirstTimeLogin = isFirstTimeLogin
 	}
 
-    private func startExerciseDetectionIfNeeded(store: OCKStore) async {
+    /// Wait for one round-trip with Parse before letting any code that
+    /// generates new task UUIDs (notably `syncDetectionTasks`) run. Without
+    /// this, a fresh login can create local detection tasks with brand new
+    /// UUIDs while the cloud still holds outcomes pointing at the cloud's
+    /// task UUIDs — those outcomes then arrive as orphans and crash CareKit
+    /// at `OCKCDOutcome.swift:46` (try! task lookup by UUID).
+    func waitForFirstSync() async {
+        guard let store = self.store else { return }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            store.synchronize { error in
+                if let error = error {
+                    Logger.appDelegate.error(
+                        "waitForFirstSync: synchronize error (continuing anyway): \(error.localizedDescription)"
+                    )
+                }
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Bring up the auto-detection feature.
+    ///
+    /// IMPORTANT: must be called only after the store has finished its first
+    /// Parse sync (see `waitForFirstSync`). Otherwise `syncDetectionTasks`
+    /// can race the cloud pull and create duplicate-id, different-UUID tasks.
+    func startExerciseDetectionIfNeeded(store: OCKStore) async {
         Logger.detection.info("startExerciseDetectionIfNeeded called")
 
         // Idempotently ensure detection tasks exist before either detector
@@ -249,7 +274,12 @@ final class AppDelegate: UIResponder, ObservableObject {
             storeCoordinator.attach(eventStore: healthKitStore)
             self.storeCoordinator = storeCoordinator
 
-            await startExerciseDetectionIfNeeded(store: store)
+            // NOTE: detection startup is deliberately NOT done here. It must
+            // wait for the first Parse sync to complete so we don't generate
+            // local detection-task UUIDs that conflict with cloud ones (the
+            // bug at OCKCDOutcome.swift:46). Callers of `setupRemotes` are
+            // responsible for invoking `waitForFirstSync` +
+            // `startExerciseDetectionIfNeeded` once setup is fully done.
         } catch {
             Logger.appDelegate.error("Could not setup remote: \(error)")
             throw error

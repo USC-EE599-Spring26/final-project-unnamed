@@ -41,6 +41,13 @@ extension AppDelegate: UIApplicationDelegate {
                             // swiftlint:disable:next line_length
                             NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
                         }
+                        // Wait for an initial sync before starting detection
+                        // so we don't create detection tasks with new UUIDs
+                        // that conflict with cloud-side ones.
+                        await waitForFirstSync()
+                        if let store = self.store {
+                            await startExerciseDetectionIfNeeded(store: store)
+                        }
                     } catch {
                         Logger.appDelegate.error("User is logged in, but missing remoteId: \(error)")
                         try await setupRemotes()
