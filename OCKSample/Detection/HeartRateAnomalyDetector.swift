@@ -12,12 +12,9 @@ import HealthKit
 import os.log
 // swiftlint:disable identifier_name
 
-/// Watches heart-rate samples in the background and prompts the user to log a
-/// mood event when HR rises significantly above resting baseline while the
-/// user is NOT moving (so the spike isn't explained by exercise).
-///
-/// Single-stage prompt — unlike exercise detection, mood spikes are moments
-/// rather than sessions, so there's no end-monitoring phase.
+/// Watches HR in the background and prompts to log a mood event when HR spikes
+/// above resting baseline without movement (ruling out exercise).
+/// Single-stage — mood spikes are moments, not sessions, so no end-monitoring phase.
 private struct UncheckedSendableBox<T>: @unchecked Sendable {
     let value: T
     init(_ value: T) { self.value = value }
@@ -36,12 +33,9 @@ final class HeartRateAnomalyDetector {
     private static let hrDetectionWindow: TimeInterval = 5 * 60
     /// Steps in the same HR window above which we suppress (treat as exercise).
     private static let stepSuppressionThreshold: Double = 50
-    /// After a mood spike is logged (or written as unconfirmed), suppress
-    /// new prompts for this long. NOT triggered by user-driven dismiss —
-    /// dismiss means the prompt was a false positive.
+    /// Cool-down after a spike is logged. Not applied on dismiss (false positive).
     private static let dismissDebounce: TimeInterval = 10 * 60
-    /// Suppress if any exercise- or mood-related task has an outcome in this
-    /// window (user is already tracking something).
+    /// Suppress if any exercise- or mood-related task has an outcome in this window.
     private static let activeTaskSuppressionWindow: TimeInterval = 10 * 60
     /// If the user never responds, write an unconfirmed record after this long.
     private static let unconfirmedTimeout: TimeInterval = 7 * 60
@@ -75,8 +69,7 @@ final class HeartRateAnomalyDetector {
 
     var onUserConfirmedToast: ((String) -> Void)?
     /// Fired when the user confirms a mood spike from the notification.
-    /// AppDelegate uses this to ask the Care view to scroll to & highlight
-    /// the logMood card so the user can pick a specific emotion.
+    /// AppDelegate uses this to ask the Care view to scroll to & highlight the logMood card.
     var onPromptLogMood: (() -> Void)?
 
     private var state: PersistedState {
@@ -300,8 +293,7 @@ extension HeartRateAnomalyDetector {
         }
     }
 
-    /// Count of HR samples in window — useful for diagnosing why an apparent
-    /// spike isn't triggering (e.g. only 1 sample, large variance, etc.).
+    /// Count of HR samples in window — useful for diagnosing why a spike isn't triggering.
     fileprivate func heartRateSampleCount(from: Date, to: Date) async -> Int {
         let type = HKQuantityType(.heartRate)
         let predicate = HKQuery.predicateForSamples(withStart: from, end: to, options: .strictStartDate)
@@ -318,8 +310,7 @@ extension HeartRateAnomalyDetector {
         }
     }
 
-    /// Most recent restingHeartRate sample. Apple Watch writes one per day.
-    /// Returns nil if user has no samples (e.g. iPhone-only).
+    /// Most recent restingHeartRate sample (Apple Watch writes one/day). Nil if iPhone-only.
     fileprivate func restingHeartRateBaseline() async -> Double? {
         let type = HKQuantityType(.restingHeartRate)
         return await withCheckedContinuation { continuation in
@@ -358,11 +349,8 @@ extension HeartRateAnomalyDetector {
     }
 
     fileprivate func userHasRecentRelatedActivity(now: Date) async -> Bool {
-        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled
-        // interval — for daily tasks the event covers the whole day, so a
-        // narrow window here would always match any same-day outcome. Query
-        // the full day, then filter by the outcome's / values' actual
-        // createdDate to enforce the real suppression window.
+        // OCKOutcomeQuery.dateInterval filters by the task event's scheduled interval — for daily tasks the event covers the whole day
+        // -> Query the full day, then filter by outcomt's actual createdDate to enforce real suppression window
         let dayStart = Calendar.current.startOfDay(for: now)
         let windowStart = now.addingTimeInterval(-Self.activeTaskSuppressionWindow)
         var query = OCKOutcomeQuery(dateInterval: DateInterval(start: dayStart, end: now))

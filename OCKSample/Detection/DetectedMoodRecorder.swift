@@ -74,9 +74,7 @@ struct DetectedMoodRecorder {
         }
     }
 
-    /// Compute today's occurrence index from the task's schedule. CareKit's
-    /// `taskOccurrenceIndex` counts from schedule start, not per-day, so this
-    /// is non-zero on any day after the schedule's first.
+    /// Today's occurrence index from schedule start (non-zero after day 1).
     private func todaysOccurrence(for task: OCKTask) throws -> Int {
         let dayStart = Calendar.current.startOfDay(for: Date())
         let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
@@ -97,12 +95,9 @@ struct DetectedMoodRecorder {
         return task
     }
 
-    /// Look up today's outcome by task ID (not version UUID) so we find rows
-    /// even when CareKit has re-versioned the task — e.g. after a Parse sync
-    /// pulls a different cloud-side version. Querying by UUID would miss the
-    /// historical outcome and we'd fall through to addOutcome → CareKit
-    /// rejects with "A duplicate outcome exists" since uniqueness is checked
-    /// on (taskID, occurrenceIndex) across versions.
+    /// Query by task ID (not UUID) so we find the outcome even if CareKit
+    /// re-versioned the task after a Parse sync — querying by UUID would miss it
+    /// and addOutcome would fail with "duplicate outcome exists".
     private func fetchTodaysOutcome(occurrence: Int) async throws -> OCKOutcome? {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: Date())
