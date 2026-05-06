@@ -98,6 +98,7 @@ extension Onboard {
         let healthKitTypesToRead: Set<HKObjectType> = [
             .characteristicType(forIdentifier: .dateOfBirth)!,
             .workoutType(),
+            .quantityType(forIdentifier: .stepCount)!,
             .quantityType(forIdentifier: .appleStandTime)!,
             .quantityType(forIdentifier: .appleExerciseTime)!,
             .quantityType(forIdentifier: .heartRate)!,
