@@ -10,17 +10,11 @@ An iOS/watchOS care app for ADHD patients, built on [CareKit](https://github.com
 
 ## Screenshots
 
-*Suggested screenshots to take:*
+<img src="screenshots/onboarding.png" width="250"> <img src="screenshots/care_view.png" width="250"> <img src="screenshots/notification.png" width="250">
 
-1. **Onboarding** — the ResearchKit consent + HealthKit permission screens  
-2. **Care View (patient)** — daily task list showing tip card, medication, mood, sleep, and exercise cards  
-3. **Detection notification** — lock screen with the "Are you exercising?" prompt and Log / Dismiss actions (long-press to reveal)  
-4. **In-app tracking banner** — the blue "Tracking exercise · Dismiss" banner overlaid at the top of Care View while a session is active  
-5. **Insights View** — bar charts for steps, stress, attention, and routine with interval picker  
-6. **Stroop Test** — the ResearchKit cognitive interference task in progress  
-7. **Profile** — the all-in-one form showing photo, name, and contact fields  
-8. **Clinician tab** — patient list and care plan assignment screen  
-9. **Apple Watch companion** — medication and exercise cards on the watch face  
+<img src="screenshots/tracking_banner.png" width="250"> <img src="screenshots/insights.png" width="250"> <img src="screenshots/stroop.png" width="250">
+
+<img src="screenshots/profile.png" width="250"> <img src="screenshots/clinician.png" width="250"> <img src="screenshots/watch.png" width="250">
 
 ---
 
