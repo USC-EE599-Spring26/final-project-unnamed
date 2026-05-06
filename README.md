@@ -12,68 +12,78 @@ An iOS/watchOS care app for ADHD patients, built on [CareKit](https://github.com
 
 *Suggested screenshots to take:*
 
-1. **Care View (patient)** — daily task list showing medication, mood, sleep, and exercise cards  
-2. **Detection notification** — lock screen / notification center with the "Are you exercising?" prompt and Log / Dismiss actions  
-3. **In-app tracking banner** — the blue "Tracking exercise · Dismiss" banner overlaid at the top of Care View while a session is active  
-4. **IKBE session start sheet** — the bottom sheet listing the user's predefined focus types (e.g. "Focus writing", "Reading", "Chores")  
-5. **Dynamic Island / Live Activity** — the in-progress session timer visible system-wide while an IKBE session is running  
-6. **Apple Watch companion** — medication and exercise cards on the watch face  
-7. **Insights View** — outcome history charts for steps, stress, and attention  
+1. **Onboarding** — the ResearchKit consent + HealthKit permission screens  
+2. **Care View (patient)** — daily task list showing tip card, medication, mood, sleep, and exercise cards  
+3. **Detection notification** — lock screen with the "Are you exercising?" prompt and Log / Dismiss actions (long-press to reveal)  
+4. **In-app tracking banner** — the blue "Tracking exercise · Dismiss" banner overlaid at the top of Care View while a session is active  
+5. **Insights View** — bar charts for steps, stress, attention, and routine with interval picker  
+6. **Stroop Test** — the ResearchKit cognitive interference task in progress  
+7. **Profile** — the all-in-one form showing photo, name, and contact fields  
 8. **Clinician tab** — patient list and care plan assignment screen  
+9. **Apple Watch companion** — medication and exercise cards on the watch face  
 
 ---
 
 ## Features
 
+### Onboarding
+First-launch flow built on ResearchKit guides new users through:
+- **Consent** — informed consent form with review and signature step
+- **HealthKit permissions** — step count, heart rate, resting heart rate requested during onboarding (required for passive detection)
+- **Care plan assignment** — default ADHD care plans seeded on completion
+
+### Authentication
+- Sign up or log in with either **username or email**
+- **Role selection** at sign-up: patient or clinician — each role gets a different tab layout on next launch
+
 ### Daily Care Tasks
 Patients complete a structured daily card list covering:
 
-- **Medication** — methylphenidate log with time-of-dose tracking
+- **Medication** — methylphenidate intake log
 - **Behavioral tracking** — focus log, distraction log, mood, sleep, stress
-- **Movement** — cardio and stretch cards; step count via HealthKit
+- **Movement** — cardio and stretch cards; step count and heart rate via HealthKit
 - **Adaptive prompts** — refocus prompt, breathing exercise, take-a-break card
-- **Assessments** — Stroop Test, inattention/hyperactivity/impulsivity surveys, weekly reflection
+- **Tip card** — featured content card at the top of Care View; tapping opens a curated ADHD resource in-browser
 
-### IKBE — Execution-Function Support
-*"I Know, But Execution"* — the core feature designed around the ADHD pattern where users know what they need to do but struggle to start and track it.
+### Cognitive Assessments (ResearchKit)
+- **Stroop Test** — measures focused attention and cognitive flexibility; user taps the color a word is printed in, not the word itself
+- **ADHD daily check-in** — structured daily symptom survey
+- **Quality of Life survey** — standardized self-assessment
+- **Weekly reflection** — longer trend check-in
 
-Users predefine a small set of activity types (e.g. "Focus writing", "Reading", "Chores"). Starting a session is **1–2 taps**: tap the hero card → pick a type → session begins with haptic confirmation. There is intentionally no confirmation dialog — start friction is kept as low as possible.
-
-While a session is active, a **Live Activity** (Dynamic Island + lock screen) shows the session type and elapsed time so it is always visible without opening the app. An Apple Watch companion view shows the current session with an End button.
-
-Only one session can be active at a time — starting a second prompts the user to end the current one, matching the ADHD reality of a single primary focus task.
-
-Each session is stored as an `OCKOutcome` with `startedAt`, `endedAt`, and an `autoEnded` flag for sessions that exceeded the 4-hour global timeout (auto-ended outcomes are treated as lower-confidence data in dashboards).
-
-**Planned extensions:**
-- Per-type duration targets and weekly goal charts in Insights View
-- `TriggerSource` metadata (`manual` / `notification` / `auto`) for later HealthKit/motion auto-detection integration
-- watchOS session-start support (current Watch MVP is view + End only)
-- Types management tab (create / rename / reorder IKBE types)
+### Insights
+Swift Charts bar charts visualise outcome history for steps, stress, attention, and routine. Supports day/week/month interval switching. Medication intake and inattention scores are overlaid on the same chart for correlation.
 
 ### Passive Detection (HealthKit-Driven)
-The app monitors HealthKit in the background and nudges users to log sessions they forgot to start, without requiring any manual action first.
+The app monitors HealthKit in the background and nudges users to log sessions they forgot to start, without any manual action required.
 
 | Detector | Signal | Flow |
 |---|---|---|
-| **Exercise** | ≥ 300 steps in 5 min, no exercise task active in the past 20 min | Stage 1: "Are you exercising?" [Log / Dismiss] → if confirmed, monitors for movement to stop → Stage 2: "Did you finish?" [Still going / Yes, ended] |
-| **Mood spike** | Heart rate ≥ 25 bpm above resting baseline while sedentary | Single stage: "Elevated HR — strong emotion?" [Log / Dismiss] |
+| **Exercise** | ≥ 300 steps in 5 min, no exercise task logged in the past 20 min | Stage 1: "Are you exercising?" [Log / Dismiss] → confirmed → monitors for movement to stop → Stage 2: "Did you finish?" [Still going / Yes, ended] |
+| **Mood spike** | HR ≥ 25 bpm above resting baseline while sedentary | Single stage: "Elevated HR — strong emotion?" [Log / Dismiss] |
 
-Both detectors run fully in the background via `HKObserverQuery` + background delivery. A persistent banner appears in-app while an exercise session is being tracked. If the user never responds to a prompt, an `isUnconfirmed=true` outcome is written automatically so data is not silently lost.
+Both detectors run fully in the background via `HKObserverQuery` + background delivery. A persistent banner appears at the top of Care View while an exercise session is being tracked. If the user never responds, an `isUnconfirmed=true` outcome is written automatically so no data is silently dropped.
 
 **Planned extensions:**
+- IKBE session scaffolding — 1-tap start for predefined focus types (e.g. "Focus writing", "Reading"), Live Activity showing elapsed time, Watch End button; each session stored as an `OCKOutcome` with `startedAt`/`endedAt`/`autoEnded` flags
 - Personalized step thresholds computed from the user's rolling 7-day baseline
 - Stress detection from HRV data
 - Manual end button on the in-app tracking banner (alongside Dismiss)
 
-### Clinician View
-- Patient list and detail view
-- Care plan creation and assignment
-- Contact management
-- Push notification delivery to patients
+### Task Management (Patient)
+Patients can build their own care plan alongside the defaults:
+- **Create tasks** — add a custom `OCKTask` (card type, schedule, care plan) or `OCKHealthKitTask` (linked to a HealthKit quantity type) from the Profile tab
+- **Delete tasks** — long-press select in Care View, then delete; removed from both local store and Parse
 
-### Apple Watch Companion
-Medication, cardio, and stretch cards sync to watchOS. Active IKBE sessions display on-watch with an End button.
+### Profile
+All patient-editable fields in one form: display name, given/family name, profile photo (camera or library), contact details (phone, email, address), and a summary bio. Changes sync to Parse immediately.
+
+### Clinician View
+Clinicians get a separate tab layout after login:
+- **Patient list** — search and view all connected patients
+- **Care plan management** — create care plans and assign them to patients
+- **Clinician–patient connection** — link a clinician account to patient records
+- **Push notifications** — send targeted notifications to individual patients
 
 ---
 
