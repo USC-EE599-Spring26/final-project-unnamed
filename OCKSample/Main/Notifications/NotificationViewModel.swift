@@ -125,14 +125,16 @@ class NotificationViewModel: ObservableObject {
     // MARK: - Copy care plan to patient's store
 
     private func copyCarePlanToPatientStore(from assignment: CarePlanAssignment) async {
-        guard let store   = AppDelegateKey.defaultValue?.store,
+        guard let store = AppDelegateKey.defaultValue?.store,
               let payload = assignment.payload else {
-            Logger.contact.warning("copyCarePlanToPatientStore: no payload — skipping")
+            Logger.contact.warning("copyCarePlanToPatientStore: no store or payload — skipping")
             return
         }
 
         do {
             let snapshot = try CarePlanSnapshot.from(jsonString: payload)
+            let titleForLog = snapshot.carePlanTitle ?? snapshot.carePlanId
+
             let patientUUID = (try? await store
                 .fetchPatients(query: OCKPatientQuery(for: Date())))?.first?.uuid
 
@@ -140,12 +142,9 @@ class NotificationViewModel: ObservableObject {
             planQuery.ids = [snapshot.carePlanId]
             let existingPlan = (try? await store.fetchCarePlans(query: planQuery))?.first
 
-            let titleForLog = snapshot.carePlanTitle ?? snapshot.carePlanId
-
             let carePlan: OCKCarePlan
             if let existing = existingPlan {
                 carePlan = existing
-                Logger.contact.info("copyCarePlan: plan '\(snapshot.carePlanId)' already exists")
             } else {
                 let newPlan = OCKCarePlan(
                     id: snapshot.carePlanId,
@@ -153,24 +152,29 @@ class NotificationViewModel: ObservableObject {
                     patientUUID: patientUUID
                 )
                 carePlan = try await store.addCarePlan(newPlan)
-                Logger.contact.info("copyCarePlan: created plan '\(titleForLog)'")
             }
 
             let taskIds = snapshot.tasks.map { $0.id }
-            var taskQuery = OCKTaskQuery(for: Date())
+            var taskQuery = OCKTaskQuery()
             taskQuery.ids = taskIds
-            let existingTaskIds = Set(
-                ((try? await store.fetchTasks(query: taskQuery)) ?? []).map { $0.id }
-            )
+            let existingRegular = (try? await store.fetchTasks(query: taskQuery)) ?? []
+
+            var hkQuery = OCKTaskQuery()
+            hkQuery.ids = taskIds
+            let existingHK = (try? await AppDelegateKey.defaultValue?.healthKitStore?
+                .fetchAnyTasks(query: hkQuery)) ?? []
+
+            let existingTaskIds = Set(existingRegular.map { $0.id })
+                .union(existingHK.map { $0.id })
 
             let tasksToAdd = snapshot.tasks
                 .filter { !existingTaskIds.contains($0.id) }
                 .map { $0.toOCKTask(carePlanUUID: carePlan.uuid) }
 
             if !tasksToAdd.isEmpty {
-                _ = try await store.addTasks(tasksToAdd)
+                _ = try await store.addTasksIfNotPresent(tasksToAdd)
                 Logger.contact.info(
-                    "copyCarePlan: added \(tasksToAdd.count) task(s) for '\(titleForLog)'"
+                    "copyCarePlanToPatientStore: added \(tasksToAdd.count) task(s) for '\(titleForLog)'"
                 )
             }
         } catch {

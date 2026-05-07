@@ -307,12 +307,19 @@ final class ExerciseDetector {
         state.endPromptPostedAt = nil
     }
 
-    /// In-app card "Dismiss" — user says "this isn't real exercise, abort."
-    /// No after-session debounce: a dismissed session never happened.
-    func dismissActiveSession() async {
-        Logger.detection.info("dismissActiveSession called (phase=\(self.state.phase.rawValue))")
+    /// In-app banner "End" — user manually concludes a confirmed session
+    /// without waiting for auto end-detection or the stage-2 notification.
+    /// Writes a confirmed outcome (same semantics as `userConfirmedExerciseEnded`).
+    func userManuallyEndedSession() async {
+        Logger.detection.info("userManuallyEndedSession called (phase=\(self.state.phase.rawValue))")
+        let now = Date()
+        let ok = await writeRecord(end: now, isUnconfirmed: false)
         notifications.cancelAllDetectionNotifications()
+        state.lastDismissAt = now
         resetToIdle()
+        if ok {
+            onUserConfirmedToast?(String(localized: "DETECTED_EXERCISE_TOAST_LOGGED"))
+        }
     }
 
     fileprivate var didRegisterForegroundObserver: Bool {

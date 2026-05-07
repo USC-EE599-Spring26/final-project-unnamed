@@ -50,7 +50,7 @@ struct MainView: View {
             VStack(spacing: 8) {
                 if appDelegate.detectionSessionActive {
                     DetectionTrackingBanner {
-                        Task { await appDelegate.exerciseDetector?.dismissActiveSession() }
+                        Task { await appDelegate.exerciseDetector?.userManuallyEndedSession() }
                     }
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
@@ -117,9 +117,9 @@ private struct DetectionToastView: View {
 }
 
 /// Persistent banner shown while a detected-exercise session is being tracked.
-/// User can tap Dismiss to abort (mark the detection as a false positive).
+/// User can tap End to manually conclude the session (writes a confirmed outcome).
 private struct DetectionTrackingBanner: View {
-    let onDismiss: () -> Void
+    let onEnd: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -128,8 +128,8 @@ private struct DetectionTrackingBanner: View {
             Text(String(localized: "DETECTED_EXERCISE_TRACKING_BANNER"))
                 .font(.subheadline.weight(.medium))
             Spacer()
-            Button(action: onDismiss) {
-                Text(String(localized: "DETECTED_EXERCISE_TRACKING_BANNER_DISMISS"))
+            Button(action: onEnd) {
+                Text(String(localized: "DETECTED_EXERCISE_TRACKING_BANNER_END"))
                     .font(.subheadline.weight(.semibold))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)

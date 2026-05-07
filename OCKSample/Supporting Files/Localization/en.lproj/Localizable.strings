@@ -64,7 +64,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "START_SURVEY" = "Start Survey";
 
 // MARK: Login
-"APP_NAME" = "CareKit Sample App";
+"APP_NAME" = "PulseBuddy";
 "LOGIN_PICKER" = "Login Picker";
 "LOGIN" = "Login";
 "LOGIN_ANONYMOUSLY" = "Login Anonymously";
@@ -111,7 +111,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "DETECTED_EXERCISE_TOAST_STILL" = "OK — we'll keep tracking.";
 "DETECTED_EXERCISE_TOAST_LOGGED" = "Logged your exercise — nice work.";
 "DETECTED_EXERCISE_TRACKING_BANNER" = "Tracking exercise";
-"DETECTED_EXERCISE_TRACKING_BANNER_DISMISS" = "Dismiss";
+"DETECTED_EXERCISE_TRACKING_BANNER_END" = "End";
 "DETECTED_MOOD_SPIKE" = "Detected Mood Spike";
 "DETECTED_MOOD_NOTIF_TITLE" = "Heart rate elevated";
 "DETECTED_MOOD_NOTIF_BODY" = "Your heart rate spiked but you don't seem to be moving. Strong emotion? Long-press to log.";
@@ -127,7 +127,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "ANSWER_NO" = "No";
 "STEPS_INSTRUCTIONS" = "Walk at least 2,000 steps today to stay active and healthy.";
 "STRESS_EMOTIONAL_STATE" = "Stress & Emotional State";
-"STRESS_INSTRUCTIONS" = "Tracks heart rate variability (HRV) as a stress indicator. Higher HRV means lower stress.";
+"STRESS_INSTRUCTIONS" = "Shows your HRV (SDNN) from Apple Watch. Higher ms = calmer, more regulated nervous system. Target ≥ 40 ms. 'Incomplete' means no reading is available today.";
 
 "ATTENTION_ENGAGEMENT" = "Attention & Engagement";
 "ATTENTION_INSTRUCTIONS" = "Tracks daily steps and standing time as indicators of engagement and focus.";
