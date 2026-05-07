@@ -75,8 +75,6 @@ A structured daily card list spans six care plan buckets:
 | Methylphenidate intake | Grid | Health | Three times Per Day |
 | Log Distraction | Button | Behavioral Tracking | Daily |
 | Log Mood | Button | Behavioral Tracking | Daily |
-| Log Sleep | Button | Behavioral Tracking | Daily |
-| Refocus Prompt | Instruction | Adaptive Feedback | Daily |
 | Breathing Exercise | Instruction | Adaptive Feedback | Daily |
 | Dectected Activity | Simple | Wellness | Daily |
 | Steps (HealthKit) | Numeric Progress | Health | Daily |
