@@ -91,6 +91,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // MARK: TASKS
 "TAKE_METHYLPHENIDATE" = "Take Methylphenidate";
 "METHYLPHENIDATE_INSTRUCTIONS" = "Take 25mg of methylphenidate when you experience inattention";
+"MED_DOSE_MORNING" = "Morning";
+"MED_DOSE_NOON" = "Noon";
+"MED_DOSE_EVENING" = "Evening";
+"MORNING_BEDTIME_ROUTINE" = "Morning Routine";
+"MORNING_BEDTIME_ROUTINE_INSTRUCTIONS" = "Complete your daily routine to start and end the day with structure.";
+"ROUTINE_ITEM_WATER" = "Drink a glass of water";
+"ROUTINE_ITEM_BED" = "Make the bed";
+"ROUTINE_ITEM_HYGIENE" = "Brush your teeth and wash your face";
+"ROUTINE_ITEM_DRESSED" = "Get dressed";
 "ANYTIME_DURING_DAY" = "Anytime throughout the day";
 "TRACK_INATTENTION" = "Track your inattention";
 "INATTENTION_INSTRUCTIONS" = "Tap the button below anytime you experience inattention";
@@ -125,6 +134,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "QUALITY_OF_LIFE_STRESS_DETAIL" = "0 is no stress, 10 is extremely high stress.";
 "ANSWER_YES" = "Yes";
 "ANSWER_NO" = "No";
+"TODAY_AT_A_GLANCE" = "Today at a Glance";
 "STEPS_INSTRUCTIONS" = "Walk at least 2,000 steps today to stay active and healthy.";
 "STRESS_EMOTIONAL_STATE" = "Stress & Emotional State";
 "STRESS_INSTRUCTIONS" = "Shows your HRV (SDNN) from Apple Watch. Higher ms = calmer, more regulated nervous system. Target ≥ 40 ms. 'Incomplete' means no reading is available today.";
@@ -158,6 +168,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 "WEEKLY_REFLECTION" = "Weekly Reflection";
 "WEEKLY_REFLECTION_INSTRUCTIONS" = "Review your week: What went well? What was challenging? Identifying patterns helps adjust your care plan for next week.";
+
+"ADHD_INFO_LINK_TITLE" = "Learn About ADHD";
+"ADHD_INFO_LINK_LABEL" = "NIMH: ADHD Overview";
+"ADHD_INFO_LINK_INSTRUCTIONS" = "Tap the link to read about ADHD symptoms, diagnosis, and treatment from the National Institute of Mental Health.";
 
 "ADHD_Check_IN" = "ADHD Daily Check-In";
 "ADHD_Check_IN_INSTRUCTIONS" = "A quick 3-question check-in to track your focus, progress, and distractions throughout the day.";

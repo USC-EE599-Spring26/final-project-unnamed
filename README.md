@@ -31,7 +31,7 @@ Describe the types of users your app is designed for and who will benefit from y
 <!--
 In addition, you can drop screenshots directly into your README file to add them to your README. Take these from your presentations.
 -->
-<img src="screenshots/login.png" width="200"> <img src="screenshots/careview.png" width="200"> <img src="screenshots/insightsview.png" width="250">  <img src="screenshots/notificationview.png" width="200">  <img src="screenshots/contactview.png" width="200"> <img src="screenshots/profileview.png" width="200"> 
+<img src="Screenshots/loginview.png" width="160"> <img src="Screenshots/careview.png" width="160"> <img src="Screenshots/insightsview.png" width="160">  <img src="Screenshots/notificationview.png" width="160">  <img src="Screenshots/contactview.png" width="160"> <img src="Screenshots/profileview.png" width="160"> 
 
 <!--
 List all of the members who developed the project and
@@ -67,29 +67,30 @@ Users sign up or log in with either username or email. Role selection at sign-up
 ### ADHD Daily Care Tasks (OCKTask / OCKHealthKitTask)
 A structured daily card list spans six care plan buckets:
 
+#### OCKTask
+
 | Task | Card Type | Care Plan | Schedule |
 |---|---|---|---|
-| Methylphenidate intake | Checklist | Health | Daily |
-| Cardio exercise | Custom | Health | Daily |
-| Stretch | Simple | Health | Daily |
-| Log Focus | Button | Behavioral Tracking | Daily |
+| ADHD Daily Check-In | Survey | Health | Daily |
+| Focus & Attention Test (Stroop) | Survey | Health | Daily |
+| Morning Routine | Checklist | Health | Daily |
+| Methylphenidate intake | Grid | Health | Three times Per Day |
 | Log Distraction | Button | Behavioral Tracking | Daily |
 | Log Mood | Button | Behavioral Tracking | Daily |
-| Log Sleep | Button | Behavioral Tracking | Daily |
-| Refocus Prompt | Instruction | Adaptive Feedback | Daily |
 | Breathing Exercise | Instruction | Adaptive Feedback | Daily |
-| Take a Break | Simple | Adaptive Feedback | Daily |
-| Weekly Reflection | Simple | Clinical Assessment | Weekly |
-| Steps (HealthKit) | Numeric Progress | Health | Daily |
-| Stress (HealthKit HRV) | Labeled Value | Health | Daily |
-| Attention (HealthKit) | Numeric Progress | Wellness | Daily |
-| Routine (HealthKit) | Numeric Progress | Wellness | Daily |
+| Dectected Activity | Simple | Wellness | Daily |
+
+#### OCKHealthKitTask
+
+| Task | Card Type | Care Plan | Schedule |
+|---|---|---|---|
+| Steps | Numeric Progress | Health | Daily |
+| Stress | Labeled Value | Health | Daily |
+| Routine | Numeric Progress | Wellness | Daily |
 
 ### Cognitive Assessments (ResearchKit Surveys)
 - **Stroop Test** — measures focused attention and cognitive flexibility via color-word interference
 - **ADHD Daily Check-In** — 3-question structured symptom survey (inattention, hyperactivity, mood)
-- **Quality of Life Survey** — standardized self-assessment
-- **Weekly Reflection** — longer trend check-in seeded on a weekly schedule
 
 ### Insights Tab (Swift Charts)
 A dedicated Insights tab visualizes outcome history for steps, stress, attention, and routine using Swift Charts bar charts. Supports day/week/month interval switching. Medication intake and inattention scores are overlaid on the same chart for correlation analysis.
@@ -136,7 +137,7 @@ This is from the checkist from the final [Code](https://uk.instructure.com/cours
   - [x] SimpleTaskView - Stretch, Take a Break, Weekly Reflection
   - [x] Checklist - Methylphenidate intake
   - [x] Button Log - Log Focus, Log Distraction, Log Mood, Log Sleep
-  - [ ] GridTaskView - not used as a seeded task type
+  - [x] GridTaskView - not used as a seeded task type
   - [x] NumericProgressTaskView (SwiftUI) - Steps, Attention, Routine (OCKHealthKitTask)
   - [x] LabeledValueTaskView (SwiftUI) - Stress (OCKHealthKitTask)
 - [x] Add the LinkView (SwiftUI) card to your app
