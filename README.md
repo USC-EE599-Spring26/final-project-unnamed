@@ -157,8 +157,9 @@ Describe at least 3 features you want to add in the future before releasing your
 
 2. **Personalized Detection Thresholds** — replace fixed step/HR thresholds with baselines computed from each user's rolling 7-day HealthKit history, reducing false positives for both the exercise detector and the heart rate anomaly detector.
 
-3. **Clinician-patient management system** - allows clinicians to develop personalized care plans for patients, who can then track their ADHD symptoms, medications, and daily routines through structured tasks and HealthKit integration.
+3. **Absence of Email Verification** - The system does not currently enforce email verification at registration, meaning a user could register with an email they do not own and claim invitations intended for another individual. Enabling Parse's built-in email verification would ensure that only the intended recipient can claim an invitation.
 
+4. **Stale Data from Snapshot-Based Assignment** - Care plan assignments are stored as static JSON snapshots, so if a clinician updates the original plan after a patient has accepted it, the patient's local CareKit store does not receive the changes. Adopting a reference-based model with versioning would allow updates to propagate without losing the patient's existing outcome history.
 
 ## Challenges faced while developing
 <!--
