@@ -512,21 +512,21 @@ extension OCKStore {
 
         var tasksToAdd: [OCKTask] = [
             methylphenidate,
-            cardios,
-            stretch,
-            logFocus,
+//            cardios,
+//            stretch,
+//            logFocus,
             logDistraction,
-            logMood,
-            logSleep,
-            refocusPrompt,
+//            logMood,
+//            logSleep,
+//            refocusPrompt,
             breathingExercise,
-            takeBreak,
-            weeklyReflection,
+//            takeBreak,
+//            weeklyReflection,
             detectedExercise,
             detectedMoodSpike
         ]
         #if os(iOS)
-        tasksToAdd.append(qualityOfLife)
+//        tasksToAdd.append(qualityOfLife)
         tasksToAdd.append(adhdCheckIn)
         #endif
         _ = try await addTasksIfNotPresent(tasksToAdd)
@@ -862,6 +862,6 @@ extension OCKStore {
         stroopTask.card         = .uiKitSurvey
         stroopTask.uiKitSurvey  = .stroop
 
-        return try await addTasksIfNotPresent([rangeOfMotionTask, stroopTask])
+        return try await addTasksIfNotPresent([/*rangeOfMotionTask,*/ stroopTask])
     }
 }

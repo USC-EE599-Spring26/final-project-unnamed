@@ -129,7 +129,7 @@ extension OCKHealthKitPassthroughStore {
         routineTask.carePlanUUID = carePlanUUIDs[.wellness]
         routineTask.groupIdentifier = TaskID.routine
 
-        let tasks = [steps, stressTask, attentionTask, routineTask]
+        let tasks = [steps, stressTask, /*attentionTask,*/ routineTask]
         _ = try await addTasksIfNotPresent(tasks)
     }
 }
