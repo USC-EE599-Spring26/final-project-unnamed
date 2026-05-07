@@ -154,20 +154,18 @@ This is from the checkist from the final [Code](https://uk.instructure.com/cours
 Describe at least 3 features you want to add in the future before releasing your app in the app-store
 -->
 1. **IKBE Session Scaffolding** — 1-tap start for user-predefined focus session types (e.g. "Focus Writing", "Reading", "Chores") displayed as an iOS Live Activity on the Dynamic Island with elapsed time, and a watchOS End button. Each session stored as an `OCKOutcome` with `startedAt`, `endedAt`, and `autoEnded` flags for data quality tracking.
+
 2. **Personalized Detection Thresholds** — replace fixed step/HR thresholds with baselines computed from each user's rolling 7-day HealthKit history, reducing false positives for both the exercise detector and the heart rate anomaly detector.
-3. **HRV-Based Stress Detection** — add a third passive detector watching heart rate variability samples to infer sustained stress states (distinct from acute HR spikes), writing outcomes to the existing `log_stress` task for clinician review.
-4. **linician-patient management system** - allows clinicians to develop personalized care plans for patients, who can then track their ADHD symptoms, medications, and daily routines through structured tasks and HealthKit integration.
+
+3. **Clinician-patient management system** - allows clinicians to develop personalized care plans for patients, who can then track their ADHD symptoms, medications, and daily routines through structured tasks and HealthKit integration.
 
 
 ## Challenges faced while developing
 <!--
 Describe any challenges you faced with learning Swift, your baseline app, or adding features. You can describe how you overcame them.
 -->
-**Swift 6 strict concurrency with HealthKit** — HealthKit observer-query completion handlers are not `Sendable`, yet the app targets Swift 6 concurrency. We solved this with an `UncheckedSendableBox` wrapper (Apple documents these callbacks as thread-safe) and by routing notification responses through `Task` with extracted plain `String` values rather than capturing `UNNotificationResponse` across actor boundaries.
 
 **CareKit's per-day outcome uniqueness constraint** — CareKit rejects multiple `OCKOutcome`s for the same `(taskUUID, occurrenceIndex)`, making it impossible to write two detected exercise sessions on the same day as separate outcomes. We worked around this by appending each session as an additional `OCKOutcomeValue` (with JSON-encoded metadata) to the day's single outcome rather than creating new outcomes.
-
-**Background end detection gaps** — HealthKit's background delivery is best-effort; if a user stops moving with no new step samples arriving, the end state is only detected when the app is foregrounded. We mitigated this with a `willEnterForeground` observer that re-runs the state machine evaluation, and documented the gap for future `BGTaskScheduler` integration.
 
 **Privacy-First Clinician-Patient Connection** - Establishing a clinician-patient connection is non-trivial because the system enforces strict data privacy — neither party can directly query the other's profile. The solution uses an invite-based flow where the clinician sends a connection request via the patient's email or phone number, and a pending Relationship record is created with the patient's identifier. When the patient logs in, the system automatically claims any pending relationships addressed to them, tightening the ACL and notifying both parties — all without ever exposing one user's data to unrelated users.
 
