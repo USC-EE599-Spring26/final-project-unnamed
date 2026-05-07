@@ -1,65 +1,178 @@
-# CareKitSample+ParseCareKit
-![Swift](https://img.shields.io/badge/swift-6.2-brightgreen.svg) ![Xcode 26.0+](https://img.shields.io/badge/xcode-26.0%2B-blue.svg) ![iOS 18.0+](https://img.shields.io/badge/iOS-18.0%2B-blue.svg) ![watchOS 11.0+](https://img.shields.io/badge/watchOS-11.0%2B-blue.svg) ![visionOS 2.4+](https://img.shields.io/badge/visionOS-2.4%2B-blue.svg) ![CareKit 4.0+](https://img.shields.io/badge/CareKit-4.0%2B-red.svg) [![ci](https://github.com/netreconlab/CareKitSample-ParseCareKit/actions/workflows/ci.yml/badge.svg)](https://github.com/netreconlab/CareKitSample-ParseCareKit/actions/workflows/ci.yml)
+<!--
+Name of your final project
+-->
+# PulseBuddy
+![Swift](https://img.shields.io/badge/swift-6.2-brightgreen.svg) ![Xcode 26.0+](https://img.shields.io/badge/xcode-26.0%2B-blue.svg) ![iOS 18.0+](https://img.shields.io/badge/iOS-18.0%2B-blue.svg) ![watchOS 11.0+](https://img.shields.io/badge/watchOS-11.0%2B-blue.svg) ![CareKit 4.0+](https://img.shields.io/badge/CareKit-4.0%2B-red.svg) [![ci](https://github.com/netreconlab/CareKitSample-ParseCareKit/actions/workflows/ci.yml/badge.svg)](https://github.com/netreconlab/CareKitSample-ParseCareKit/actions/workflows/ci.yml)
 
-An example application of [CareKit](https://github.com/carekit-apple/CareKit)'s OCKSample synchronizing CareKit data to the Cloud via [ParseCareKit](https://github.com/netreconlab/ParseCareKit). This project also depends on [CareKitEssentials](https://github.com/netreconlab/CareKitEssentials), which adds several cards and extensions for easier development with CareKit.
+## Description
+<!--
+Give a short description on what your project accomplishes and what tools is uses. Basically, what problems does it solve and why it's different from other apps in the app store.
+-->
+PulseBuddy is an iOS/watchOS care app for ADHD patients built on [CareKit](https://github.com/carekit-apple/CareKit) and [ParseCareKit](https://github.com/netreconlab/ParseCareKit). It addresses the core ADHD challenge of execution function — the gap between knowing what to do and actually doing it — through two complementary strategies: structured daily care tasks for active self-logging, and passive HealthKit-driven detection that nudges users to confirm activities they forgot to log. Clinicians get a separate view to manage patients and assign care plans. All data syncs to a Parse backend in real time.
 
-<img src="https://github.com/netreconlab/CareKitSample-ParseCareKit/assets/8621344/4e57796b-5c81-474d-bd8d-dfd9f18327e3" width="300"> <img src="https://github.com/netreconlab/CareKitSample-ParseCareKit/assets/8621344/d60d194a-87a5-41e9-8ae4-41a847e91ea3" width="300"> <img src="https://github.com/netreconlab/CareKitSample-ParseCareKit/assets/8621344/ca0ac2e0-d17d-4bae-88fd-f59b94812419" width="300"><img src="https://github.com/netreconlab/CareKitSample-ParseCareKit/assets/8621344/3be47269-cfde-4de2-94ae-25a60f06cac9" width="300">
-<img src="https://github.com/user-attachments/assets/873c97a9-006d-4edf-a675-ffb1baeb29c8" width="600">
+Unlike generic habit trackers, PulseBuddy uses background `HKObserverQuery` observers to infer exercise sessions from step bursts and emotional states from heart rate anomalies, turning missed self-reports into one-tap confirmations rather than silent data loss.
 
-**Similar to the [What's New in CareKit](https://developer.apple.com/videos/play/wwdc2020/10151/) WWDC20 video, this app syncs data between iOS and an Apple Watch (setting the flag `isSyncingWithRemote` in `Constants.swift` to `isSyncingWithRemote = false.` Different from the video, setting `isSyncingWithRemote = true` (default behavior) in the aforementioned file syncs iOS and watchOS to a Parse Server.**
+### Demo Video
+<!--
+Add the public link to your YouTube or video posted elsewhere.
+-->
+To learn more about this application, watch the video below:
 
-**If you want to populate random sample OCKOutcomes for events in the past, for example to view data in the InsightsView when testing, set 
-`daysInThePastToGenerateSampleData` to a negative number in `Constants.swift`.**
+<a href="YOUR_VIDEO_URL_HERE" target="_blank"><img src="http://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg" 
+alt="PulseBuddy demo video" width="240" height="180" border="10" /></a>
 
-ParseCareKit synchronizes the following entities to Parse tables/classes using [Parse-Swift](https://github.com/netreconlab/Parse-Swift):
+### Designed for the following users
+<!--
+Describe the types of users your app is designed for and who will benefit from your app.
+-->
+- **ADHD patients** who struggle with initiating tasks, remembering to log their health data, and maintaining consistent daily routines. The app reduces start friction and passively captures data even when users forget to log manually.
+- **Clinicians** who need to monitor patient progress, assign and manage care plans, and send targeted push notifications to individual patients.
 
-- [x] OCKPatient <-> Patient
-- [x] OCKCarePlan <-> CarePlan
-- [x] OCKContact <-> Contact
+<!--
+In addition, you can drop screenshots directly into your README file to add them to your README. Take these from your presentations.
+-->
+<img src="screenshots/login.png" width="200"> <img src="screenshots/careview.png" width="200"> <img src="screenshots/insightsview.png" width="250">  <img src="screenshots/notificationview.png" width="200">  <img src="screenshots/contactview.png" width="200"> <img src="screenshots/profileview.png" width="200"> 
+
+<!--
+List all of the members who developed the project and
+link to each members respective GitHub profile
+-->
+Developed by: 
+- [Yoland Lyu](https://github.com/pnfwr) - `University of Southern California`, `Computer Engineering`
+- [Yu-Chieh Huang](https://github.com/ycccccccccccc) - `University of Southern California`, `Computer Engineering`
+
+ParseCareKit synchronizes the following entities to Parse tables/classes using [Parse-Swift](https://github.com/parse-community/Parse-Swift):
+
 - [x] OCKTask <-> Task
 - [x] OCKHealthKitTask <-> HealthKitTask 
 - [x] OCKOutcome <-> Outcome
-- [x] OCKRevisionRecord <-> RevisionRecord
+- [x] OCKRevisionRecord.KnowledgeVector <-> Clock
+- [x] OCKPatient <-> Patient
+- [x] OCKCarePlan <-> CarePlan
+- [x] OCKContact <-> Contact
 
 **Use at your own risk. There is no promise that this is HIPAA compliant and we are not responsible for any mishandling of your data**
+
+<!--
+What features were added by you, this should be descriptions of features added from the [Code](https://uk.instructure.com/courses/2030626/assignments/11151475) and [Demo](https://uk.instructure.com/courses/2030626/assignments/11151413) parts of the final. Feel free to add any figures that may help describe a feature. Note that there should be information here about how the OCKTask/OCKHealthTask's and OCKCarePlan's you added pertain to your app.
+-->
+## Contributions/Features
+
+### ADHD-Tailored Onboarding (ResearchKit)
+First-launch flow built on ResearchKit guides new ADHD patients through informed consent, HealthKit permissions (step count, heart rate, resting heart rate — required for passive detection), and automatic care plan seeding. The onboarding is fully customized with ADHD-specific language and instructions.
+
+### Dual-Role Authentication
+Users sign up or log in with either username or email. Role selection at sign-up (patient vs. clinician) determines which tab layout is shown on next launch — patients see their daily Care View, clinicians see their patient management dashboard.
+
+### ADHD Daily Care Tasks (OCKTask / OCKHealthKitTask)
+A structured daily card list spans six care plan buckets:
+
+| Task | Card Type | Care Plan | Schedule |
+|---|---|---|---|
+| Methylphenidate intake | Checklist | Health | Daily |
+| Cardio exercise | Custom | Health | Daily |
+| Stretch | Simple | Health | Daily |
+| Log Focus | Button | Behavioral Tracking | Daily |
+| Log Distraction | Button | Behavioral Tracking | Daily |
+| Log Mood | Button | Behavioral Tracking | Daily |
+| Log Sleep | Button | Behavioral Tracking | Daily |
+| Refocus Prompt | Instruction | Adaptive Feedback | Daily |
+| Breathing Exercise | Instruction | Adaptive Feedback | Daily |
+| Take a Break | Simple | Adaptive Feedback | Daily |
+| Weekly Reflection | Simple | Clinical Assessment | Weekly |
+| Steps (HealthKit) | Numeric Progress | Health | Daily |
+| Stress (HealthKit HRV) | Labeled Value | Health | Daily |
+| Attention (HealthKit) | Numeric Progress | Wellness | Daily |
+| Routine (HealthKit) | Numeric Progress | Wellness | Daily |
+
+### Cognitive Assessments (ResearchKit Surveys)
+- **Stroop Test** — measures focused attention and cognitive flexibility via color-word interference
+- **ADHD Daily Check-In** — 3-question structured symptom survey (inattention, hyperactivity, mood)
+- **Quality of Life Survey** — standardized self-assessment
+- **Weekly Reflection** — longer trend check-in seeded on a weekly schedule
+
+### Insights Tab (Swift Charts)
+A dedicated Insights tab visualizes outcome history for steps, stress, attention, and routine using Swift Charts bar charts. Supports day/week/month interval switching. Medication intake and inattention scores are overlaid on the same chart for correlation analysis.
+
+### CustomFeaturedContentView (Tip Card)
+Replaced the default `OCKFeaturedContentView` tip card with a custom `CustomFeaturedContentViewController` subclass that accepts any URL at initialization. The card displays a curated ADHD resource and opens it in-browser on tap.
+
+### Searchable Contact View
+Replaced the default contact list with `CustomContactViewController` backed by `UISearchBarDelegate`, allowing patients and clinicians to filter contacts by name in real time.
+
+### Profile Form View
+All patient-editable fields (display name, given/family name, profile photo, phone, email, address, bio) are consolidated into a single SwiftUI `Form`. Changes sync to Parse immediately.
+
+### Passive Detection — Background Exercise Logging
+`ExerciseDetector` uses `HKObserverQuery` with background delivery to wake the app on new step samples and run a two-stage state machine:
+- **Stage 1:** ≥ 300 steps in 5 minutes (outside active exercise tasks) → "Are you exercising?" push notification
+- **Stage 2:** < 30 steps in 3 minutes → "Did you finish?" push notification; unconfirmed timeout writes an `isUnconfirmed=true` outcome after 15 minutes so no data is silently dropped
+
+A persistent in-app banner appears while a session is being tracked. Full state is persisted to `UserDefaults` so the session survives app kill and relaunch.
+
+### Passive Detection — Emotional State via Heart Rate Anomaly
+`HeartRateAnomalyDetector` watches `.heartRate` samples in the background. If HR rises ≥ 25 bpm above the user's personalized resting baseline while movement (steps) is low, a single-stage "Elevated HR — strong emotion?" notification prompts the user to log a mood event. Both detectors share one `UNUserNotificationCenterDelegate` and suppress each other's prompts to avoid redundant nudges.
+
+### Clinician Role — Signup, Patient Linking, and Care Plan Assignment
+The Login screen includes a role selector (Patient / Clinician) during signup. Clinicians land on a dedicated `ClinicianTabView` with four tabs: Care Plan Management, Patient Management, Contacts, and Profile.
+
+**Linking patients:** Clinicians send connection requests directly from their `OCKContact` list by email. A `Relationship` row is created in Parse with a publicRead + publicWrite ACL so the patient can claim the row on login without the clinician knowing their Parse `objectId` in advance. When the patient logs in, `Relationship.linkPendingForCurrentUser()` matches by email, fills in the patient's `objectId`, tightens the ACL to clinician + patient only, and delivers an in-app notification. Accepting auto-adds the clinician as an `OCKContact` in the patient's CareKit store.
+
+**Assigning care plans:** From the patient detail screen, the clinician toggles care plans on/off. Each assignment writes a `CarePlanAssignment` row to Parse containing a `CarePlanSnapshot` — a JSON-serialized copy of the `OCKCarePlan` and all its `OCKTask`s captured at assignment time. A push notification is sent to the patient. On accept, `copyCarePlanToPatientStore` deserializes the snapshot and adds the plan and tasks to the patient's local CareKit store (idempotent). On reject, nothing is written to the patient's store.
+
+## Final Checklist
+<!--
+This is from the checkist from the final [Code](https://uk.instructure.com/courses/2030626/assignments/11151475). You should mark completed items with an x and leave non-completed items empty
+-->
+- [x] Signup/Login screen tailored to app
+- [x] Signup/Login with email address
+- [x] Custom app logo
+- [x] Custom styling
+- [x] Add at least **5 new OCKTask/OCKHealthKitTasks** to your app
+  - [x] Have a minimum of 7 OCKTask/OCKHealthKitTasks in your app
+  - [x] 3/7 of OCKTasks should have different OCKSchedules than what's in the original app
+- [x] Use at least 5/7 card below in your app
+  - [x] InstructionsTaskView - Refocus Prompt, Breathing Exercise
+  - [x] SimpleTaskView - Stretch, Take a Break, Weekly Reflection
+  - [x] Checklist - Methylphenidate intake
+  - [x] Button Log - Log Focus, Log Distraction, Log Mood, Log Sleep
+  - [ ] GridTaskView - not used as a seeded task type
+  - [x] NumericProgressTaskView (SwiftUI) - Steps, Attention, Routine (OCKHealthKitTask)
+  - [x] LabeledValueTaskView (SwiftUI) - Stress (OCKHealthKitTask)
+- [x] Add the LinkView (SwiftUI) card to your app
+- [x] Replace the current TipView with a class with CustomFeaturedContentView that subclasses OCKFeaturedContentView. This card should have an initializer which takes any link
+- [x] Tailor the ResearchKit Onboarding to reflect your application
+- [x] Add tailored check-in ResearchKit survey to your app
+- [x] Add a new tab called "Insights" to MainTabView
+- [x] Replace current ContactView with Searchable contact view
+- [x] Change the ProfileView to use a Form view
+- [x] Add at least two OCKCarePlan's and tie them to their respective OCKTask's and OCContact's 
+
+## Wishlist features
+<!--
+Describe at least 3 features you want to add in the future before releasing your app in the app-store
+-->
+1. **IKBE Session Scaffolding** — 1-tap start for user-predefined focus session types (e.g. "Focus Writing", "Reading", "Chores") displayed as an iOS Live Activity on the Dynamic Island with elapsed time, and a watchOS End button. Each session stored as an `OCKOutcome` with `startedAt`, `endedAt`, and `autoEnded` flags for data quality tracking.
+2. **Personalized Detection Thresholds** — replace fixed step/HR thresholds with baselines computed from each user's rolling 7-day HealthKit history, reducing false positives for both the exercise detector and the heart rate anomaly detector.
+3. **HRV-Based Stress Detection** — add a third passive detector watching heart rate variability samples to infer sustained stress states (distinct from acute HR spikes), writing outcomes to the existing `log_stress` task for clinician review.
+
+## Challenges faced while developing
+<!--
+Describe any challenges you faced with learning Swift, your baseline app, or adding features. You can describe how you overcame them.
+-->
+**Swift 6 strict concurrency with HealthKit** — HealthKit observer-query completion handlers are not `Sendable`, yet the app targets Swift 6 concurrency. We solved this with an `UncheckedSendableBox` wrapper (Apple documents these callbacks as thread-safe) and by routing notification responses through `Task` with extracted plain `String` values rather than capturing `UNNotificationResponse` across actor boundaries.
+
+**CareKit's per-day outcome uniqueness constraint** — CareKit rejects multiple `OCKOutcome`s for the same `(taskUUID, occurrenceIndex)`, making it impossible to write two detected exercise sessions on the same day as separate outcomes. We worked around this by appending each session as an additional `OCKOutcomeValue` (with JSON-encoded metadata) to the day's single outcome rather than creating new outcomes.
+
+**Background end detection gaps** — HealthKit's background delivery is best-effort; if a user stops moving with no new step samples arriving, the end state is only detected when the app is foregrounded. We mitigated this with a `willEnterForeground` observer that re-runs the state machine evaluation, and documented the gap for future `BGTaskScheduler` integration.
 
 ## Setup Your Parse Server
 
 ### Heroku
 The easiest way to setup your server is using the [one-button-click](https://github.com/netreconlab/parse-hipaa#heroku) deployment method for [parse-hipaa](https://github.com/netreconlab/parse-hipaa).
 
-### Docker
-You can setup your [parse-hipaa](https://github.com/netreconlab/parse-hipaa) using Docker. Simply type the following to get parse-hipaa running with postgres locally:
-
-1. Fork [parse-hipaa](https://github.com/netreconlab/parse-hipaa)
-2. `cd parse-hipaa`
-3.  `docker-compose up` - this will take a couple of minutes to setup as it needs to initialize postgres, but as soon as you see `parse-server running on port 1337.`, it's ready to go. See [here](https://github.com/netreconlab/parse-hipaa#getting-started) for details
-4. If you would like to use mongo instead of postgres, in step 3, type `docker-compose -f docker-compose.mongo.yml up` instead of `docker-compose up`
-
-## Fork this repo to get the modified OCKSample app
-
-1. Fork [CareKitSample-ParseCareKit](https://github.com/netreconlab/CareKitSample-ParseCareKit)
-2. Open `OCKSample.xcodeproj` in Xcode
-3. You may need to configure your "Team" and "Bundle Identifier" in "Signing and Capabilities"
-4. Run the app and data will synchronize with parse-hipaa via http://localhost:1337/parse automatically
-5. You can edit Parse server setup in the ParseCareKit.plist file under "Supporting Files" in the Xcode browser
 
 ## View your data in Parse Dashboard
 
 ### Heroku
 The easiest way to setup your dashboard is using the [one-button-click](https://github.com/netreconlab/parse-hipaa-dashboard#heroku) deployment method for [parse-hipaa-dashboard](https://github.com/netreconlab/parse-hipaa-dashboard).
-
-### Docker
-Parse Dashboard is the easiest way to view your data in the Cloud (or local machine in this example) and comes with [parse-hipaa](https://github.com/netreconlab/parse-hipaa). To access:
-1. Open your browser and go to http://localhost:4040/dashboard
-2. Username: `parse`
-3. Password: `1234`
-4. Be sure to refresh your browser to see new changes synched from your CareKitSample app
-
-Note that CareKit data is extremely sensitive and you are responsible for ensuring your parse-server meets HIPAA compliance.
-
-## Transitioning the sample app to a production app
-If you plan on using this app as a starting point for your produciton app. Once you have your parse-hipaa server in the Cloud behind ssl, you should open `ParseCareKit.plist` in Xcode and change the value for `Server` to point to your server(s) in the Cloud. You should also open `Info.plist` in Xcode and remove `App Transport Security Settings` and any key/value pairs under it as this was only in place to allow you to test the sample app to connect to a server setup on your local machine. iOS apps do not allow non-ssl connections in production, and even if you find a way to connect to non-ssl servers, it would not be HIPAA compliant.
-
-### Extra scripts for optimized Cloud queries
-You should run the extra scripts outlined on parse-hipaa [here](https://github.com/netreconlab/parse-hipaa#running-in-production-for-parsecarekit).
