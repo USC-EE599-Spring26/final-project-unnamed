@@ -18,7 +18,7 @@ Add the public link to your YouTube or video posted elsewhere.
 -->
 To learn more about this application, watch the video below:
 
-<a href="YOUR_VIDEO_URL_HERE" target="_blank"><img src="http://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg" 
+<a href="https://youtu.be/80d4uPOR-j4" target="_blank"><img src="http://img.youtube.com/vi/80d4uPOR-j4/0.jpg" 
 alt="PulseBuddy demo video" width="240" height="180" border="10" /></a>
 
 ### Designed for the following users
