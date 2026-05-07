@@ -67,19 +67,26 @@ Users sign up or log in with either username or email. Role selection at sign-up
 ### ADHD Daily Care Tasks (OCKTask / OCKHealthKitTask)
 A structured daily card list spans six care plan buckets:
 
+#### OCKTask
+
 | Task | Card Type | Care Plan | Schedule |
 |---|---|---|---|
 | ADHD Daily Check-In | Survey | Health | Daily |
-| Focus & Attention Test(Stroop) | Survey | Health | Daily |
+| Focus & Attention Test (Stroop) | Survey | Health | Daily |
 | Morning Routine | Checklist | Health | Daily |
 | Methylphenidate intake | Grid | Health | Three times Per Day |
 | Log Distraction | Button | Behavioral Tracking | Daily |
 | Log Mood | Button | Behavioral Tracking | Daily |
 | Breathing Exercise | Instruction | Adaptive Feedback | Daily |
 | Dectected Activity | Simple | Wellness | Daily |
-| Steps (HealthKit) | Numeric Progress | Health | Daily |
-| Stress (HealthKit HRV) | Labeled Value | Health | Daily |
-| Routine (HealthKit) | Numeric Progress | Wellness | Daily |
+
+#### OCKHealthKitTask
+
+| Task | Card Type | Care Plan | Schedule |
+|---|---|---|---|
+| Steps | Numeric Progress | Health | Daily |
+| Stress | Labeled Value | Health | Daily |
+| Routine | Numeric Progress | Wellness | Daily |
 
 ### Cognitive Assessments (ResearchKit Surveys)
 - **Stroop Test** — measures focused attention and cognitive flexibility via color-word interference
