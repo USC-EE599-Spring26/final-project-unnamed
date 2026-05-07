@@ -102,6 +102,7 @@ extension Onboard {
             .quantityType(forIdentifier: .appleExerciseTime)!,
             .quantityType(forIdentifier: .heartRate)!,
             .quantityType(forIdentifier: .restingHeartRate)!,
+            .quantityType(forIdentifier: .heartRateVariabilitySDNN)!,
             .quantityType(forIdentifier: .stepCount)!,
             .categoryType(forIdentifier: .sleepAnalysis)!
         ]
