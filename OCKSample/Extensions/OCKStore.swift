@@ -226,24 +226,37 @@ extension OCKStore {
         let afterLunch = Calendar.current.date(byAdding: .hour, value: 14, to: aFewDaysAgo)!
         let evening = Calendar.current.date(byAdding: .hour, value: 20, to: aFewDaysAgo)!
 
-        let schedule = OCKSchedule(
-            composing: [
-                OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 1)),
-                OCKScheduleElement(start: afterLunch, end: nil, interval: DateComponents(day: 2))
-            ]
-        )
-
-        var methylphenidate = OCKTask(
+        // Morning/Bedtime Routine — checklist with 4 items.
+        let routineBase = Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: startDate)!
+        let routineSchedule = OCKSchedule(composing: [
+            OCKScheduleElement(start: routineBase, end: nil,
+                               interval: DateComponents(day: 1),
+                               text: String(localized: "ROUTINE_ITEM_WATER"),
+                               targetValues: [], duration: .hours(14)),
+            OCKScheduleElement(start: routineBase, end: nil,
+                               interval: DateComponents(day: 1),
+                               text: String(localized: "ROUTINE_ITEM_BED"),
+                               targetValues: [], duration: .hours(14)),
+            OCKScheduleElement(start: routineBase, end: nil,
+                               interval: DateComponents(day: 1),
+                               text: String(localized: "ROUTINE_ITEM_HYGIENE"),
+                               targetValues: [], duration: .hours(14)),
+            OCKScheduleElement(start: routineBase, end: nil,
+                               interval: DateComponents(day: 1),
+                               text: String(localized: "ROUTINE_ITEM_DRESSED"),
+                               targetValues: [], duration: .hours(14))
+        ])
+        var morningRoutine = OCKTask(
             id: TaskID.methylphenidate,
-            title: String(localized: "TAKE_METHYLPHENIDATE"),
+            title: String(localized: "MORNING_BEDTIME_ROUTINE"),
             carePlanUUID: carePlanUUIDs[.health],
-            schedule: schedule
+            schedule: routineSchedule
         )
-        methylphenidate.instructions = String(localized: "METHYLPHENIDATE_INSTRUCTIONS")
-        methylphenidate.asset = "pills.fill"
-        methylphenidate.card = .checklist
-        methylphenidate.priority = 5
-        methylphenidate.carePlanUUID = carePlanUUIDs[.health]
+        morningRoutine.instructions = String(localized: "MORNING_BEDTIME_ROUTINE_INSTRUCTIONS")
+        morningRoutine.asset = "checklist"
+        morningRoutine.card = .checklist
+        morningRoutine.priority = 5
+        morningRoutine.carePlanUUID = carePlanUUIDs[.health]
 
         let cardioSchedule = OCKSchedule(composing: [
             OCKScheduleElement(start: beforeBreakfast, end: nil, interval: DateComponents(day: 2))
@@ -500,6 +513,67 @@ extension OCKStore {
         detectedMoodSpike.priority = 21
         detectedMoodSpike.carePlanUUID = carePlanUUIDs[.wellness]
 
+        // MARK: - Methylphenidate Grid (3 dose buttons: Morning / Noon / Evening)
+        let medMorning = OCKScheduleElement(
+            start: Calendar.current.date(bySettingHour: 7, minute: 30, second: 0, of: startDate)!,
+            end: nil,
+            interval: DateComponents(day: 1),
+            text: String(localized: "MED_DOSE_MORNING"),
+            targetValues: [],
+            duration: .hours(5)   // 7:30 AM – 12:30 PM window
+        )
+        let medNoon = OCKScheduleElement(
+            start: Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: startDate)!,
+            end: nil,
+            interval: DateComponents(day: 1),
+            text: String(localized: "MED_DOSE_NOON"),
+            targetValues: [],
+            duration: .hours(5)   // 12 PM – 5 PM window
+        )
+        let medEvening = OCKScheduleElement(
+            start: Calendar.current.date(bySettingHour: 17, minute: 0, second: 0, of: startDate)!,
+            end: nil,
+            interval: DateComponents(day: 1),
+            text: String(localized: "MED_DOSE_EVENING"),
+            targetValues: [],
+            duration: .hours(5)   // 5 PM – 10 PM window
+        )
+        var methylphenidate = OCKTask(
+            id: TaskID.dailySummaryGrid,
+            title: String(localized: "TAKE_METHYLPHENIDATE"),
+            carePlanUUID: carePlanUUIDs[.health],
+            schedule: OCKSchedule(composing: [medMorning, medNoon, medEvening])
+        )
+        methylphenidate.card = .grid
+        methylphenidate.priority = 10
+        methylphenidate.impactsAdherence = true
+        methylphenidate.asset = "pills.fill"
+        methylphenidate.carePlanUUID = carePlanUUIDs[.health]
+        methylphenidate.groupIdentifier = TaskID.dailySummaryGrid
+        methylphenidate.instructions = String(localized: "METHYLPHENIDATE_INSTRUCTIONS")
+
+        // MARK: - ADHD Info Link
+        let linkSchedule = OCKSchedule.dailyAtTime(
+            hour: 8, minutes: 0, start: startDate, end: nil,
+            text: nil, duration: .allDay, targetValues: []
+        )
+        var adhdInfoLink = OCKTask(
+            id: TaskID.adhdInfoLink,
+            title: String(localized: "ADHD_INFO_LINK_TITLE"),
+            carePlanUUID: carePlanUUIDs[.health],
+            schedule: linkSchedule
+        )
+        adhdInfoLink.card = .link
+        adhdInfoLink.priority = 99
+        adhdInfoLink.impactsAdherence = false
+        adhdInfoLink.asset = "brain.head.profile"
+        adhdInfoLink.carePlanUUID = carePlanUUIDs[.health]
+        adhdInfoLink.instructions = String(localized: "ADHD_INFO_LINK_INSTRUCTIONS")
+        // Merge link keys into existing userInfo so card/priority are not overwritten
+        let nimhURL = "https://www.nimh.nih.gov/health/topics/attention-deficit-hyperactivity-disorder-adhd"
+        adhdInfoLink.userInfo?["linkURL"] = nimhURL
+        adhdInfoLink.userInfo?["linkTitle"] = String(localized: "ADHD_INFO_LINK_LABEL")
+
         // MARK: - Add All Tasks
         #if os(iOS)
 //        let qualityOfLife = createQualityOfLifeSurveyTask(
@@ -511,12 +585,14 @@ extension OCKStore {
         #endif
 
         var tasksToAdd: [OCKTask] = [
+            adhdInfoLink,
+            morningRoutine,
             methylphenidate,
 //            cardios,
 //            stretch,
 //            logFocus,
             logDistraction,
-//            logMood,
+            logMood,
 //            logSleep,
 //            refocusPrompt,
             breathingExercise,

@@ -45,6 +45,12 @@ enum TaskID {
     static let attention = "attention"
     static let routine = "routine"
 
+    // Daily summary grid
+    static let dailySummaryGrid = "daily_summary_grid"
+
+    // Educational link
+    static let adhdInfoLink = "adhd_info_link"
+
     // Auto-detected activity (inferred from HealthKit, not user-logged)
     static let detectedExercise = "detected_exercise"
     static let detectedMoodSpike = "detected_mood_spike"
