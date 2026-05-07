@@ -48,6 +48,7 @@ extension OCKHealthKitPassthroughStore {
         steps.instructions = String(localized: "STEPS_INSTRUCTIONS")
         steps.carePlanUUID = carePlanUUIDs[.health]
         steps.impactsAdherence = true
+        steps.groupIdentifier = TaskID.steps
 
         // Primary: HRV (higher = less stress, target >= 40ms)
         let hrvUnit = HKUnit.secondUnit(with: .milli)
@@ -73,6 +74,7 @@ extension OCKHealthKitPassthroughStore {
         stressTask.instructions = String(localized: "STRESS_INSTRUCTIONS")
         stressTask.impactsAdherence = false
         stressTask.carePlanUUID = carePlanUUIDs[.behavioralTracking]
+        stressTask.groupIdentifier = TaskID.stress
 
         // Primary: stepCount (cumulative activity = engagement proxy)
         // Supporting: appleStandTime (target: stand 12 hours/day = 720 min)
@@ -98,6 +100,7 @@ extension OCKHealthKitPassthroughStore {
         attentionTask.instructions = String(localized: "ATTENTION_INSTRUCTIONS")
         attentionTask.impactsAdherence = true
         attentionTask.carePlanUUID = carePlanUUIDs[.wellness]
+        attentionTask.groupIdentifier = TaskID.attention
 
         // Primary: appleExerciseTime (target: 30 min/day)
         // Supporting: timeInDaylight (target: 30 min/day)
@@ -124,6 +127,7 @@ extension OCKHealthKitPassthroughStore {
         routineTask.instructions = String(localized: "ROUTINE_INSTRUCTIONS")
         routineTask.impactsAdherence = true
         routineTask.carePlanUUID = carePlanUUIDs[.wellness]
+        routineTask.groupIdentifier = TaskID.routine
 
         let tasks = [steps, stressTask, attentionTask, routineTask]
         _ = try await addTasksIfNotPresent(tasks)

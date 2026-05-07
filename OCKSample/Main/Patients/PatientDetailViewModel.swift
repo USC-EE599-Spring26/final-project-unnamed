@@ -168,7 +168,7 @@ class PatientDetailViewModel: ObservableObject {
             return nil
         }
 
-        var taskQuery = OCKTaskQuery(for: Date())
+        var taskQuery = OCKTaskQuery()
         taskQuery.carePlanUUIDs = [plan.uuid]
         let tasks = (try? await store.fetchTasks(query: taskQuery)) ?? []
 

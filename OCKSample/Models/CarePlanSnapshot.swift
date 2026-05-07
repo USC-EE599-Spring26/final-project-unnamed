@@ -30,6 +30,9 @@ struct TaskSnapshot: Codable {
     let instructions: String?
     let impactsAdherence: Bool
     let scheduleElements: [ScheduleElementSnapshot]
+    let userInfo: [String: String]?
+    let asset: String?
+    let groupIdentifier: String?
 }
 
 // MARK: - Schedule element snapshot
@@ -88,6 +91,9 @@ extension TaskSnapshot {
         instructions     = task.instructions
         impactsAdherence = task.impactsAdherence
         scheduleElements = task.schedule.elements.map { ScheduleElementSnapshot(element: $0) }
+        userInfo         = task.userInfo
+        asset            = task.asset
+        groupIdentifier  = task.groupIdentifier
     }
 
     /// Reconstruct an OCKTask that belongs to the patient's care plan.
@@ -100,8 +106,11 @@ extension TaskSnapshot {
             carePlanUUID: carePlanUUID,
             schedule: schedule
         )
-        task.instructions    = instructions
+        task.instructions     = instructions
         task.impactsAdherence = impactsAdherence
+        task.userInfo         = userInfo
+        task.asset            = asset
+        task.groupIdentifier  = groupIdentifier
         return task
     }
 }
