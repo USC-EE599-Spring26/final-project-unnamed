@@ -386,7 +386,7 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
             if isCurrentDay {
                 await MainActor.run {
                     let tipTitle = "Stay Focused with Short Tasks"
-                    let tipText = "Exercises promote your focus."
+//                    let tipText = "Exercises promote your focus."
                     let customFeaturedView = CustomFeaturedContentViewController(
                         url: "https://viterbischool.usc.edu/",
                         image: UIImage(named: "exercise.jpg"),
