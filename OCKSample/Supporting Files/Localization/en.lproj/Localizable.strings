@@ -127,7 +127,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 "ANSWER_NO" = "No";
 "STEPS_INSTRUCTIONS" = "Walk at least 2,000 steps today to stay active and healthy.";
 "STRESS_EMOTIONAL_STATE" = "Stress & Emotional State";
-"STRESS_INSTRUCTIONS" = "Tracks heart rate variability (HRV) as a stress indicator. Higher HRV means lower stress.";
+"STRESS_INSTRUCTIONS" = "Shows your HRV (SDNN) from Apple Watch. Higher ms = calmer, more regulated nervous system. Target ≥ 40 ms. 'Incomplete' means no reading is available today.";
 
 "ATTENTION_ENGAGEMENT" = "Attention & Engagement";
 "ATTENTION_INSTRUCTIONS" = "Tracks daily steps and standing time as indicators of engagement and focus.";
