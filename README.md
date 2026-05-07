@@ -157,7 +157,7 @@ Describe at least 3 features you want to add in the future before releasing your
 
 2. **Personalized Detection Thresholds** — replace fixed step/HR thresholds with baselines computed from each user's rolling 7-day HealthKit history, reducing false positives for both the exercise detector and the heart rate anomaly detector.
 
-3. **linician-patient management system** - allows clinicians to develop personalized care plans for patients, who can then track their ADHD symptoms, medications, and daily routines through structured tasks and HealthKit integration.
+3. **Clinician-patient management system** - allows clinicians to develop personalized care plans for patients, who can then track their ADHD symptoms, medications, and daily routines through structured tasks and HealthKit integration.
 
 
 ## Challenges faced while developing
