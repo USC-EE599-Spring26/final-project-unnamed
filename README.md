@@ -31,7 +31,8 @@ Describe the types of users your app is designed for and who will benefit from y
 <!--
 In addition, you can drop screenshots directly into your README file to add them to your README. Take these from your presentations.
 -->
-<img src="screenshots/onboarding.png" width="250"> <img src="screenshots/notification.png" width="250"> <img src="screenshots/insights.png" width="250"> <img src="screenshots/autoscroll.png" width="250">
+<img src="screenshots/login.png" width="200"> <img src="screenshots/careview.png" width="200"> <img src="screenshots/insightsview.png" width="250">  <img src="screenshots/notificationview.png" width="200">  <img src="screenshots/contactview.png" width="200"> <img src="screenshots/profileview.png" width="200"> 
+<img src="screenshots/notification.png" width="250"> <img src="screenshots/banner.png" width="250">
 
 <!--
 List all of the members who developed the project and
