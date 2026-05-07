@@ -502,9 +502,9 @@ extension OCKStore {
 
         // MARK: - Add All Tasks
         #if os(iOS)
-        let qualityOfLife = createQualityOfLifeSurveyTask(
-            carePlanUUID: carePlanUUIDs[.clinicalAssessment]
-        )
+//        let qualityOfLife = createQualityOfLifeSurveyTask(
+//            carePlanUUID: carePlanUUIDs[.clinicalAssessment]
+//        )
         let adhdCheckIn = createADHDCheckInTask(
             carePlanUUID: carePlanUUIDs[.behavioralTracking]
         )

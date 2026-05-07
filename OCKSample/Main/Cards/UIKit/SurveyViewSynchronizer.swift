@@ -26,30 +26,42 @@ final class SurveyViewSynchronizer: OCKSurveyTaskViewSynchronizer {
 
         super.updateView(view, context: context)
 
+        let isHidden: Bool
+        let textUpdate: TextUpdate
+
         if let event = context.viewModel.first?.first, event.outcome != nil {
-            view.instructionsLabel.isHidden = false
-
-            guard let task = event.task as? OCKTask else {
-                view.instructionsLabel.text = nil
-                return
-            }
-
-            switch task.id {
-            case Onboard.identifier():
-                view.instructionsLabel.text = "Welcome to PulseBuddy."
-            case RangeOfMotion.identifier():
-                let range: Double = event.answer(kind: "range")
-                view.instructionsLabel.text = "Your Range of Motion Result: \(range)"
-            case StroopTask.identifier():
-                view.instructionsLabel.text = StroopTask().displayText(for: event)
-            default:
-                view.instructionsLabel.isHidden = false
+            isHidden = false
+            if let task = event.task as? OCKTask {
+                switch task.id {
+                case Onboard.identifier():
+                    textUpdate = .set("Welcome to PulseBuddy.")
+                case RangeOfMotion.identifier():
+                    let range: Double = event.answer(kind: "range")
+                    textUpdate = .set("Your Range of Motion Result: \(range)")
+                case StroopTask.identifier():
+                    textUpdate = .set(StroopTask().displayText(for: event))
+                default:
+                    textUpdate = .keep
+                }
+            } else {
+                textUpdate = .set(nil)
             }
         } else {
-            DispatchQueue.main.async {
-                view.instructionsLabel.isHidden = true
+            isHidden = true
+            textUpdate = .keep
+        }
+
+        MainActor.assumeIsolated {
+            view.instructionsLabel.isHidden = isHidden
+            if case .set(let text) = textUpdate {
+                view.instructionsLabel.text = text
             }
         }
+    }
+
+    private enum TextUpdate {
+        case keep
+        case set(String?)
     }
 }
 
