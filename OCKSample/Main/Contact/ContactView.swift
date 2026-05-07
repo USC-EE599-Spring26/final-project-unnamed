@@ -7,6 +7,7 @@
 //
 
 import CareKit
+import CareKitEssentials
 import CareKitStore
 import os.log
 import SwiftUI
@@ -14,10 +15,15 @@ import UIKit
 
 struct ContactView: UIViewControllerRepresentable {
     @Environment(\.careStore) var careStore
+    @CareStoreFetchRequest(query: query()) private var contacts
 
     func makeUIViewController(context: Context) -> some UIViewController {
         let viewController = createViewController()
-        return UINavigationController(rootViewController: viewController)
+
+        let navigationController = UINavigationController(
+            rootViewController: viewController
+        )
+        return navigationController
     }
 
     func updateUIViewController(_ uiViewController: UIViewControllerType,
@@ -31,13 +37,28 @@ struct ContactView: UIViewControllerRepresentable {
 
     func createViewController() -> UIViewController {
         #if os(iOS)
-        return OCKContactsListViewController(
+        let currentContacts = contacts.latest
+        let viewController = CustomContactViewController(
             store: careStore,
-            contactViewSynchronizer: OCKDetailedContactViewSynchronizer()
+            contacts: currentContacts,
+            viewSynchronizer: OCKSimpleContactViewSynchronizer()
         )
+        return viewController
         #else
         return UIViewController()
         #endif
+    }
+
+    static func query() -> OCKContactQuery {
+        let query = OCKContactQuery(for: Date())
+        // BAKER: Appears to be a bug in CareKit, commenting these out for now
+        /*query.sortDescriptors.append(
+            .familyName(ascending: true)
+        )
+        query.sortDescriptors.append(
+            .givenName(ascending: true)
+        ) */
+        return query
     }
 }
 

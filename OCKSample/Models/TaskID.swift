@@ -9,26 +9,100 @@
 import Foundation
 
 enum TaskID {
-    static let doxylamine = "doxylamine"
-    static let nausea = "nausea"
+
+    static let methylphenidate = "methylphenidate"
+    static let inattention = "inattention"
     static let stretch = "stretch"
-    static let kegels = "kegels"
+    static let cardios = "cardios"
+    static let qualityOfLife = "qualityOfLife"
+    static let adhdCheckIn   = "adhd-daily-checkin"
+    static let stroopTest    = "stroop-test"
+
+    // Behavioral tracking
+    static let logFocus = "log_focus"
+    static let logDistraction = "log_distraction"
+    static let logMood = "log_mood"
+    static let logStress = "log_stress"
+    static let logSleep = "log_sleep"
+    static let logMedication = "log_medication"
+
+    // Adaptive feedback
+    static let refocusPrompt = "refocus_prompt"
+    static let breathingExercise = "breathing_exercise"
+    static let takeBreak = "take_break"
+    static let movePrompt = "move_prompt"
+    static let microCheckin = "micro_checkin"
+
+    // Clinical assessment
+    static let inattentionSurvey = "inattention_survey"
+    static let hyperactivitySurvey = "hyperactivity_survey"
+    static let impulsivitySurvey = "impulsivity_survey"
+    static let weeklyReflection = "weekly_reflection"
+
+    // HealthKitTask
     static let steps = "steps"
-    static let ovulationTestResult = "ovulationTestResult"
+    static let stress = "stress"
+    static let attention = "attention"
+    static let routine = "routine"
+
+    // Auto-detected activity (inferred from HealthKit, not user-logged)
+    static let detectedExercise = "detected_exercise"
+    static let detectedMoodSpike = "detected_mood_spike"
+
+    // Tasks that represent exercise/movement — used to suppress duplicate
+    // auto-detection prompts when the user is already logging something.
+    static var exerciseRelated: [String] {
+        [
+            Self.cardios,
+            Self.stretch,
+            Self.detectedExercise
+        ]
+    }
+
+    // Mood-related tasks — used to suppress duplicate HR-anomaly prompts
+    // when the user has just logged a mood entry.
+    static var moodRelated: [String] {
+        [
+            Self.logMood,
+            Self.detectedMoodSpike
+        ]
+    }
 
     static var ordered: [String] {
         orderedObjective + orderedSubjective
     }
 
     static var orderedObjective: [String] {
-        [ Self.steps, Self.ovulationTestResult ]
+        [
+            Self.steps,
+            Self.stress,
+            Self.attention,
+            Self.routine
+        ]
     }
 
     static var orderedSubjective: [String] {
-        [ Self.doxylamine, Self.kegels, Self.stretch, Self.nausea]
+        [
+            Self.methylphenidate,
+            Self.cardios,
+            Self.stretch,
+            Self.inattention,
+            Self.logFocus,
+            Self.logDistraction,
+            Self.logMood,
+            Self.logSleep,
+            Self.refocusPrompt,
+            Self.breathingExercise,
+            Self.takeBreak,
+            Self.weeklyReflection
+        ]
     }
 
     static var orderedWatchOS: [String] {
-        [ Self.doxylamine, Self.kegels, Self.stretch ]
+        [
+            Self.methylphenidate,
+            Self.cardios,
+            Self.stretch
+        ]
     }
 }

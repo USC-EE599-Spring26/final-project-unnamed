@@ -10,7 +10,9 @@ import CareKit
 import CareKitEssentials
 import CareKitStore
 import CareKitUI
+import HealthKit
 import SwiftUI
+import Charts
 
 struct InsightsView: View {
 
@@ -26,105 +28,19 @@ struct InsightsView: View {
 			dateIntervalSegmentView
 				.padding()
 			ScrollView {
-				VStack {
-					// This is for loop is useful when you want a chart for
-					// for every task which may not always be the case.
+				VStack(spacing: 16) {
 					ForEach(orderedEvents) { event in
 						let eventResult = event.result
-						let dataStrategy = determineDataStrategy(for: eventResult.task.id)
-						if eventResult.task.id != TaskID.doxylamine
-							&& eventResult.task.id != TaskID.nausea {
-
-							// dynamic gradient colors
-							let meanGradientStart = Color(TintColorFlipKey.defaultValue)
-							let meanGradientEnd = Color.accentColor
-
-							// Can add muliple plots on a single
-							// chart by adding multiple configurations.
-							let meanConfiguration = CKEDataSeriesConfiguration(
+						if eventResult.task.id != TaskID.methylphenidate
+							&& eventResult.task.id != TaskID.inattention {
+							chartCard(
 								taskID: eventResult.task.id,
-								dataStrategy: dataStrategy,
-								mark: .bar,
-								legendTitle: String(localized: "AVERAGE"),
-								showMarkWhenHighlighted: true,
-								showMeanMark: false,
-								showMedianMark: false,
-								color: meanGradientEnd,
-								gradientStartColor: meanGradientStart
-							) { event in
-								event.computeProgress(by: .maxOutcomeValue())
-							}
-
-							let sumConfiguration = CKEDataSeriesConfiguration(
-								taskID: eventResult.task.id,
-								dataStrategy: .sum,
-								mark: .bar,
-								legendTitle: String(localized: "TOTAL"),
-								color: Color(TintColorFlipKey.defaultValue) // Set to app color.
-							) { event in
-								event.computeProgress(by: .maxOutcomeValue())
-							}
-
-							CareKitEssentialChartView(
-								title: eventResult.title,
-								subtitle: subtitle,
-								dateInterval: $chartInterval,
-								period: $period,
-								configurations: [
-									meanConfiguration,
-									sumConfiguration
-								]
+								title: eventResult.title
 							)
-
-						} else if eventResult.task.id == TaskID.doxylamine {
-							// Example of showing nausea vs doxlymine
-
-							// dynamic gradient colors
-							let nauseaGradientStart = Color(TintColorFlipKey.defaultValue)
-							let nauseaGradientEnd = Color.accentColor
-
-							let nauseaConfiguration = CKEDataSeriesConfiguration(
-								taskID: TaskID.nausea,
-								dataStrategy: .sum,
-								mark: .bar,
-								legendTitle: String(localized: "NAUSEA"),
-								showMarkWhenHighlighted: true,
-								showMeanMark: true,
-								showMedianMark: false,
-								color: nauseaGradientEnd,
-								gradientStartColor: nauseaGradientStart,
-								stackingMethod: .unstacked
-							) { event in
-								// This event occurs all-day and can be submitted
-								// multiple times, since we want to understand
-								// the "total" amount of times a patient experiences
-								// nausea, we sum the outcomes for each event.
-								event.computeProgress(by: .summingOutcomeValues())
-							}
-
-							let doxylamineConfiguration = CKEDataSeriesConfiguration(
-								taskID: eventResult.task.id,
-								dataStrategy: .sum,
-								mark: .bar,
-								legendTitle: String(localized: "DOXYLAMINE"),
-								color: .gray,
-								gradientStartColor: .gray.opacity(0.3),
-								stackingMethod: .unstacked,
-								symbol: .diamond,
-								interpolation: .catmullRom
-							) { event in
-								event.computeProgress(by: .averagingOutcomeValues())
-							}
-
-							CareKitEssentialChartView(
-								title: String(localized: "NAUSEA_DOXYLAMINE_INTAKE"),
-								subtitle: subtitle,
-								dateInterval: $chartInterval,
-								period: $period,
-								configurations: [
-									nauseaConfiguration,
-									doxylamineConfiguration
-								]
+						} else if eventResult.task.id == TaskID.methylphenidate {
+							chartCard(
+								taskIDs: [TaskID.inattention, TaskID.methylphenidate],
+								title: String(localized: "INATTENTION_METHYLPHENIDATE_INTAKE")
 							)
 						}
 					}
@@ -207,9 +123,39 @@ struct InsightsView: View {
 		return interval
 	}
 
+	private var binComponent: Calendar.Component {
+		switch intervalSelected {
+		case 0: return .hour
+		case 3: return .month
+		default: return .day
+		}
+	}
+
+	@ViewBuilder
+	private func chartCard(taskID: String, title: String) -> some View {
+		ChartCardView(
+			title: title,
+			subtitle: subtitle,
+			taskIDs: [taskID],
+			dateInterval: chartInterval,
+			binComponent: binComponent
+		)
+	}
+
+	@ViewBuilder
+	private func chartCard(taskIDs: [String], title: String) -> some View {
+		ChartCardView(
+			title: title,
+			subtitle: subtitle,
+			taskIDs: taskIDs,
+			dateInterval: chartInterval,
+			binComponent: binComponent
+		)
+	}
+
 	private func determineDataStrategy(for taskID: String) -> CKEDataSeriesConfiguration.DataStrategy {
 		switch taskID {
-		case TaskID.ovulationTestResult, TaskID.steps:
+		case /*TaskID.ovulationTestResult,*/ TaskID.steps:
 			return .max
 		default:
 			return .mean
@@ -223,22 +169,16 @@ struct InsightsView: View {
 		// shown in the graph.
 		switch segmentValue {
 		case 0:
-			let startOfDay = Calendar.current.startOfDay(
-				for: now
-			)
-			let interval = DateInterval(
-				start: startOfDay,
-				end: now
-			)
-
+			let startOfDay = calendar.startOfDay(for: now)
+			let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? now
 			period = .day
-			chartInterval = interval
+			chartInterval = DateInterval(start: startOfDay, end: endOfDay)
 
 		case 1:
 			let startDate = calendar.date(
-				byAdding: .weekday,
-				value: -7,
-				to: now
+				byAdding: .day,
+				value: -6,
+				to: calendar.startOfDay(for: now)
 			)!
 			period = .week
 			chartInterval = DateInterval(start: startDate, end: now)
@@ -263,9 +203,9 @@ struct InsightsView: View {
 
 		default:
 			let startDate = calendar.date(
-				byAdding: .weekday,
-				value: -7,
-				to: now
+				byAdding: .day,
+				value: -6,
+				to: calendar.startOfDay(for: now)
 			)!
 			period = .week
 			chartInterval = DateInterval(start: startDate, end: now)
@@ -292,4 +232,217 @@ struct InsightsView: View {
     InsightsView()
 		.environment(\.careStore, Utility.createPreviewStore())
 		.careKitStyle(Styler())
+}
+
+private struct ChartPoint: Identifiable {
+	let id = UUID()
+	let date: Date
+	let value: Double
+	let series: String
+}
+
+private struct ChartCardView: View {
+	let title: String
+	let subtitle: String
+	let taskIDs: [String]
+	let dateInterval: DateInterval
+	let binComponent: Calendar.Component
+
+	@CareStoreFetchRequest(query: Self.makeQuery()) private var events
+	@State private var healthKitData: [ChartPoint]?
+
+	static func makeQuery() -> OCKEventQuery {
+		OCKEventQuery(dateInterval: .init())
+	}
+
+	private var isHealthKitBacked: Bool {
+		taskIDs == [TaskID.steps]
+	}
+
+	private var displayData: [ChartPoint] {
+		if isHealthKitBacked, let healthKitData {
+			return healthKitData
+		}
+		return chartData
+	}
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 8) {
+			Text(title)
+				.font(.headline)
+			Text(subtitle)
+				.font(.caption)
+				.foregroundStyle(.secondary)
+			Chart(displayData) { point in
+				BarMark(
+					x: .value("Date", point.date, unit: binComponent),
+					y: .value("Value", point.value)
+				)
+				.foregroundStyle(by: .value("Series", point.series))
+			}
+			.chartXScale(domain: dateInterval.start ... paddedEnd)
+			.chartYScale(domain: .automatic(includesZero: true))
+			.chartYAxis {
+				AxisMarks(position: .leading) { _ in
+					AxisGridLine()
+					AxisTick()
+					AxisValueLabel()
+				}
+			}
+			.chartXAxis {
+				AxisMarks(values: .stride(by: binComponent)) { _ in
+					AxisGridLine()
+					AxisTick()
+					AxisValueLabel(format: xAxisFormat, centered: true)
+				}
+			}
+			.frame(height: 220)
+		}
+		.padding()
+		.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+		.onAppear {
+			updateQuery()
+			refreshHealthKitIfNeeded()
+		}
+		.onChange(of: dateInterval) {
+			updateQuery()
+			refreshHealthKitIfNeeded()
+		}
+		.onChange(of: taskIDs) {
+			updateQuery()
+			refreshHealthKitIfNeeded()
+		}
+		.onChange(of: binComponent) {
+			refreshHealthKitIfNeeded()
+		}
+	}
+
+	private func updateQuery() {
+		let desired = Set(taskIDs)
+		if Set(events.query.taskIDs) != desired {
+			events.query.taskIDs = Array(desired)
+		}
+		if events.query.dateInterval != dateInterval {
+			events.query.dateInterval = dateInterval
+		}
+	}
+
+	private func refreshHealthKitIfNeeded() {
+		guard isHealthKitBacked else {
+			healthKitData = nil
+			return
+		}
+		let interval = dateInterval
+		let bin = binComponent
+		Task { @MainActor in
+			let points = await Self.queryHealthKitSteps(in: interval, bin: bin)
+			self.healthKitData = points
+		}
+	}
+
+	private static func queryHealthKitSteps(
+		in interval: DateInterval,
+		bin: Calendar.Component
+	) async -> [ChartPoint] {
+		guard HKHealthStore.isHealthDataAvailable(),
+			  let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)
+		else { return [] }
+		let store = HKHealthStore()
+		do {
+			try await store.requestAuthorization(toShare: [], read: [stepType])
+		} catch {
+			return []
+		}
+		let intervalComponents: DateComponents
+		switch bin {
+		case .hour: intervalComponents = DateComponents(hour: 1)
+		case .month: intervalComponents = DateComponents(month: 1)
+		default: intervalComponents = DateComponents(day: 1)
+		}
+		let predicate = HKQuery.predicateForSamples(
+			withStart: interval.start,
+			end: interval.end,
+			options: .strictStartDate
+		)
+		return await withCheckedContinuation { continuation in
+			let query = HKStatisticsCollectionQuery(
+				quantityType: stepType,
+				quantitySamplePredicate: predicate,
+				options: .cumulativeSum,
+				anchorDate: interval.start,
+				intervalComponents: intervalComponents
+			)
+			query.initialResultsHandler = { _, results, _ in
+				var points: [ChartPoint] = []
+				results?.enumerateStatistics(
+					from: interval.start,
+					to: interval.end
+				) { statistics, _ in
+					let count = statistics.sumQuantity()?.doubleValue(for: .count()) ?? 0
+					if count > 0 {
+						points.append(
+							ChartPoint(
+								date: statistics.startDate,
+								value: count,
+								series: TaskID.steps
+							)
+						)
+					}
+				}
+				continuation.resume(returning: points)
+			}
+			store.execute(query)
+		}
+	}
+
+	private var chartData: [ChartPoint] {
+		let calendar = Calendar.current
+		var points: [ChartPoint] = []
+		for taskID in taskIDs {
+			let filtered = events.filter { $0.result.task.id == taskID }
+			// Bin per outcome value (using its createdDate) so all-day tasks
+			// don't collapse all logs into the schedule's start hour.
+			var bucketed: [Date: Double] = [:]
+			for entry in filtered {
+				let event = entry.result
+				guard let values = event.outcome?.values, !values.isEmpty else { continue }
+				for value in values {
+					let referenceDate = value.createdDate
+					let binDate: Date
+					if let interval = calendar.dateInterval(of: binComponent, for: referenceDate) {
+						binDate = interval.start
+					} else {
+						binDate = referenceDate
+					}
+					bucketed[binDate, default: 0] += Self.extractValue(value)
+				}
+			}
+			for (date, total) in bucketed {
+				points.append(ChartPoint(date: date, value: total, series: taskID))
+			}
+		}
+		return points.sorted { $0.date < $1.date }
+	}
+
+	private var paddedEnd: Date {
+		let calendar = Calendar.current
+		let anchor = calendar.dateInterval(of: binComponent, for: dateInterval.end)?.start
+			?? dateInterval.end
+		return calendar.date(byAdding: binComponent, value: 1, to: anchor) ?? dateInterval.end
+	}
+
+	private var xAxisFormat: Date.FormatStyle {
+		switch binComponent {
+		case .hour: return .dateTime.hour()
+		case .month: return .dateTime.month(.abbreviated)
+		default: return .dateTime.month(.abbreviated).day()
+		}
+	}
+
+	private static func extractValue(_ value: OCKOutcomeValue) -> Double {
+		if let double = value.doubleValue { return double }
+		if let integer = value.integerValue { return Double(integer) }
+		if let boolean = value.booleanValue { return boolean ? 1 : 0 }
+		return 1
+	}
 }

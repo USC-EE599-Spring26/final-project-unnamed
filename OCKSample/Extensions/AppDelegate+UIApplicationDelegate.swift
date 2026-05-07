@@ -13,6 +13,10 @@ import os.log
 extension AppDelegate: UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Register notification category + delegate early so taps on a detection
+        // prompt route correctly even if the app was cold-launched by the tap.
+        detectionNotifications.configure()
+
         Task {
             if isSyncingWithRemote {
                 do {
@@ -37,6 +41,13 @@ extension AppDelegate: UIApplicationDelegate {
                             // swiftlint:disable:next line_length
                             NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
                         }
+                        // Wait for an initial sync before starting detection
+                        // so we don't create detection tasks with new UUIDs
+                        // that conflict with cloud-side ones.
+                        await waitForFirstSync()
+                        if let store = self.store {
+                            await startExerciseDetectionIfNeeded(store: store)
+                        }
                     } catch {
                         Logger.appDelegate.error("User is logged in, but missing remoteId: \(error)")
                         try await setupRemotes()
@@ -51,10 +62,6 @@ extension AppDelegate: UIApplicationDelegate {
                     try await setupRemotes()
                     try await store.populateDefaultCarePlansTasksContacts()
                     try await healthKitStore.populateDefaultHealthKitTasks()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
-                        Utility.requestHealthKitPermissions()
-                    }
                 } catch {
                     Logger.appDelegate.error("""
                         Could not populate
