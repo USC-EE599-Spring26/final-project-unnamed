@@ -58,11 +58,11 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
     private var isSelectionMode = false
     private var selectedTaskIDs: Set<String> = []
     private var taskCards: [(id: String, view: UIView)] = []
+    private var selectionOverlays: [String: UIView] = [:]
     private var currentDisplayDate: Date = Date()
     private var syncProgress: Int?
     private var syncFailed = false
     private var savedLeftBarButtonItem: UIBarButtonItem?
-    private static let selectionOverlayTag = 99887766
     private var pendingScrollCancellable: AnyCancellable?
     /// Set when the scroll-to request arrives before the target card has
     /// been laid out (e.g. user is on Insights tab when the notification
@@ -274,25 +274,31 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
 
     private func refreshSelectionOverlays() {
         let showOverlays = isSelectionMode && isSameDay(as: currentDisplayDate)
+
+        for (_, overlay) in selectionOverlays {
+            overlay.removeFromSuperview()
+        }
+        selectionOverlays.removeAll()
+
+        guard showOverlays else { return }
+
         for (id, view) in taskCards {
-            view.viewWithTag(Self.selectionOverlayTag)?.removeFromSuperview()
-            if showOverlays {
-                let overlay = SelectionOverlayView(
-                    taskID: id,
-                    selected: selectedTaskIDs.contains(id)
-                ) { [weak self] tappedID in
-                    self?.toggleSelection(for: tappedID)
-                }
-                overlay.tag = Self.selectionOverlayTag
-                overlay.translatesAutoresizingMaskIntoConstraints = false
-                view.addSubview(overlay)
-                NSLayoutConstraint.activate([
-                    overlay.topAnchor.constraint(equalTo: view.topAnchor),
-                    overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                    overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                    overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-                ])
+            guard let parent = view.superview else { continue }
+            let overlay = SelectionOverlayView(
+                taskID: id,
+                selected: selectedTaskIDs.contains(id)
+            ) { [weak self] tappedID in
+                self?.toggleSelection(for: tappedID)
             }
+            overlay.translatesAutoresizingMaskIntoConstraints = false
+            parent.addSubview(overlay)
+            NSLayoutConstraint.activate([
+                overlay.topAnchor.constraint(equalTo: view.topAnchor),
+                overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
+            selectionOverlays[id] = overlay
         }
     }
 
@@ -347,6 +353,8 @@ final class CareViewController: OCKDailyPageViewController, @unchecked Sendable 
         let date = modifyDateIfNeeded(date)
         self.currentDisplayDate = date
         self.taskCards.removeAll()
+        for (_, overlay) in selectionOverlays { overlay.removeFromSuperview() }
+        self.selectionOverlays.removeAll()
         self.updateRightBarButtons()
 
         Task {
