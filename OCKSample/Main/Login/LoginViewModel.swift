@@ -13,11 +13,12 @@ import ParseSwift
 import os.log
 import WatchConnectivity
 
+// swiftlint:disable function_parameter_count
 @MainActor
 class LoginViewModel: ObservableObject {
 
     // MARK: Public read, private write properties
-	@Published private(set) var isLoggedIn: Bool? {
+    @Published private(set) var isLoggedIn: Bool? {
         willSet {
             /*
              Publishes a notification to subscribers whenever this value changes.
@@ -33,8 +34,8 @@ class LoginViewModel: ObservableObject {
     @Published private(set) var loginError: ParseError?
 
     init() {
-		Task {
-			await checkStatus()
+        Task {
+            await checkStatus()
         }
     }
 
@@ -42,9 +43,9 @@ class LoginViewModel: ObservableObject {
     func checkStatus() async {
         do {
             _ = try await User.current()
-			self.isLoggedIn = true
+            self.isLoggedIn = true
         } catch {
-			self.isLoggedIn = false
+            self.isLoggedIn = false
         }
     }
 
@@ -52,17 +53,17 @@ class LoginViewModel: ObservableObject {
         Task {
             do {
                 let message = try await Utility.getUserSessionForWatch()
-				DispatchQueue.global(qos: .default).async {
-					// WCSession.default.sendMessage crashes when sending on MainActor
-					// so we call on a less important queue.
-					WCSession.default.sendMessage(
-						message,
-						replyHandler: nil,
-						errorHandler: { error in
-							Logger.remoteSessionDelegate.info("Could not send updated session token to watch: \(error)")
-						}
-					)
-				}
+                DispatchQueue.global(qos: .default).async {
+                    // WCSession.default.sendMessage crashes when sending on MainActor
+                    // so we call on a less important queue.
+                    WCSession.default.sendMessage(
+                        message,
+                        replyHandler: nil,
+                        errorHandler: { error in
+                            Logger.remoteSessionDelegate.info("Could not send updated session token to watch: \(error)")
+                        }
+                    )
+                }
             } catch {
                 Logger.login.info("Could not get session token for watch: \(error)")
                 return
@@ -71,8 +72,8 @@ class LoginViewModel: ObservableObject {
     }
 
     private func finishCompletingSignIn(
-		_ careKitPatient: OCKPatient? = nil
-	) async throws {
+        _ careKitPatient: OCKPatient? = nil
+    ) async throws {
         if let careKitUser = careKitPatient {
             var user = try await User.current()
             guard let userType = careKitUser.userType,
@@ -92,23 +93,48 @@ class LoginViewModel: ObservableObject {
             }
         }
 
+        // For existing user login, wait for remote data to sync before
+        // transitioning UI so onboarding status and tasks are available
+        if careKitPatient == nil, let appDelegate = AppDelegateKey.defaultValue {
+            appDelegate.parseRemote.automaticallySynchronizes = false
+            try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                appDelegate.store.synchronize { error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume()
+                    }
+                }
+            }
+            appDelegate.parseRemote.automaticallySynchronizes = true
+        }
+
+        // Detection setup is intentionally deferred until here, AFTER any
+        // initial sync above. Doing it earlier (e.g. inside setupRemotes)
+        // races the cloud pull and can produce orphan outcomes that crash
+        // CareKit when displayed.
+        if let appDelegate = AppDelegateKey.defaultValue, let store = appDelegate.store {
+            await appDelegate.startExerciseDetectionIfNeeded(store: store)
+        }
+
         // Notify the SwiftUI view that the user is correctly logged in and to transition screens
         await checkStatus()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            NotificationCenter.default.post(.init(name: Notification.Name(rawValue: Constants.requestSync)))
-            Utility.requestHealthKitPermissions()
-        }
-
         // Setup installation to receive push notifications
         await Utility.updateInstallationWithDeviceToken()
+
+        // Claim any pending Relationship rows addressed to this user's email
+        // or phone before they had an account. Each match has its patientObjectId
+        // / patientUsername filled in, ACL tightened, and the deferred
+        // connection-request notification dispatched. Idempotent.
+        await Relationship.linkPendingForCurrentUser()
     }
 
     private func savePatientAfterSignUp(
-		_ type: UserType,
-		firstName: String,
-		lastName: String
-	) async throws -> OCKPatient {
+        _ type: UserType,
+        firstName: String,
+        lastName: String, email: String?
+    ) async throws -> OCKPatient {
 
         let remoteUUID = UUID()
         do {
@@ -122,32 +148,56 @@ class LoginViewModel: ObservableObject {
         }
         try await appDelegate.setupRemotes(uuid: remoteUUID)
 
-        var newPatient = OCKPatient(
-			remoteUUID: remoteUUID,
-			id: remoteUUID.uuidString,
-			givenName: firstName,
-			familyName: lastName
-		)
-        newPatient.userType = type
-        let savedPatient = try await appDelegate.store.addPatient(newPatient)
+        // Check if a patient already exists in this store (OCKStore only allows one per store).
+        // This happens when the app is launched again after a previous anonymous/signup session.
+        let existingPatients = (try? await appDelegate.store.fetchAnyPatients(
+            query: OCKPatientQuery(for: Date())
+        )) ?? []
 
-		let currentDate = Date()
-		let startDate = daysInThePastToGenerateSampleData < 0 ? Calendar.current.date(
-			byAdding: .day,
-			value: daysInThePastToGenerateSampleData,
-			to: currentDate
-		)! : currentDate
+        let savedPatient: OCKPatient
+        if let existingPatient = existingPatients.first as? OCKPatient {
+            Logger.login.info("Patient already exists in store, reusing existing patient")
+            savedPatient = existingPatient
+        } else {
+            var newPatient = OCKPatient(
+                remoteUUID: remoteUUID,
+                id: remoteUUID.uuidString,
+                givenName: firstName,
+                familyName: lastName,
+                email: email
+            )
+            newPatient.userType = type
+            savedPatient = try await appDelegate.store.addPatient(newPatient)
+        }
+
+        // Use addContactsIfNotPresent so this is safe on retry/re-login (addAnyContact throws on duplicate)
+        let newContact = OCKContact(
+            id: savedPatient.id,
+            name: savedPatient.name,
+            carePlanUUID: nil
+        )
+        _ = try await appDelegate.store.addContactsIfNotPresent([newContact])
+
+        let currentDate = Date()
+        let startDate = daysInThePastToGenerateSampleData < 0 ? Calendar.current.date(
+            byAdding: .day,
+            value: daysInThePastToGenerateSampleData,
+            to: currentDate
+        )! : currentDate
+        // Pass savedPatient.uuid so care plans are tied to this patient
         try await appDelegate.store.populateDefaultCarePlansTasksContacts(
-			startDate: startDate
-		)
+            savedPatient.uuid,
+            startDate: startDate
+        )
         try await appDelegate.healthKitStore.populateDefaultHealthKitTasks(
-			startDate: startDate
-		)
-		if startDate < currentDate {
-			try await appDelegate.store.populateSampleOutcomes(
-				startDate: startDate
-			)
-		}
+            savedPatient.uuid,
+            startDate: startDate
+        )
+        if startDate < currentDate {
+            try await appDelegate.store.populateSampleOutcomes(
+                startDate: startDate
+            )
+        }
         appDelegate.parseRemote.automaticallySynchronizes = true
 
         // Post notification to sync
@@ -162,31 +212,44 @@ class LoginViewModel: ObservableObject {
 
      This will also enforce that the username is not already taken.
      - parameter username: The username the person signing up.
+     - parameter email: The email the person signing up.
      - parameter password: The password the person signing up.
      - parameter firstName: The first name of the person signing up.
      - parameter lastName: The last name of the person signing up.
     */
     func signup(
-		_ type: UserType,
-		username: String,
-		password: String,
-		firstName: String,
-		lastName: String
-	) async {
+        _ type: UserType,
+        username: String,
+        password: String,
+        firstName: String,
+        lastName: String, email: String
+    ) async {
+        // swiftlint:disable:next line_length
+        guard username.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.union(.init(charactersIn: "_")).contains($0) }) else {
+            // swiftlint:disable:next line_length
+            self.loginError = ParseError(code: .otherCause, message: "Username can only contain letters, numbers, and underscores.")
+            return
+        }
         do {
             guard try await PCKUtility.isServerAvailable() else {
                 Logger.login.error("Server health is not \"ok\"")
                 return
             }
+            try? await User.logout()
+
             var newUser = User()
             // Set any properties you want saved on the user befor logging in.
             newUser.username = username.lowercased()
+            if !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                newUser.email = email.lowercased()
+            }
             newUser.password = password
             let user = try await newUser.signup()
             Logger.login.info("Parse signup successful: \(user)")
             let patient = try await savePatientAfterSignUp(type,
                                                            firstName: firstName,
-                                                           lastName: lastName)
+                                                           lastName: lastName,
+                                                           email: email)
             try? await finishCompletingSignIn(patient)
         } catch {
             Logger.login.error("Error details: \(error)")
@@ -195,6 +258,9 @@ class LoginViewModel: ObservableObject {
             }
             switch parseError.code {
             case .usernameTaken:
+                self.loginError = parseError
+
+            case .userEmailTaken:
                 self.loginError = parseError
 
             default:
@@ -210,35 +276,40 @@ class LoginViewModel: ObservableObject {
 
      The user must have already signed up.
      - parameter username: The username the person logging in.
+     - parameter email: The email the person logging in.
      - parameter password: The password the person logging in.
     */
     func login(
-		username: String,
-		password: String
-	) async {
+        usernameOrEmail: String,
+        password: String
+    ) async {
         do {
             guard try await PCKUtility.isServerAvailable() else {
                 Logger.login.error("Server health is not \"ok\"")
                 return
             }
-            let user = try await User.login(username: username.lowercased(), password: password)
+            let user: User
+            if usernameOrEmail.contains("@") {
+                user = try await User.login(email: usernameOrEmail.lowercased(), password: password)
+            } else {
+                user = try await User.login(username: usernameOrEmail.lowercased(), password: password)
+            }
             Logger.login.info("Parse login successful: \(user, privacy: .private)")
             AppDelegateKey.defaultValue?.setFirstTimeLogin(true)
             do {
                 try await Utility.setupRemoteAfterLogin()
                 try await finishCompletingSignIn()
             } catch {
-                Logger.login.error("Error saving the patient after signup: \(error, privacy: .public)")
+                Logger.login.error("Error saving the patient after login: \(error, privacy: .public)")
             }
         } catch {
             // swiftlint:disable:next line_length
             Logger.login.error("*** Error logging into Parse Server. If you are still having problems check for help here: https://github.com/netreconlab/parse-hipaa#getting-started ***")
             Logger.login.error("Error details: \(error)")
             guard let parseError = error as? ParseError else {
-                // Handle unknow error, right now it's silent
                 return
             }
-            self.loginError = parseError // Notify the SwiftUI view that there's an error
+            self.loginError = parseError
         }
     }
 
@@ -256,7 +327,8 @@ class LoginViewModel: ObservableObject {
             // Only allow annonymous users to be patients.
             let patient = try await savePatientAfterSignUp(.patient,
                                                            firstName: "Anonymous",
-                                                           lastName: "Login")
+                                                           lastName: "Login",
+                                                           email: "Universal")
             try? await finishCompletingSignIn(patient)
         } catch {
             // swiftlint:disable:next line_length
@@ -273,7 +345,8 @@ class LoginViewModel: ObservableObject {
      Logs out the currently logged in person *asynchronously*.
     */
     func logout() async {
-		await Utility.logoutAndResetAppState()
+        self.loginError = nil
+        await Utility.logoutAndResetAppState()
         await self.checkStatus()
     }
 }

@@ -15,8 +15,17 @@ struct ColorStyler: OCKColorStyler {
     var label: UIColor {
         FontColorKey.defaultValue
     }
+
+    // Change small labels color to darkGray
+    var secondaryLabel: UIColor { .darkGray }
+
+    // Change separator color to indigo
+    var separator: UIColor { .systemIndigo }
+
+    // Change tertiary label to brown
     var tertiaryLabel: UIColor {
-		UIColor(Color.accentColor)
+        .brown
     }
+
     #endif
 }

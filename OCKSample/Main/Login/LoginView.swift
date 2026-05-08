@@ -6,37 +6,29 @@
 //  Copyright © 2020 Network Reconnaissance Lab. All rights reserved.
 //
 
-/*
- This is a variation of the tutorial found here:
- https://www.iosapptemplates.com/blog/swiftui/login-screen-swiftui
- */
-
 import ParseSwift
 import SwiftUI
 import UIKit
 
-/*
- Anything is @ is a wrapper that subscribes and refreshes
- the view when a change occurs. List to the last lecture
- in Section 2 for an explanation
- */
 struct LoginView: View {
     @Environment(\.tintColorFlip) var tintColorFlip
     @ObservedObject var viewModel: LoginViewModel
-    @State var usersname = ""
+
+    @State var username = ""
     @State var password = ""
-    @State var firstName: String = ""
-    @State var lastName: String = ""
+    @State var firstName = ""
+    @State var lastName = ""
+    @State var email = ""
     @State var signupLoginSegmentValue = 0
+    @State var selectedRole: UserType = .patient
 
     var body: some View {
         VStack {
-            // Change the title to the name of your application
             Text("APP_NAME")
                 .font(.largeTitle)
                 .foregroundColor(.white)
                 .padding()
-            // Change this image to something that represents your application
+
             Image("exercise.jpg")
                 .resizable()
                 .frame(width: 150, height: 150, alignment: .center)
@@ -45,12 +37,7 @@ struct LoginView: View {
                 .shadow(radius: 10)
                 .padding()
 
-            /*
-             Example of how to do the picker here:
-             https://www.swiftkickmobile.com/creating-a-segmented-control-in-swiftui/
-             */
-            Picker(selection: $signupLoginSegmentValue,
-                   label: Text("LOGIN_PICKER")) {
+            Picker(selection: $signupLoginSegmentValue, label: Text("LOGIN_PICKER")) {
                 Text("LOGIN").tag(0)
                 Text("SIGN_UP").tag(1)
             }
@@ -60,19 +47,28 @@ struct LoginView: View {
             .padding()
 
             VStack(alignment: .leading) {
-                TextField("USERNAME", text: $usersname)
-                    .padding()
-                    .background(.white)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)
+                TextField(
+                    signupLoginSegmentValue == 1 ? "USERNAME" : "USERNAME_OR_EMAIL",
+                    text: $username
+                )
+                .padding()
+                .background(.white)
+                .cornerRadius(20.0)
+                .shadow(radius: 10.0, x: 20, y: 10)
+
                 SecureField("PASSWORD", text: $password)
                     .padding()
                     .background(.white)
                     .cornerRadius(20.0)
                     .shadow(radius: 10.0, x: 20, y: 10)
 
-                switch signupLoginSegmentValue {
-                case 1:
+                if signupLoginSegmentValue == 1 {
+                    TextField("EMAIL", text: $email)
+                        .padding()
+                        .background(.white)
+                        .cornerRadius(20.0)
+                        .shadow(radius: 10.0, x: 20, y: 10)
+
                     TextField("GIVEN_NAME", text: $firstName)
                         .padding()
                         .background(.white)
@@ -84,89 +80,97 @@ struct LoginView: View {
                         .background(.white)
                         .cornerRadius(20.0)
                         .shadow(radius: 10.0, x: 20, y: 10)
-                default:
-                    EmptyView()
-                }
-            }.padding()
 
-            /*
-             Notice that "action" and "label" are closures
-             (which is essentially afunction as argument
-             like we discussed in class)
-             */
-            Button(action: {
+                    HStack(spacing: 16) {
+                        ForEach([UserType.patient, UserType.clinician]) { role in
+                            Button {
+                                selectedRole = role
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: role.systemImage)
+                                        .font(.title2)
+                                    Text(role.displayName)
+                                        .font(.subheadline).bold()
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .background(
+                                    selectedRole == role
+                                        ? Color.white
+                                        : Color.white.opacity(0.2)
+                                )
+                                .foregroundColor(
+                                    selectedRole == role
+                                        ? Color.accentColor
+                                        : Color.white
+                                )
+                                .cornerRadius(14)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(Color.white, lineWidth: selectedRole == role ? 2 : 0)
+                                )
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+            }
+            .padding()
+
+            Button {
                 switch signupLoginSegmentValue {
                 case 1:
                     Task {
                         await viewModel.signup(
-							.patient,
-							username: usersname,
-							password: password,
-							firstName: firstName,
-							lastName: lastName
-						)
+                            selectedRole,
+                            username: username,
+                            password: password,
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: email
+                        )
                     }
                 default:
                     Task {
                         await viewModel.login(
-							username: usersname,
-							password: password
-						)
+                            usernameOrEmail: username,
+                            password: password
+                        )
                     }
                 }
-            }, label: {
-                switch signupLoginSegmentValue {
-                case 1:
-                    Text("SIGN_UP")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(width: 300)
-                default:
-                    Text("LOGIN")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(width: 300)
-                }
-            })
+            } label: {
+                Text(signupLoginSegmentValue == 1 ? "SIGN_UP" : "LOGIN")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(width: 300)
+            }
             .background(Color(.green))
             .cornerRadius(15)
 
-            Button(action: {
-                Task {
-                    await viewModel.loginAnonymously()
-                }
-            }, label: {
-                switch signupLoginSegmentValue {
-                case 0:
+            if signupLoginSegmentValue == 0 {
+                Button {
+                    Task { await viewModel.loginAnonymously() }
+                } label: {
                     Text("LOGIN_ANONYMOUSLY")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()
                         .frame(width: 300)
-                default:
-                    EmptyView()
                 }
-            })
-            .background(Color(.lightGray))
-            .cornerRadius(15)
+                .background(Color(.lightGray))
+                .cornerRadius(15)
+            }
 
-            // If an error occurs show it on the screen
             if let error = viewModel.loginError {
                 Text("\(String(localized: "ERROR")): \(error.message)")
                     .foregroundColor(.red)
             }
+
             Spacer()
         }
         .background(
             LinearGradient(
-                gradient: Gradient(
-                    colors: [
-                        Color(tintColorFlip),
-                        Color.accentColor
-					]
-                ),
+                gradient: Gradient(colors: [Color(tintColorFlip), Color.accentColor]),
                 startPoint: .top,
                 endPoint: .bottom
             )
