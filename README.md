@@ -20,7 +20,7 @@ To learn more about this application, watch the videos below:
 
 | Basic Function | Clinician - Patient | IKEB - Exercise | IKEB - Mood |
 |---|---|---|---|
-| <a href="https://youtu.be/80d4uPOR-j4" target="_blank"><img src="http://img.youtube.com/vi/80d4uPOR-j4/0.jpg" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a> | <a href="https://youtube.com/shorts/XZIT3IMpNTQ" target="_blank"><img src="Screenshots/clinician and paitent.png" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a>  | <a href="[https://youtu.be/80d4uPOR-j4](https://youtube.com/shorts/XZIT3IMpNTQ)" target="_blank"><img src="http://img.youtube.com/vi/80d4uPOR-j4/0.jpg" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a> | <a href="[https://youtu.be/80d4uPOR-j4](https://youtube.com/shorts/XZIT3IMpNTQ)" target="_blank"><img src="http://img.youtube.com/vi/80d4uPOR-j4/0.jpg" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a> |
+| <a href="https://youtu.be/80d4uPOR-j4" target="_blank"><img src="http://img.youtube.com/vi/80d4uPOR-j4/0.jpg" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a> | <a href="https://youtube.com/shorts/XZIT3IMpNTQ" target="_blank"><img src="Screenshots/clinician and paitent.png" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a>  | <a href="https://youtu.be/-eLKyrD1GCg" target="_blank"><img src="http://img.youtube.com/vi/-eLKyrD1GCg/0.jpg" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a> | <a href="https://youtube.com/shorts/cMi7RO_HQbI" target="_blank"><img src="http://img.youtube.com/vi/80d4uPOR-j4/0.jpg" alt="PulseBuddy demo video" width="240" height="180" border="10" /></a> |
 
 
 ### Designed for the following users
